@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
+
+    <title>Partio (redpawfx fork)  Partio4Maya by redpawfx</title>
+    <style type="text/css">
+<!--
+.style3 {color: #999999}
+.style5 {font-size: 12px}
+.style6 {color: #000000; font-size: 12px; }
+.style9 {font-size: 12px; font-weight: bold; }
+.style10 {font-size: 10px}
+-->
+    </style>
+  </head>
+<body>
+<p><a href="index.html"><img src="images/back_arrow.png" width="65" height="43" border="0" align="absmiddle"></a> <img src="images/partioImport_logo.png" width="200" height="45" align="absmiddle">
+</p>
+<p>&nbsp;</p>
+<p>%mel: partioImport -h; </p>
+<p>-----------------------------------------------------------------------------<br>
+partioImport -p/particle &lt;particleShapeName&gt; [Options] &lt;/full/path/to/particleCacheFile&gt; </p>
+<p> [Options]<br>
+  -p/particle &lt;particleShapeName&gt; (if none defined, one will be created) -atr/attribute (multi use) &lt;cache Attr Name&gt; &lt;PP attribute name&gt;<br>
+  (position/velocity/id) are always imported </p>
+<p> Example:</p>
+<p>%mel: partioImport -p particleShape1 -atr &quot;pointColor&quot; &quot;rgbPP&quot; -atr &quot;opacity&quot; &quot;opacityPP&quot; &quot;/file/path/to/fooBar.0001.prt&quot;; </p>
+</body>
+</html>

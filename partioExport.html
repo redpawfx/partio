@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
+
+    <title>Partio (redpawfx fork)  Partio4Maya by redpawfx</title>
+    <style type="text/css">
+<!--
+.style3 {color: #999999}
+.style5 {font-size: 12px}
+.style6 {color: #000000; font-size: 12px; }
+.style9 {font-size: 12px; font-weight: bold; }
+.style10 {font-size: 10px}
+-->
+    </style>
+  </head>
+<body>
+<p><a href="index.html"><img src="images/back_arrow.png" width="65" height="43" border="0" align="absmiddle"></a> <img src="images/partioExportGuiLogo.png" width="250" height="98" align="absmiddle">
+</p>
+<p>&nbsp;</p>
+<p align="center"><img src="images/partioExport.png" width="537" height="560">
+</p>
+<p align="center">&nbsp;</p>
+<p align="left">%mel: partioExport -h </p>
+<p align="left">-----------------------------------------------------------------------------<br>
+  partioExport [Options] node </p>
+<p> [Options]<br>
+  -mnf/minFrame &lt;int&gt; <br>
+  -mxf/maxFrame &lt;int&gt; <br>
+  -f/format &lt;string&gt; (format is one of: pda,pdb,pdc,prt,bin,bgeo,geo,ptc,mc,rib,ass)<br>
+  -atr/attribute (multi use) &lt;PP attribute name&gt;<br>
+  (position/velocity/id) are always exported <br>
+  -p/path &lt;directory file path&gt; <br>
+  -fp/filePrefix &lt;fileNamePrefix&gt; <br>
+  -flp/flip (flip y-&gt;z axis to go to Z up packages) </p>
+<p> Example:</p>
+<p>%mel: partioExport -mnf 1 -mxf 10 -f prt -atr position -atr rgbPP -at opacityPP -fp &quot;SmokeShapepart1of20&quot; -p &quot;/file/path/to/output/directory&quot; particleShape1;</p>
+<p>&nbsp;</p>
+</body>
+</html>
