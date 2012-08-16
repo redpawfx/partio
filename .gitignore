@@ -37,6 +37,7 @@
 *.cache
 *.build
 ._*
+*.kate-swp
 CMakeScripts
 CMakeFiles
 partio.build

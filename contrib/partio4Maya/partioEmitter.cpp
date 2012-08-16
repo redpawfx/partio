@@ -228,10 +228,12 @@ MStatus partioEmitter::initialize()
 
     aPartioAttributes = tAttr.create ("partioCacheAttributes", "pioCAts", MFnStringData::kString);
     tAttr.setArray(true);
+    tAttr.setDisconnectBehavior(MFnAttribute::kDelete);
     //tAttr.setUsesArrayDataBuilder( true );
 
     aMayaPPAttributes = tAttr.create("mayaPPAttributes", "pioMPPAts" , MFnStringData::kString);
     tAttr.setArray(true);
+    tAttr.setDisconnectBehavior(MFnAttribute::kDelete);
     //nAttr.setUsesArrayDataBuilder( true );
 
 
@@ -486,28 +488,28 @@ MStatus partioEmitter::compute ( const MPlug& plug, MDataBlock& block )
 			{
 				MGlobal::displayInfo("partioEmitter->refreshing AE controls");
 
-				MString command = "";
-				MString zPlugName = zPlug.name();
-				MString yPlugName = yPlug.name();
-				for (unsigned int x = 0; x<zPlug.numElements(); x++)
-				{
-					command += "removeMultiInstance -b true ";
-					command += zPlugName;
-					command += "[";
-					command += x;
-					command += "]";
-					command += ";removeMultiInstance -b true ";
-					command += yPlugName;
-					command += "[";
-					command += x;
-					command += "]";
-					command += "; ";
-
-				}
-
-				MGlobal::executeCommand(command);
-				zPlug.setNumElements(0);
-				yPlug.setNumElements(0);
+// 				MString command = "";
+// 				MString zPlugName = zPlug.name();
+// 				MString yPlugName = yPlug.name();
+// 				for (unsigned int x = 0; x<zPlug.numElements(); x++)
+// 				{
+// 					command += "removeMultiInstance -b true ";
+// 					command += zPlugName;
+// 					command += "[";
+// 					command += x;
+// 					command += "]";
+// 					command += ";removeMultiInstance -b true ";
+// 					command += yPlugName;
+// 					command += "[";
+// 					command += x;
+// 					command += "]";
+// 					command += "; ";
+//                                 
+// 				}
+//                                 
+// 				MGlobal::executeCommand(command);
+// 				zPlug.setNumElements(0);
+// 				yPlug.setNumElements(0);
 
 
 				for (unsigned int i=0;i<numAttr;i++)

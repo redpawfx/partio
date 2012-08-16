@@ -299,6 +299,7 @@ MStatus partioInstancer::initialize()
 
     aPartioAttributes = tAttr.create ("partioCacheAttributes", "pioCAts", MFnStringData::kString);
     tAttr.setArray(true);
+    tAttr.setDisconnectBehavior(MFnAttribute::kDelete);
 
 	aPointSize = nAttr.create("pointSize", "ptsz", MFnNumericData::kInt, 2, &stat);
 	nAttr.setDefault(2);
@@ -794,20 +795,20 @@ MStatus partioInstancer::compute( const MPlug& plug, MDataBlock& block )
 
 		if (cacheChanged || zPlug.numElements() != numAttr) // update the AE Controls for attrs in the cache
 		{
-			MString command = "";
-			MString zPlugName = zPlug.name();
-			for (unsigned int x = 0; x<zPlug.numElements(); x++)
-			{
-				command += "removeMultiInstance -b true ";
-				command += zPlugName;
-				command += "[";
-				command += x;
-				command += "]";
-				command += ";";
-			}
+			//MString command = "";
+			//MString zPlugName = zPlug.name();
+			//for (unsigned int x = 0; x<zPlug.numElements(); x++)
+			//{
+			//	command += "removeMultiInstance -b true ";
+			//	command += zPlugName;
+			//	command += "[";
+			//	command += x;
+			//	command += "]";
+			//	command += ";";
+			//}
 
-			MGlobal::executeCommand(command);
-			zPlug.setNumElements(0);
+			//MGlobal::executeCommand(command);
+			//zPlug.setNumElements(0);
 
 			//cout << "partioInstancer->refreshing AE controls" << endl;
 
