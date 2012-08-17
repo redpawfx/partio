@@ -86,6 +86,40 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 #include "partio4MayaShared.h"
 #include "iconArrays.h"
 
+// struct to keep track of state changes between renders
+struct partVizState {
+	MString fileLoaded;
+	MString path;
+	MString file;
+	MString ext;
+	bool isStatic;
+	int colorFromIndex;
+	int alphaFromIndex;
+	int radiusFromIndex;
+	int opacityFromIndex;
+	MFloatVector color;
+	float alpha;
+	bool invertAlpha;
+	float radius;
+	bool flipStatus;
+};
+
+// struct to keep track of current context vars
+struct partVizContext {
+	MStringArray attributeList;
+	MString newCacheFile;
+	MString renderCacheFile;
+	MFloatVector defaultColor;
+	float defaultAlpha;
+	float defaultRadius;
+	bool flipped;
+	bool frameChanged;
+	bool drawError;
+	bool cacheActive;
+	bool cacheChanged;
+	bool forceReload;
+};
+
 class partioVizReaderCache{
 	public:
 		partioVizReaderCache();
@@ -112,7 +146,7 @@ class partioVisualizerUI : public MPxSurfaceShapeUI {
 		void 	drawBoundingBox() const;
 		void    drawBillboardCircleAtPoint(MVector position, float radius, int num_segments, int drawType) const;
 		void 	drawPartio(partioVizReaderCache* pvCache, int drawStyle) const;
-		static void * creator();
+		static void* creator();
 		virtual bool	select( MSelectInfo &selectInfo, MSelectionList &selectionList, MPointArray &worldSpaceSelectPts ) const;
 };
 
@@ -165,28 +199,25 @@ class partioVisualizer : public MPxSurfaceShape {
 		
 		static MTypeId id;
 		float 	multiplier;
-		bool cacheChanged;
 		partioVizReaderCache pvCache;
 	
 	private:
-		MString mLastFileLoaded;
-		MString mLastPath;
-		MString mLastFile;
-		MString mLastExt;
-		bool mLastStatic;
-		int mLastColorFromIndex;
-		int mLastAlphaFromIndex;
-		int mLastRadiusFromIndex;
-		MFloatVector mLastColor;
-		float mLastAlpha;
-		bool mLastInvertAlpha;
-		float mLastRadius;
-		bool mLastFlipStatus;
-		bool mFlipped;
-		bool  frameChanged;
-		MStringArray attributeList;
-		bool drawError;
-	
+		MStatus getCurrentState( const MPlug& plug, MDataBlock& block);
+		MStatus loadCache( const MPlug& plug, MDataBlock& block);
+		bool testForCacheReload( const MPlug& plug, MDataBlock& block);
+		MStatus reloadCache( const MPlug& plug, MDataBlock& block);
+		MStatus doFlip(const MPlug& plug, MDataBlock& block);
+		void updateColor( const MPlug& plug, MDataBlock& block);
+		void updateAlpha( const MPlug& plug, MDataBlock& block);
+		void updateRadius( const MPlug& plug, MDataBlock& block);
+		void updateAEControls(const MPlug& plug, MDataBlock& block);
+		
+		// state tracking structs
+		partVizState mLast;
+		partVizState mCurrent;
+		// shared compute vars
+		partVizContext mContext;
+		
 	protected:
 		int dUpdate;
 		GLuint dList;
