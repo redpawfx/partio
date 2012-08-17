@@ -35,106 +35,78 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 #include "partio4MayaShared.h"
 #include <maya/MFnPlugin.h>
 
-
-
-MStatus initializePlugin ( MObject obj )
-{
-
+MStatus initializePlugin ( MObject obj ) {
 	// source  mel scripts this way if they're missing from the script path it will alert the user...
 	MGlobal::executeCommand("source AEpartioEmitterTemplate.mel");
 	MGlobal::executeCommand("source AEpartioVisualizerTemplate.mel");
-		MGlobal::executeCommand("source AEpartioInstancerTemplate.mel");
+	MGlobal::executeCommand("source AEpartioInstancerTemplate.mel");
 	MGlobal::executeCommand("source partioExportGui.mel");
 	MGlobal::executeCommand("source partioUtils.mel");
-
 	MStatus status;
+	// make plugin, register different nodes, shapes, commands, alert if they failed
 	MFnPlugin plugin ( obj, "RedpawFX,Luma Pictures,WDAS", "0.9.3a(sigg)", "Any" );
-
 	status = plugin.registerShape( "partioVisualizer", partioVisualizer::id,
-									&partioVisualizer::creator,
-									&partioVisualizer::initialize,
-									&partioVisualizerUI::creator);
-
-
-	if ( !status )
-	{
+							&partioVisualizer::creator,
+							&partioVisualizer::initialize,
+							&partioVisualizerUI::creator);
+	if( !status ) {
 		status.perror ( "registerNode partioVisualizer failed" );
 		return status;
 	}
 	status = plugin.registerShape( "partioInstancer", partioInstancer::id,
-									&partioInstancer::creator,
-									&partioInstancer::initialize,
-									&partioInstancerUI::creator);
-
-
-	if ( !status )
-	{
+							&partioInstancer::creator,
+							&partioInstancer::initialize,
+							&partioInstancerUI::creator);
+	if ( !status ){
 		status.perror ( "registerNode partioInstancer failed" );
 		return status;
 	}
-
-
 	status = plugin.registerNode ( "partioEmitter", partioEmitter::id,
-	                               &partioEmitter::creator, &partioEmitter::initialize,
-	                               MPxNode::kEmitterNode );
-	if ( !status )
-	{
+							&partioEmitter::creator, &partioEmitter::initialize,
+							MPxNode::kEmitterNode );
+	if( !status ) {
 		status.perror ( "registerNode partioEmitter failed" );
 		return status;
 	}
-
 	status = plugin.registerCommand("partioExport",PartioExport::creator, PartioExport::createSyntax );
-	if (!status)
-	{
+	if (!status) {
 		status.perror("registerCommand partioExport failed");
 		return status;
 	}
-
 	status = plugin.registerCommand("partioImport",PartioImport::creator, PartioImport::createSyntax );
-	if (!status)
-	{
+	if (!status) {
 		status.perror("registerCommand partioImport failed");
 	}
-
 	return status;
 }
 
-MStatus uninitializePlugin ( MObject obj )
-{
+MStatus uninitializePlugin ( MObject obj ) {
 	MStatus status;
 	MFnPlugin plugin ( obj );
-
+	// deregester nodes, shapes, commands
 	status = plugin.deregisterNode ( partioVisualizer::id );
-	if ( !status )
-	{
+	if ( !status ) {
 		status.perror ( "deregisterNode partioVisualizer failed" );
 		return status;
 	}
 	status = plugin.deregisterNode ( partioInstancer::id );
-	if ( !status )
-	{
+	if ( !status ){
 		status.perror ( "deregisterNode partioInstancer failed" );
 		return status;
 	}
-
 	status = plugin.deregisterNode ( partioEmitter::id );
-	if ( !status )
-	{
+	if ( !status ) {
 		status.perror ( "deregisterNode partioEmitter failed" );
 		return status;
 	}
-
 	status = plugin.deregisterCommand("partioExport");
-	if (!status)
-	{
+	if (!status) {
 		status.perror("deregisterCommand partioExport failed");
 		return status;
 	}
 	status = plugin.deregisterCommand("partioImport");
-	if (!status)
-	{
+	if (!status) {
 		status.perror("deregisterCommand partioImport failed");
 	}
 	return status;
-
 }

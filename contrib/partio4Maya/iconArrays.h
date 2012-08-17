@@ -33,6 +33,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 //
 //
 
+#ifndef Partio4MayaIconArrays_H
+#define Partio4MayaIconArrays_H
+
 #include <partio4MayaShared.h>
 
 static int debrisPointCount = 10;
@@ -536,4 +539,5 @@ static GLfloat circles[][10][3] =
 }
 ;
 
+#endif
 

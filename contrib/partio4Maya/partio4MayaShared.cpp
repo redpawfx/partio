@@ -27,62 +27,47 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 */
 
-#include <map>
-#include <math.h>
-#include <stdlib.h>
 #include "partio4MayaShared.h"
-#include "iconArrays.h"
-#include "Partio.h"
+
+#define TABLE_SIZE 256
+
+#define LEAD_COLOR				18	// green
+#define ACTIVE_COLOR			15	// white
+#define ACTIVE_AFFECTED_COLOR	8	// purple
+#define DORMANT_COLOR			4	// blue
+#define HILITE_COLOR			17	// pale blue
 
 using namespace Partio;
 using namespace std;
 
-//////////////////////////////////
-MVector partio4Maya::jitterPoint(int id, float freq, float offset, float jitterMag)
-///* generate a constant noise offset for this  ID
-//  and return as a vector to add to the particle position
-//
-{
-    MVector jitter(0,0,0);
-    if (jitterMag > 0)
-    {
-        jitter.x = ((noiseAtValue(float((id+.124+offset))*freq))-.5)*2;
-        jitter.y = ((noiseAtValue(float((id+1042321+offset))*freq))-.5)*2;
-        jitter.z = ((noiseAtValue(float((id-2350212+offset))*freq))-.5)*2;
-
-        jitter*= jitterMag;
-    }
-
-    return  jitter;
+/// generate a constant noise offset for this ID and return as a vector to add to the particle position
+MVector partio4Maya::jitterPoint(int id, float freq, float offset, float jitterMag) {
+	MVector jitter(0,0,0);
+	if (jitterMag > 0){
+		jitter.x = ((noiseAtValue(float((id+.124+offset))*freq))-.5)*2;
+		jitter.y = ((noiseAtValue(float((id+1042321+offset))*freq))-.5)*2;
+		jitter.z = ((noiseAtValue(float((id-2350212+offset))*freq))-.5)*2;
+		jitter*= jitterMag;
+	}
+	return  jitter;
 }
 
-//////////////////////////////////////////////////
-bool partio4Maya::partioCacheExists(const char* fileName)
-{
-
-    struct stat fileInfo;
-    bool statReturn;
-    int intStat;
-
-    intStat = stat(fileName, &fileInfo);
-    if (intStat == 0)
-    {
-        statReturn = true;
-    }
-    else
-    {
-        statReturn = false;
-    }
-
-    return(statReturn);
-
+/// returns true if the file exists
+bool partio4Maya::partioCacheExists(const char* fileName) {
+	struct stat fileInfo;
+	bool statReturn;
+	int intStat;
+	intStat = stat(fileName, &fileInfo);
+	if (intStat == 0) {
+		statReturn = true;
+	} else {
+		statReturn = false;
+	}
+	return(statReturn);
 }
 
-
-///////////////////////////////////////////
 /// C++ version of the same mel procedure
-MStringArray partio4Maya::partioGetBaseFileName(MString inFileName)
-{
+MStringArray partio4Maya::partioGetBaseFileName(MString inFileName){
 	MString preDelim = "";
 	MString postDelim =  "";
 	MString ext = "";
@@ -96,225 +81,144 @@ MStringArray partio4Maya::partioGetBaseFileName(MString inFileName)
 	outFileName.append(ext);
 	outFileName.append(padding);
 	outFileName.append(origFrameString);
-
-	///////////////////////////////////////////////////////////
-	/// first we strip off and determine the file extension
+	// first we strip off and determine the file extension
 	int l = inFileName.length();
 	bool foundExt = true;
-
 	MString breakdownFileName = inFileName;
-
 	const char* c = breakdownFileName.asChar();
 	int end = breakdownFileName.length()-1;
-	while (foundExt)
-	{
-		if (isalpha(c[end]))
-		{
+	while (foundExt) {
+		if (isalpha(c[end])) {
 			end--;
-		}
-		else
-		{
+		} else {
 			foundExt = false;
 			ext = breakdownFileName.substringW(end+1, (breakdownFileName.length()-1) );
 			breakdownFileName = breakdownFileName.substringW(0,end);
 		}
 	}
-
-	if (ext.length() > 0)
-	{
+	if (ext.length() > 0) {
 		outFileName[3] = ext;
 		//if (ext == "pts" || ext == "xyz") // special case for static lidar files
 		//{
 		//	return outFileName;
 		//}
 		outFileName[0] = breakdownFileName;
-	}
-	else
-	{
+	} else {
 		return outFileName;
 	}
-
-	//////////////////////////////////////////////////////////////
-	/// then we  determine the postDelim character (only support  "." or  "_"
-
+	// then we  determine the postDelim character (only support  "." or  "_"
 	l = breakdownFileName.length()-1;
 	MString last =  breakdownFileName.substringW(l,l);
-
-	if ( last == "_" || last == ".")
-	{
+	if ( last == "_" || last == ".") {
 		outFileName[2] = last;
 		breakdownFileName = breakdownFileName.substringW(0,(l-1));
 		outFileName[0] = breakdownFileName;
-	}
-	else
-	{
+	} else {
 		return outFileName;
 	}
-
-	/////////////////////////////////////////////////////////////
-	/// now lets  get the frame numbers to determine padding
-
+	// now lets  get the frame numbers to determine padding
 	bool foundNum = true;
 	const char* f = breakdownFileName.asChar();
 	end = breakdownFileName.length()-1;
-
-	while (foundNum)
-	{
-		if (isdigit(f[end]))
-		{
+	while (foundNum) {
+		if (isdigit(f[end])) {
 			end--;
 			padding += "#";
-		}
-		else
-		{
+		} else {
 			foundNum = false;
 			origFrameString = breakdownFileName.substringW(end+1,(breakdownFileName.length()-1));
 			breakdownFileName = breakdownFileName.substringW(0,end);
 		}
 	}
-
-	if (padding.length() > 0)
-	{
+	if (padding.length() > 0) {
 		outFileName[4] = padding;
 		outFileName[0] = breakdownFileName;
 		outFileName[5] = origFrameString;
-	}
-	else
-	{
+	} else {
 		outFileName[4] = "-1";
 		return outFileName;
 	}
-
-	/////////////////////////////////////////////////////////////
-	///  lastly  we  get the  preDelim character, again only supporting "." or "_"
-
+	//  lastly  we  get the  preDelim character, again only supporting "." or "_"
 	l = breakdownFileName.length()-1;
 	last =  breakdownFileName.substringW(l,l);
-
-
-	if ( last == "_" || last == ".")
-	{
+	if ( last == "_" || last == ".") {
 		outFileName[1] = last;
 		breakdownFileName = breakdownFileName.substringW(0,(l-1));
 		outFileName[0] = breakdownFileName;
-	}
-	else
-	{
+	} else {
 		return outFileName;
 	}
-
-	/////////////////////////////////////////////////////////////////////////
-	/// if we've gotten here, we have a fully populated outputFileNameArray
-
+	// if we've gotten here, we have a fully populated outputFileNameArray
 	return outFileName;
-
 }
 
-
-
-
+/// returns new file name or same file name depending on values, cache type etc
 void partio4Maya::updateFileName (MString cacheFile, MString cacheDir,
-									 bool cacheStatic, int cacheOffset,
-									 short cacheFormat, int integerTime,
-									 int &cachePadding, MString &formatExt,
-									 MString &outputFramePath, MString &outputRenderPath
-									)
-{
+		bool cacheStatic, int cacheOffset,
+		short cacheFormat, int integerTime,
+		int &cachePadding, MString &formatExt,
+		MString &outputFramePath, MString &outputRenderPath) {
 	formatExt = setExt(cacheFormat);
-
 	MStringArray fileParts = partioGetBaseFileName(cacheFile);
-
 	MString cachePrefix = fileParts[0];
 	MString preDelim = fileParts[1];
 	MString postDelim = fileParts[2];
 	//formatExt = fileParts[3];
 	cachePadding = fileParts[4].length();
 	MString origFrameString = fileParts[5];
-
 	bool tempFix = false;
-
 	int cacheFrame;
 	MString  newCacheFile;
 	MString  renderCacheFile;
-
-///////////////////////////////////////////////
-///  output path  as normal
-
+	//  output path  as normal
 	cacheFrame =  integerTime + cacheOffset;
-
 	MString formatString =  "%s%s%s%0";
 	// special case for PDCs and maya nCache files because of the funky naming convention  TODO: support substepped/retiming  caches
-	if (formatExt == "pdc")
-	{
+	if (formatExt == "pdc"){
 		cacheFrame *= (int)(6000 / 24);
 		cachePadding = 1;
-	}
-
-	else if (formatExt == "mc")
-	{
+	} else if (formatExt == "mc"){
 		cachePadding = 1;
 		formatString = "%s%sFrame%0";
 		int idx = cacheFile.rindexW("Frame");
-
-		if (idx != -1)
-		{
+		if (idx != -1){
 			cacheFile = cacheFile.substringW(0, idx-1);
 		}
 	}
-
 	char fileName[512] = "";
-
 	formatString += cachePadding;
 	formatString += "d%s%s";
-
 	const char* fmt = formatString.asChar();
-
-	if (cacheStatic)
-	{
+	if (cacheStatic){
 		stringstream s_str;
 		s_str << origFrameString.asChar();
 		s_str >> cacheFrame;
 	}
-
 	sprintf(fileName, fmt, cacheDir.asChar(), cachePrefix.asChar(), preDelim.asChar(), cacheFrame, postDelim.asChar(), formatExt.asChar());
-
 	newCacheFile = fileName;
-
-
-///////////////////////////////////////////
-/// output path for render output path
-
-
+	// output path for render output path
 	MString frameString = "<frame>";
-	if (cacheStatic)
-	{
+	if (cacheStatic){
 		frameString = origFrameString;
 	}
-
-
 	formatString =  "%s%s%s%s%s%s";
 	char rfileName[512] = "";
 	const char* rfmt = formatString.asChar();
 	sprintf(rfileName, rfmt, cacheDir.asChar(), cachePrefix.asChar(), preDelim.asChar(), frameString.asChar(), postDelim.asChar(), formatExt.asChar());
 	renderCacheFile = rfileName;
-
-
 	outputFramePath =  newCacheFile;
 	outputRenderPath = renderCacheFile;
 }
-////////////////////////////////////////////////////////////////
-MString partio4Maya::setExt(short extEnum)
-{
+
+/// set the current extension type
+MString partio4Maya::setExt(short extEnum){
 	std::map<short,MString> formatExtMap;
 	buildSupportedExtensionList(formatExtMap, false);  // eventually this will be replaced with something from partio
 	return MString(formatExtMap[extEnum]);
 }
 
-///////////////////////////////////////////////////////////
-// eventually this will be replaced with something from partio directly
-void partio4Maya::buildSupportedExtensionList(std::map<short,MString> &formatExtMap,bool write = false)
-{
-
+/// eventually this will be replaced with something from partio directly
+void partio4Maya::buildSupportedExtensionList(std::map<short,MString> &formatExtMap,bool write = false){
 	formatExtMap[0] = "bgeo";
 	formatExtMap[1] = "geo";
 	formatExtMap[2] = "pda";
@@ -327,141 +231,120 @@ void partio4Maya::buildSupportedExtensionList(std::map<short,MString> &formatExt
 	formatExtMap[9] = "pts";
 	formatExtMap[10] = "xyz";
 	formatExtMap[11] = "pcd";
-	if(write)
-	{
+	if(write) {
 		formatExtMap[11] = "rib";
 		formatExtMap[12] = "ass";
 	}
 }
 
-
-/////////////////////////////////////////
 void partio4Maya::drawPartioLogo(float multiplier)
 {
-    glBegin ( GL_LINES );
-
-	int i,d;
-
-    int last = P1Count - 1;
-    for ( i = 0; i < last; ++i )
-    {
-        glVertex3f ( P1[i][0] * multiplier,
-                     P1[i][1] * multiplier,
-                     P1[i][2] * multiplier );
-        glVertex3f ( P1[i+1][0] * multiplier,
-                     P1[i+1][1] * multiplier,
-                     P1[i+1][2] * multiplier );
-    }
-    last = P2Count -1;
-    for ( i = 0; i < last; ++i )
-    {
-        glVertex3f ( P2[i][0] * multiplier,
-                     P2[i][1] * multiplier,
-                     P2[i][2] * multiplier );
-        glVertex3f ( P2[i+1][0] * multiplier,
-                     P2[i+1][1] * multiplier,
-                     P2[i+1][2] * multiplier );
-    }
-    last = a1Count -1;
-    for ( i = 0; i < last; ++i )
-    {
-        glVertex3f ( a1[i][0] * multiplier,
-                     a1[i][1] * multiplier,
-                     a1[i][2] * multiplier );
-        glVertex3f ( a1[i+1][0] * multiplier,
-                     a1[i+1][1] * multiplier,
-                     a1[i+1][2] * multiplier );
-    }
-    last = a2Count -1;
-    for ( i = 0; i < last; ++i )
-    {
-        glVertex3f ( a2[i][0] * multiplier,
-                     a2[i][1] * multiplier,
-                     a2[i][2] * multiplier );
-        glVertex3f ( a2[i+1][0] * multiplier,
-                     a2[i+1][1] * multiplier,
-                     a2[i+1][2] * multiplier );
-    }
-    last = rCount -1;
-    for ( i = 0; i < last; ++i )
-    {
-        glVertex3f ( r[i][0] * multiplier,
-                     r[i][1] * multiplier,
-                     r[i][2] * multiplier );
-        glVertex3f ( r[i+1][0] * multiplier,
-                     r[i+1][1] * multiplier,
-                     r[i+1][2] * multiplier );
-    }
-    last = tCount -1;
-    for ( i = 0; i < last; ++i )
-    {
-        glVertex3f ( t[i][0] * multiplier,
-                     t[i][1] * multiplier,
-                     t[i][2] * multiplier );
-        glVertex3f ( t[i+1][0] * multiplier,
-                     t[i+1][1] * multiplier,
-                     t[i+1][2] * multiplier );
-    }
-    last = i1Count -1;
-    for ( i = 0; i < last; ++i )
-    {
-        glVertex3f ( i1[i][0] * multiplier,
-                     i1[i][1] * multiplier,
-                     i1[i][2] * multiplier );
-        glVertex3f ( i1[i+1][0] * multiplier,
-                     i1[i+1][1] * multiplier,
-                     i1[i+1][2] * multiplier );
-    }
-    last = i2Count -1;
-    for ( i = 0; i < last; ++i )
-    {
-        glVertex3f ( i2[i][0] * multiplier,
-                     i2[i][1] * multiplier,
-                     i2[i][2] * multiplier );
-        glVertex3f ( i2[i+1][0] * multiplier,
-                     i2[i+1][1] * multiplier,
-                     i2[i+1][2] * multiplier );
-    }
-    last = o1Count -1;
-    for ( i = 0; i < last; ++i )
-    {
-        glVertex3f ( o1[i][0] * multiplier,
-                     o1[i][1] * multiplier,
-                     o1[i][2] * multiplier );
-        glVertex3f ( o1[i+1][0] * multiplier,
-                     o1[i+1][1] * multiplier,
-                     o1[i+1][2] * multiplier );
-    }
-    last = o2Count -1;
-    for ( i = 0; i < last; ++i )
-    {
-        glVertex3f ( o2[i][0] * multiplier,
-                     o2[i][1] * multiplier,
-                     o2[i][2] * multiplier );
-        glVertex3f ( o2[i+1][0] * multiplier,
-                     o2[i+1][1] * multiplier,
-                     o2[i+1][2] * multiplier );
-    }
-
-    for ( d = 0; d < debrisCount; d++ )
-    {
-        for ( i = 0; i < ( debrisPointCount-1 ); ++i )
-        {
-            glVertex3f ( circles[d][i][0] * multiplier,
-                         circles[d][i][1] * multiplier,
-                         circles[d][i][2] * multiplier );
-            glVertex3f ( circles[d][i+1][0] * multiplier,
-                         circles[d][i+1][1] * multiplier,
-                         circles[d][i+1][2] * multiplier );
-        }
-    }
-    glEnd();
-
+	glBegin ( GL_LINES );
+		int i,d;
+		int last = P1Count - 1;
+		for ( i = 0; i < last; ++i ){
+			glVertex3f ( P1[i][0] * multiplier,
+				P1[i][1] * multiplier,
+				P1[i][2] * multiplier );
+			glVertex3f ( P1[i+1][0] * multiplier,
+				P1[i+1][1] * multiplier,
+				P1[i+1][2] * multiplier );
+		}
+		last = P2Count -1;
+		for ( i = 0; i < last; ++i ){
+			glVertex3f ( P2[i][0] * multiplier,
+				P2[i][1] * multiplier,
+				P2[i][2] * multiplier );
+			glVertex3f ( P2[i+1][0] * multiplier,
+				P2[i+1][1] * multiplier,
+				P2[i+1][2] * multiplier );
+		}
+		last = a1Count -1;
+		for ( i = 0; i < last; ++i ){
+			glVertex3f ( a1[i][0] * multiplier,
+				a1[i][1] * multiplier,
+				a1[i][2] * multiplier );
+			glVertex3f ( a1[i+1][0] * multiplier,
+				a1[i+1][1] * multiplier,
+				a1[i+1][2] * multiplier );
+		}
+		last = a2Count -1;
+		for ( i = 0; i < last; ++i ){
+			glVertex3f ( a2[i][0] * multiplier,
+				a2[i][1] * multiplier,
+				a2[i][2] * multiplier );
+			glVertex3f ( a2[i+1][0] * multiplier,
+				a2[i+1][1] * multiplier,
+				a2[i+1][2] * multiplier );
+		}
+		last = rCount -1;
+		for ( i = 0; i < last; ++i ){
+			glVertex3f ( r[i][0] * multiplier,
+				r[i][1] * multiplier,
+				r[i][2] * multiplier );
+			glVertex3f ( r[i+1][0] * multiplier,
+				r[i+1][1] * multiplier,
+				r[i+1][2] * multiplier );
+		}
+		last = tCount -1;
+		for ( i = 0; i < last; ++i ){
+			glVertex3f ( t[i][0] * multiplier,
+				t[i][1] * multiplier,
+				t[i][2] * multiplier );
+			glVertex3f ( t[i+1][0] * multiplier,
+				t[i+1][1] * multiplier,
+				t[i+1][2] * multiplier );
+		}
+		last = i1Count -1;
+		for ( i = 0; i < last; ++i ){
+			glVertex3f ( i1[i][0] * multiplier,
+				i1[i][1] * multiplier,
+				i1[i][2] * multiplier );
+			glVertex3f ( i1[i+1][0] * multiplier,
+				i1[i+1][1] * multiplier,
+				i1[i+1][2] * multiplier );
+		}
+		last = i2Count -1;
+		for ( i = 0; i < last; ++i ){
+			glVertex3f ( i2[i][0] * multiplier,
+				i2[i][1] * multiplier,
+				i2[i][2] * multiplier );
+			glVertex3f ( i2[i+1][0] * multiplier,
+				i2[i+1][1] * multiplier,
+				i2[i+1][2] * multiplier );
+		}
+		last = o1Count -1;
+		for ( i = 0; i < last; ++i ){
+			glVertex3f ( o1[i][0] * multiplier,
+				o1[i][1] * multiplier,
+				o1[i][2] * multiplier );
+			glVertex3f ( o1[i+1][0] * multiplier,
+				o1[i+1][1] * multiplier,
+				o1[i+1][2] * multiplier );
+		}
+		last = o2Count -1;
+		for ( i = 0; i < last; ++i ){
+			glVertex3f ( o2[i][0] * multiplier,
+				o2[i][1] * multiplier,
+				o2[i][2] * multiplier );
+			glVertex3f ( o2[i+1][0] * multiplier,
+				o2[i+1][1] * multiplier,
+				o2[i+1][2] * multiplier );
+		}
+		for ( d = 0; d < debrisCount; d++ ){
+			for ( i = 0; i < ( debrisPointCount-1 ); ++i ){
+			glVertex3f ( circles[d][i][0] * multiplier,
+					circles[d][i][1] * multiplier,
+					circles[d][i][2] * multiplier );
+			glVertex3f ( circles[d][i+1][0] * multiplier,
+					circles[d][i+1][1] * multiplier,
+					circles[d][i+1][2] * multiplier );
+			}
+		}
+	glEnd();
 }
 
-////////////////////////////////////////////////////
 /// NOISE FOR JITTER!
-
 const int kTableMask = TABLE_SIZE - 1;
 
 float partio4Maya::noiseAtValue( float x )
@@ -476,20 +359,19 @@ float partio4Maya::noiseAtValue( float x )
 //      the Noise value at the point
 //
 {
-    int ix;
-    float fx;
-
-    if ( !isInitialized ) {
-        initTable( 23479015 );
-        isInitialized = 1;
-    }
-
-    ix = (int)floorf( x );
-    fx = x - (float)ix;
-
-    return spline( fx, value( ix - 1 ), value( ix ), value( ix + 1 ), value( ix + 2 ) );
+	int ix;
+	float fx;
+	
+	if ( !isInitialized ) {
+		initTable( 23479015 );
+		isInitialized = 1;
+	}
+	
+	ix = (int)floorf( x );
+	fx = x - (float)ix;
+	
+	return spline( fx, value( ix - 1 ), value( ix ), value( ix + 1 ), value( ix + 2 ) );
 }
-
 
 void  partio4Maya::initTable( long seed )
 //
@@ -500,47 +382,41 @@ void  partio4Maya::initTable( long seed )
 //      seed - the new seed value
 //
 {
-
-#ifndef drand48
-#define drand48() (rand()*(1.0/RAND_MAX))
-#endif
-
-#ifdef WIN32
-	srand( seed );
-#else
-	srand48( seed );
-#endif
-
-    for ( int i = 0; i < TABLE_SIZE; i++ ) {
-        valueTable1[i] = (float)drand48();
-        valueTable2[i] = (float)drand48();
-        valueTable3[i] = (float)drand48();
-    }
-    isInitialized = 1;
+	#ifndef drand48
+		#define drand48() (rand()*(1.0/RAND_MAX))
+	#endif
+	
+	#ifdef WIN32
+		srand( seed );
+	#else
+		srand48( seed );
+	#endif
+	
+	for ( int i = 0; i < TABLE_SIZE; i++ ) {
+		valueTable1[i] = (float)drand48();
+		valueTable2[i] = (float)drand48();
+		valueTable3[i] = (float)drand48();
+	}
+	isInitialized = 1;
 }
 
-
 float partio4Maya::spline( float x, float knot0, float knot1, float knot2, float knot3 )
-//
 //  Description:
+//
 //      This is a simple version of a Catmull-Rom spline interpolation.
 //
 //  Assumptions:
 //
 //      0 < x < 1
 //
-//
 {
-    float c0, c1, c2, c3;
-
-    // Evaluate span of cubic at x using Horner's rule
-    //
-    c3 = (-0.5F * knot0 ) + ( 1.5F * knot1 ) + (-1.5F * knot2 ) + ( 0.5F * knot3 );
-    c2 = ( 1.0F * knot0 ) + (-2.5F * knot1 ) + ( 2.0F * knot2 ) + (-0.5F * knot3 );
-    c1 = (-0.5F * knot0 ) + ( 0.0F * knot1 ) + ( 0.5F * knot2 ) + ( 0.0F * knot3 );
-    c0 = ( 0.0F * knot0 ) + ( 1.0F * knot1 ) + ( 0.0F * knot2 ) + ( 0.0F * knot3 );
-
-    return ( ( c3 * x + c2 ) * x + c1 ) * x + c0;;
+	float c0, c1, c2, c3;
+	// Evaluate span of cubic at x using Horner's rule
+	c3 = (-0.5F * knot0 ) + ( 1.5F * knot1 ) + (-1.5F * knot2 ) + ( 0.5F * knot3 );
+	c2 = ( 1.0F * knot0 ) + (-2.5F * knot1 ) + ( 2.0F * knot2 ) + (-0.5F * knot3 );
+	c1 = (-0.5F * knot0 ) + ( 0.0F * knot1 ) + ( 0.5F * knot2 ) + ( 0.0F * knot3 );
+	c0 = ( 0.0F * knot0 ) + ( 1.0F * knot1 ) + ( 0.0F * knot2 ) + ( 0.0F * knot3 );
+	return ( ( c3 * x + c2 ) * x + c1 ) * x + c0;;
 }
 
 int partio4Maya::isInitialized = 0;
@@ -580,5 +456,3 @@ int partio4Maya::permtable[256] = {
 float partio4Maya::valueTable1[256];
 float partio4Maya::valueTable2[256];
 float partio4Maya::valueTable3[256];
-
-
