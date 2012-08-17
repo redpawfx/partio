@@ -71,7 +71,8 @@ extern const int kTableMask;
 
 #define MODPERM(x) permtable[(x)&kTableMask]
 
-class partio4Maya {
+class partio4Maya 
+{
 	public:
 		static bool partioCacheExists(const char* fileName);
 		static MStringArray partioGetBaseFileName(MString inFileName);
@@ -99,7 +100,8 @@ class partio4Maya {
 
 /// INLINES
 /// gets the value of the permtable at x and &'s it with the provided table mask
-inline float partio4Maya::value( int x, float table[] ) {
+inline float partio4Maya::value( int x, float table[] ) 
+{
 	return table[MODPERM( x )];
 }
 

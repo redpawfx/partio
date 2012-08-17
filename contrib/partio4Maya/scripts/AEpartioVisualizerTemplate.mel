@@ -49,9 +49,9 @@ global proc AEpartioVisualizerTemplate( string $nodeName ){
 			editorTemplate -addControl "defaultAlpha";
 			editorTemplate -addControl "invertAlpha";
 			editorTemplate -addControl "defaultRadius";
-		    //editorTemplate -addControl "useEmitterTransform";
-		    //editorTemplate -addControl -l "Jitter Position Magnitude" "jitterPos" ;
-		    //editorTemplate -addControl -l "Jitter Position Frequency" "jitterFreq";
+			//editorTemplate -addControl "useEmitterTransform";
+			//editorTemplate -addControl -l "Jitter Position Magnitude" "jitterPos" ;
+			//editorTemplate -addControl -l "Jitter Position Frequency" "jitterFreq";
 		editorTemplate -endLayout;
 		editorTemplate -beginLayout "Channel Control" -collapse 0;
 		editorTemplate -callCustom "pioVizCustomAttrsManage" "pioVizCustomAttrsManage" $nodeName;

@@ -73,7 +73,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 
 
 
-class partioEmitter: public MPxEmitterNode {
+class partioEmitter: public MPxEmitterNode 
+{
 	public:
 		partioEmitter();
 		virtual ~partioEmitter();
@@ -131,15 +132,19 @@ class partioEmitter: public MPxEmitterNode {
 
 /// inlines
 /// these inlines retrieve the stated value from the datablack, at the index if specified
-inline long partioEmitter::seedValue( int plugIndex, MDataBlock& block ) {
+inline long partioEmitter::seedValue( int plugIndex, MDataBlock& block ) 
+{
 	MStatus status;
 	long seed = 0;
 	MArrayDataHandle mhValue = block.inputArrayValue( mSeed, &status );
-	if( status == MS::kSuccess ) {
+	if( status == MS::kSuccess ) 
+	{
 		status = mhValue.jumpToElement( plugIndex );
-		if( status == MS::kSuccess ) {
+		if( status == MS::kSuccess ) 
+		{
 			MDataHandle hValue = mhValue.inputValue( &status );
-			if( status == MS::kSuccess ) {
+			if( status == MS::kSuccess ) 
+			{
 				seed = hValue.asInt();
 			}
 		}
@@ -147,31 +152,37 @@ inline long partioEmitter::seedValue( int plugIndex, MDataBlock& block ) {
 	return( seed );
 }
 
-inline double partioEmitter::rateValue ( MDataBlock& block ) {
+inline double partioEmitter::rateValue ( MDataBlock& block ) 
+{
 	MStatus status;
 	MDataHandle hValue = block.inputValue ( mRate, &status );
 	double value = 0.0;
-	if ( status == MS::kSuccess ) {
+	if ( status == MS::kSuccess ) 
+	{
 		value = hValue.asDouble();
 	}
 	return ( value );
 }
 
-inline double partioEmitter::speedValue ( MDataBlock& block ) {
+inline double partioEmitter::speedValue ( MDataBlock& block ) 
+{
 	MStatus status;
 	MDataHandle hValue = block.inputValue ( mSpeed, &status );
 	double value = 0.0;
-	if ( status == MS::kSuccess ){
+	if ( status == MS::kSuccess )
+	{
 		value = hValue.asDouble();
 	}
 	return ( value );
 }
 
-inline MVector partioEmitter::directionVector ( MDataBlock& block ) {
+inline MVector partioEmitter::directionVector ( MDataBlock& block ) 
+{
 	MStatus status;
 	MVector dirV ( 0.0, 0.0, 0.0 );
 	MDataHandle hValue = block.inputValue ( mDirection, &status );
-	if ( status == MS::kSuccess ) {
+	if ( status == MS::kSuccess ) 
+	{
 		double3 &value = hValue.asDouble3();
 		dirV[0] = value[0];
 		dirV[1] = value[1];
@@ -180,15 +191,19 @@ inline MVector partioEmitter::directionVector ( MDataBlock& block ) {
 	return ( dirV );
 }
 
-inline bool partioEmitter::isFullValue ( int plugIndex, MDataBlock& block ) {
+inline bool partioEmitter::isFullValue ( int plugIndex, MDataBlock& block ) 
+{
 	MStatus status;
 	bool value = true;
 	MArrayDataHandle mhValue = block.inputArrayValue ( mIsFull, &status );
-	if ( status == MS::kSuccess ) {
+	if ( status == MS::kSuccess ) 
+	{
 		status = mhValue.jumpToElement ( plugIndex );
-		if ( status == MS::kSuccess ) {
+		if ( status == MS::kSuccess ) 
+		{
 			MDataHandle hValue = mhValue.inputValue ( &status );
-			if ( status == MS::kSuccess ) {
+			if ( status == MS::kSuccess ) 
+			{
 				value = hValue.asBool();
 			}
 		}
@@ -196,15 +211,19 @@ inline bool partioEmitter::isFullValue ( int plugIndex, MDataBlock& block ) {
 	return ( value );
 }
 
-inline double partioEmitter::inheritFactorValue ( int plugIndex,MDataBlock& block ) {
+inline double partioEmitter::inheritFactorValue ( int plugIndex,MDataBlock& block ) 
+{
 	MStatus status;
 	double value = 0.0;
 	MArrayDataHandle mhValue = block.inputArrayValue ( mInheritFactor, &status );
-	if ( status == MS::kSuccess ) {
+	if ( status == MS::kSuccess ) 
+	{
 		status = mhValue.jumpToElement ( plugIndex );
-		if ( status == MS::kSuccess ) {
+		if ( status == MS::kSuccess ) 
+		{
 			MDataHandle hValue = mhValue.inputValue ( &status );
-			if ( status == MS::kSuccess ) {
+			if ( status == MS::kSuccess ) 
+			{
 				value = hValue.asDouble();
 			}
 		}
@@ -212,25 +231,31 @@ inline double partioEmitter::inheritFactorValue ( int plugIndex,MDataBlock& bloc
 	return ( value );
 }
 
-inline MTime partioEmitter::currentTimeValue ( MDataBlock& block ) {
+inline MTime partioEmitter::currentTimeValue ( MDataBlock& block ) 
+{
 	MStatus status;
 	MDataHandle hValue = block.inputValue ( mCurrentTime, &status );
 	MTime value ( 0.0 );
-	if ( status == MS::kSuccess ) {
+	if ( status == MS::kSuccess ) 
+	{
 		value = hValue.asTime();
 	}
 	return ( value );
 }
 
-inline MTime partioEmitter::startTimeValue ( int plugIndex, MDataBlock& block ) {
+inline MTime partioEmitter::startTimeValue ( int plugIndex, MDataBlock& block ) 
+{
 	MStatus status;
 	MTime value ( 0.0 );
 	MArrayDataHandle mhValue = block.inputArrayValue ( mStartTime, &status );
-	if ( status == MS::kSuccess ) {
+	if ( status == MS::kSuccess ) 
+	{
 		status = mhValue.jumpToElement ( plugIndex );
-		if ( status == MS::kSuccess ) {
+		if ( status == MS::kSuccess ) 
+		{
 			MDataHandle hValue = mhValue.inputValue ( &status );
-			if ( status == MS::kSuccess ) {
+			if ( status == MS::kSuccess ) 
+			{
 				value = hValue.asTime();
 			}
 		}
@@ -238,15 +263,19 @@ inline MTime partioEmitter::startTimeValue ( int plugIndex, MDataBlock& block ) 
 	return ( value );
 }
 
-inline MTime partioEmitter::deltaTimeValue ( int plugIndex, MDataBlock& block ) {
+inline MTime partioEmitter::deltaTimeValue ( int plugIndex, MDataBlock& block ) 
+{
 	MStatus status;
 	MTime value ( 0.0 );
 	MArrayDataHandle mhValue = block.inputArrayValue ( mDeltaTime, &status );
-	if ( status == MS::kSuccess ) {
+	if ( status == MS::kSuccess ) 
+	{
 		status = mhValue.jumpToElement ( plugIndex );
-		if ( status == MS::kSuccess ) {
+		if ( status == MS::kSuccess ) 
+		{
 			MDataHandle hValue = mhValue.inputValue ( &status );
-			if ( status == MS::kSuccess ) {
+			if ( status == MS::kSuccess ) 
+			{
 				value = hValue.asTime();
 			}
 		}

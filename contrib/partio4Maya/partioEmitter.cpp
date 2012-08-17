@@ -69,18 +69,21 @@ partioEmitter::partioEmitter():
 		mLastExt(""),
 		cacheChanged(false) {}
 
-partioEmitter::~partioEmitter(){
+partioEmitter::~partioEmitter()
+{
 	MSceneMessage::removeCallback( partioEmitterOpenCallback);
 	MSceneMessage::removeCallback( partioEmitterImportCallback);
 	MSceneMessage::removeCallback( partioEmitterReferenceCallback);
 	MDGMessage::removeCallback( partioEmitterConnectionMade );
 }
 
-void *partioEmitter::creator(){
+void *partioEmitter::creator()
+{
 	return new partioEmitter;
 }
 
-void partioEmitter::postConstructor(){
+void partioEmitter::postConstructor()
+{
 	MStatus stat;
 	partioEmitterOpenCallback = MSceneMessage::addCallback(MSceneMessage::kAfterOpen, partioEmitter::reInit, this);
 	partioEmitterImportCallback = MSceneMessage::addCallback(MSceneMessage::kAfterImport, partioEmitter::reInit, this);
@@ -88,8 +91,8 @@ void partioEmitter::postConstructor(){
 	partioEmitterConnectionMade = MDGMessage::addConnectionCallback ( partioEmitter::connectionMadeCallbk, NULL, &stat );
 }
 
-/// init after opening
-void partioEmitter::initCallback() {
+void partioEmitter::initCallback() 
+{ /// init after opening
 	MObject tmo = thisMObject();
 	short extEnum;
 	MPlug(tmo, aCacheFormat).getValue(extEnum);
@@ -99,26 +102,27 @@ void partioEmitter::initCallback() {
 	cacheChanged = false;
 }
 
-void partioEmitter::reInit(void *data){
+void partioEmitter::reInit(void *data)
+{
 	partioEmitter  *emitterNode = (partioEmitter*) data;
 	emitterNode->initCallback();
 }
 
-/// Creates the tracking ID attribute on the  particle object
-void partioEmitter::connectionMadeCallbk(MPlug &srcPlug, MPlug &destPlug, bool made, void *clientData){
+void partioEmitter::connectionMadeCallbk(MPlug &srcPlug, MPlug &destPlug, bool made, void *clientData)
+{ /// Creates the tracking ID attribute on the  particle object
 	MStatus status;
 	MFnDependencyNode srcNode(srcPlug.node());
 	MFnDependencyNode destNode(destPlug.node());
-	// if the source is partioEmitter and dest is a particle then were good to go
-	if (srcNode.typeId() == partioEmitter::id && (destNode.typeName() =="particle" || destNode.typeName() =="nParticle" ) ) {
+	if (srcNode.typeId() == partioEmitter::id && (destNode.typeName() =="particle" || destNode.typeName() =="nParticle" ) ) 
+	{ // if the source is partioEmitter and dest is a particle then were good to go
 		MObject  particleShapeNode =  destPlug.node(&status);
 		MFnParticleSystem part(particleShapeNode, &status);
 		createPPAttr( part, "partioID",  "pioID", 1);
 	}
 }
 
-/// Initialize the node, create user defined attributes.
-MStatus partioEmitter::initialize() {
+MStatus partioEmitter::initialize() 
+{ /// Initialize the node, create user defined attributes.
 	MStatus status;
 	MFnTypedAttribute tAttr;
 	MFnUnitAttribute uAttr;
@@ -152,7 +156,8 @@ MStatus partioEmitter::initialize() {
 	aCacheFormat = eAttr.create( "cacheFormat", "cachFmt");
 	std::map<short,MString> formatExtMap;
 	partio4Maya::buildSupportedExtensionList(formatExtMap,false);
-	for (unsigned short i = 0; i< formatExtMap.size(); i++) {
+	for (unsigned short i = 0; i< formatExtMap.size(); i++) 
+	{
 		eAttr.addField(formatExtMap[i].toUpperCase(),	i);
 	}
 	
@@ -216,11 +221,12 @@ MStatus partioEmitter::initialize() {
 	return ( status );
 }
 
-MStatus partioEmitter::compute ( const MPlug& plug, MDataBlock& block ){
+MStatus partioEmitter::compute ( const MPlug& plug, MDataBlock& block )
+{
 	MStatus status, stat;
 	bool cacheActive = block.inputValue(aCacheActive).asBool();
-	// if the cache is not active, skip
-	if (!cacheActive){
+	if (!cacheActive)
+	{ // if the cache is not active, skip
 		return ( MS::kSuccess );
 	}
 	int cacheOffset 	= block.inputValue( aCacheOffset ).asInt();
@@ -231,8 +237,8 @@ MStatus partioEmitter::compute ( const MPlug& plug, MDataBlock& block ){
 	bool cacheStatic = block.inputValue( aCacheStatic ).asBool();
 	MString cacheDir = block.inputValue(aCacheDir).asString();
 	MString cacheFile = block.inputValue(aCacheFile).asString();
-	// Determine if we are requesting the output plug for this emitter node.
-	if ( !( plug == mOutput ) ){
+	if ( !( plug == mOutput ) )
+	{ // Determine if we are requesting the output plug for this emitter node.
 		return ( MS::kUnknownParameter );
 	}
 	// get the relevant plugs to get to array and particle system
@@ -244,13 +250,13 @@ MStatus partioEmitter::compute ( const MPlug& plug, MDataBlock& block ){
 	MString partName = part.particleName();
 	MString emitterPlugName = plug.name();
 	MString particleShapeOutPlugName = particleShapeOutPlug.name();
-	// if we dont have the partioID, fail
-	if (!part.isPerParticleDoubleAttribute("partioID")){
+	if (!part.isPerParticleDoubleAttribute("partioID"))
+	{ // if we dont have the partioID, fail
 		MGlobal::displayWarning("PartioEmitter->error:  was unable to create/find partioID attr");
 		return ( MS::kFailure );
 	}
-	// if we don' have a valid cache dir, fail
-	if (cacheDir  == "" || cacheFile == "" ) {
+	if (cacheDir  == "" || cacheFile == "" ) 
+	{ // if we don' have a valid cache dir, fail
 		//TODO: provide visual feedback, printing was too intensive
 		return ( MS::kFailure );
 	}
@@ -278,7 +284,8 @@ MStatus partioEmitter::compute ( const MPlug& plug, MDataBlock& block ){
 	// Check if the particle object has reached it's maximum,
 	// hence is full. If it is full then just return with zero particles.
 	bool beenFull = isFullValue ( multiIndex, block );
-	if ( beenFull ){
+	if ( beenFull )
+	{
 		return ( MS::kSuccess );
 	}
 	// Get deltaTime, currentTime and startTime.
@@ -287,7 +294,8 @@ MStatus partioEmitter::compute ( const MPlug& plug, MDataBlock& block ){
 	MTime cT = currentTimeValue ( block );
 	MTime sT = startTimeValue ( multiIndex, block );
 	MTime dT = deltaTimeValue ( multiIndex, block );
-	if ( ( cT <= sT )) {
+	if ( ( cT <= sT )) 
+	{
 		// We do not emit particles before the start time,
 		// we do support emitting / killing of particles if we scroll backward in time.
 		// This code is necessary primarily the first time to
@@ -312,7 +320,8 @@ MStatus partioEmitter::compute ( const MPlug& plug, MDataBlock& block ){
 							newCacheFile, renderCacheFile);
 	float deltaTime  = float(cT.value() - integerTime);
 	// motion  blur rounding  frame logic
-	if ((deltaTime < 1 || deltaTime > -1)&& deltaTime !=0) {  // motion blur step?
+	if ((deltaTime < 1 || deltaTime > -1)&& deltaTime !=0) 
+	{  // motion blur step?
 		motionBlurStep = true;
 	}
 	long seed = seedValue( multiIndex, block );
@@ -323,47 +332,49 @@ MStatus partioEmitter::compute ( const MPlug& plug, MDataBlock& block ){
 	// using std:map to give us a nice fast binary search
 	map<int, int>  particleIDMap;
 	cacheChanged = false;
-	// check if cache has changed formate or fiel or dir
-	if (mLastExt != formatExt || mLastPath != cacheDir || mLastFile != cacheFile){
+	if (mLastExt != formatExt || mLastPath != cacheDir || mLastFile != cacheFile)
+	{ // check if cache has changed formate or fiel or dir
 		cacheChanged = true;
 		mLastExt = formatExt;
 		mLastPath = cacheDir;
 		mLastFile = cacheFile;
 	}
-	// if the new cache is valid, load it!
-	if ( newCacheFile != "" && partio4Maya::partioCacheExists(newCacheFile.asChar())) {
+	if ( newCacheFile != "" && partio4Maya::partioCacheExists(newCacheFile.asChar())) 
+	{ // if the new cache is valid, load it!
 		MGlobal::displayInfo(MString("partioEmitter->Loading: " + newCacheFile));
 		ParticlesDataMutable* particles=0;
 		ParticleAttribute IdAttribute;
 		ParticleAttribute posAttribute;
 		ParticleAttribute velAttribute;
 		particles=read(newCacheFile.asChar());
-		// if the cache contained particles
-		if (particles){
+		if (particles)
+		{ // if the cache contained particles
 			//mLastFileLoaded = cacheFile; NOTE: why is this commented out, check to see if behavior was replaced or if this is a mistake.
-			// take particle id's from cache and put them into id map
-			for (int i=0;i<particles->numParticles();i++){
+			for (int i=0;i<particles->numParticles();i++)
+			{ // take particle id's from cache and put them into id map
 				int id = -1;
-				// if the attribut is id use that
-				if (particles->attributeInfo("id",IdAttribute) || particles->attributeInfo("Id",IdAttribute)){
+				if (particles->attributeInfo("id",IdAttribute) || particles->attributeInfo("Id",IdAttribute))
+				{ // if the attribut is id use that
 					const int* partioID = particles->data<int>(IdAttribute,i);
 					id = partioID[0];
-				} else if (particles->attributeInfo("particleId",IdAttribute) || particles->attributeInfo("ParticleId",IdAttribute)){ // if its particle id use that
+				} else if (particles->attributeInfo("particleId",IdAttribute) || particles->attributeInfo("ParticleId",IdAttribute))
+				{ // if its particle id use that
 					const int* partioID = particles->data<int>(IdAttribute,i);
 					id = partioID[0];
-				} else { // else try to use the array index, this is a bad idea
+				} else 
+				{ // else try to use the array index, this is a bad idea
 					MGlobal::displayWarning("Loaded Partio cache has a non-standard or non-existant id attribute, this may render things unstable");
 					id = i;
 				}
 				particleIDMap[id] = i;
 			}
-			// if we don't have position, fail
-			if (!particles->attributeInfo("position",posAttribute) && !particles->attributeInfo("Position",posAttribute)){
+			if (!particles->attributeInfo("position",posAttribute) && !particles->attributeInfo("Position",posAttribute))
+			{ // if we don't have position, fail
 				std::cerr<<"Failed to find position attribute "<<std::endl;
 				return ( MS::kFailure );
 			}
-			// if we don't have velocity, fail
-			if (!particles->attributeInfo("velocity",velAttribute) && !particles->attributeInfo("Velocity",velAttribute)){
+			if (!particles->attributeInfo("velocity",velAttribute) && !particles->attributeInfo("Velocity",velAttribute))
+			{ // if we don't have velocity, fail
 				std::cerr<<"Failed to find velocity attribute "<<std::endl;
 				return ( MS::kFailure );
 			}
@@ -374,11 +385,11 @@ MStatus partioEmitter::compute ( const MPlug& plug, MDataBlock& block ){
 			unsigned int numAttr=particles->numAttributes();
 			MPlug zPlug (thisMObject(), aPartioAttributes);
 			MPlug yPlug (thisMObject(), aMayaPPAttributes);
-			//if the cache has changed or num elements has changed update the AE Controls for attrs in the cache
-			if (cacheChanged || zPlug.numElements() != numAttr) {
+			if (cacheChanged || zPlug.numElements() != numAttr) 
+			{ //if the cache has changed or num elements has changed update the AE Controls for attrs in the cache
 				MGlobal::displayInfo("partioEmitter->refreshing AE controls");
-				// set up plugs to take new attributes
-				for (unsigned int i=0;i<numAttr;i++) {
+				for (unsigned int i=0;i<numAttr;i++) 
+				{ // set up plugs to take new attributes
 					ParticleAttribute attr;
 					particles->attributeInfo(i,attr);
 					// note, casting string to a char* here
@@ -399,22 +410,22 @@ MStatus partioEmitter::compute ( const MPlug& plug, MDataBlock& block ){
 			std::map<std::string,  MDoubleArray  > doubleAttrArrays;
 			// we use this mapping to allow for direct writing of attrs to PP variables
 			std::map<std::string, std::string > userPPMapping;
-			// loop through attributes and add them to plugs
-			for (unsigned int i=0;i<numAttr;i++) {
+			for (unsigned int i=0;i<numAttr;i++) 
+			{ // loop through attributes and add them to plugs
 				// get attribut plugs, set up map to write to them
 				ParticleAttribute attr;
 				particles->attributeInfo(i,attr);
 				yPlug.selectAncestorLogicalIndex(i,aMayaPPAttributes);
 				userPPMapping[yPlug.asString().asChar()] = attr.name;
 				yPlug.selectAncestorLogicalIndex(i,aMayaPPAttributes);
-				// make sure plug is not invalid
-				if (yPlug.asString() != "") {
+				if (yPlug.asString() != "") 
+				{ // make sure plug is not invalid
 					// get the attribute name
 					MString ppAttrName = yPlug.asString();
-					// is it an attribute of length 3
-					if (attr.count == 3) {
-						// is it a new attribute?, then add it.. via mel NOTE: this is a bad idea
-						if (!part.isPerParticleVectorAttribute(ppAttrName)) {
+					if (attr.count == 3) 
+					{ // is it an attribute of length 3
+						if (!part.isPerParticleVectorAttribute(ppAttrName)) 
+						{ // is it a new attribute?, then add it.. via mel NOTE: this is a bad idea
 							MGlobal::displayInfo(MString("partioEmitter->adding ppAttr " + ppAttrName) );
 							MString command;
 							command += "pioEmAddPPAttr ";
@@ -424,20 +435,21 @@ MStatus partioEmitter::compute ( const MPlug& plug, MDataBlock& block ){
 							command += ";";
 							MGlobal::executeCommandOnIdle(command);
 						}
-						// is it an old attribute, then update it
-						if (part.isPerParticleVectorAttribute(ppAttrName)) {
+						if (part.isPerParticleVectorAttribute(ppAttrName)) 
+						{ // is it an old attribute, then update it
 							MVectorArray vAttribute;
 							part.getPerParticleAttribute(ppAttrName, vAttribute, &status);
-							// if you couldn't get the attribut error out
-							if ( !status ) {
+							if ( !status ) 
+							{ // if you couldn't get the attribut error out
 								MGlobal::displayError("PartioEmitter->could not get vector PP array ");
 							}
 							// add attrib to map NOTE: if we errored out we should probably not do this
 							vectorAttrArrays[ppAttrName.asChar()] = vAttribute;
 						}
-					} else if (attr.count == 1) { // its not a vec 3, is it a float  or double?
-						// if it's a new double add it as a mel process. NOTE: this is a bad idea
-						if (!part.isPerParticleDoubleAttribute(ppAttrName)) {
+					} else if (attr.count == 1) 
+					{ // its not a vec 3, is it a float  or double?
+						if (!part.isPerParticleDoubleAttribute(ppAttrName)) 
+						{ // if it's a new double add it as a mel process. NOTE: this is a bad idea
 							MGlobal::displayInfo(MString("PartioEmiter->adding ppAttr " + ppAttrName));
 							MString command;
 							command += "pioEmAddPPAttr ";
@@ -446,17 +458,19 @@ MStatus partioEmitter::compute ( const MPlug& plug, MDataBlock& block ){
 							command += partName;
 							command += ";";
 							MGlobal::executeCommandOnIdle(command);
-						} if (part.isPerParticleDoubleAttribute(ppAttrName)) { // if its an existing attribute set up the mapping
+						} if (part.isPerParticleDoubleAttribute(ppAttrName)) 
+						{ // if its an existing attribute set up the mapping
 							MDoubleArray dAttribute;
 							part.getPerParticleAttribute(ppAttrName, dAttribute, &status);
-							// if we couldn't get the attribute error
-							if ( !status ) {
+							if ( !status ) 
+							{ // if we couldn't get the attribute error
 								MGlobal::displayError("PartioEmitter->could not get double PP array ");
 							}
 							// set up the mapping NOTE: if we errored out we should probably not do this
 							doubleAttrArrays[ppAttrName.asChar()] = dAttribute;
 						}
-					} else { // this wasn't a one or three lenght attribute, note taht we are skipping it
+					} else 
+					{ // this wasn't a one or three lenght attribute, note taht we are skipping it
 						MGlobal::displayError(MString("PartioEmitter->skipping attr: " + MString(attr.name.c_str())));
 					} // we handled the acceptable types of attributes
 				} // attribute plug was valid
@@ -477,37 +491,37 @@ MStatus partioEmitter::compute ( const MPlug& plug, MDataBlock& block ){
 			MIntArray  deletePoints;
 			std::map <std::string, MVectorArray >::iterator vecIt;
 			std::map <std::string, MDoubleArray >::iterator doubleIt;
-			// loop through particles and move ones that are still valid
-			for (unsigned int x = 0; x<part.count(); x++) {
+			for (unsigned int x = 0; x<part.count(); x++) 
+			{ // loop through particles and move ones that are still valid
 				it = particleIDMap.find((int)partioIDs[x]);
-				// if this particle still exists update its attrubutes
-				if (it != particleIDMap.end()) { 
+				if (it != particleIDMap.end()) 
+				{ // if this particle still exists update its attrubutes
 					// setup position, velocity, jitter
 					const float* pos=particles->data<float>(posAttribute,it->second);
 					const float* vel=particles->data<float>(velAttribute,it->second);
 					MVector jitter = partio4Maya::jitterPoint(it->second, jitterFreq, float(seed), jitterPos);
 					// set position + jitter
 					positions[x] = MVector(pos[0],pos[1],pos[2])+(jitter);
-					// if we are emitting from the emitters location apply the offset
-					if (useEmitterTxfm) {
+					if (useEmitterTxfm) 
+					{ // if we are emitting from the emitters location apply the offset
 						positions[x] += emitterOffset;
 					}
 					MVector velo(vel[0],vel[1],vel[2]);
-					// if we are using motion blur do it in this step NOTE: we are assuming 24 frames per second here
-					if (motionBlurStep) {
+					if (motionBlurStep) 
+					{ // if we are using motion blur do it in this step NOTE: we are assuming 24 frames per second here
 						positions[x] += (velo/24)*deltaTime;
 					}
 					// set velocity
 					velocities[x] = velo;
-					// loop through double attributes and set / update them
-					for (doubleIt = doubleAttrArrays.begin(); doubleIt != doubleAttrArrays.end(); doubleIt++) {
+					for (doubleIt = doubleAttrArrays.begin(); doubleIt != doubleAttrArrays.end(); doubleIt++) 
+					{ // loop through double attributes and set / update them
 						ParticleAttribute doubleAttr;
 						particles->attributeInfo(userPPMapping[doubleIt->first].c_str(),doubleAttr);
 						const float*  doubleVal = particles->data<float>(doubleAttr, it->second);
 						doubleAttrArrays[doubleIt->first][x] = doubleVal[0];
 					}
-					// loop through vector attributes and set / update them
-					for (vecIt = vectorAttrArrays.begin(); vecIt != vectorAttrArrays.end(); vecIt++) {
+					for (vecIt = vectorAttrArrays.begin(); vecIt != vectorAttrArrays.end(); vecIt++) 
+					{ // loop through vector attributes and set / update them
 						ParticleAttribute vectorAttr;
 						particles->attributeInfo(userPPMapping[vecIt->first].c_str(), vectorAttr);
 						const float* vecVal = particles->data<float>(vectorAttr, it->second);
@@ -515,30 +529,31 @@ MStatus partioEmitter::compute ( const MPlug& plug, MDataBlock& block ){
 					}
 					// cleanse the iterator
 					particleIDMap.erase(it);
-				} else { // particle is not valid, set up for deletion
+				} else 
+				{ // particle is not valid, set up for deletion
 					deletePoints.append(x);
 				}
 			} // we have looped through the particles and moved the valid ones
 			// TODO: handle a "release" attribute list to allow expressions to force partio emitter to forget or skip over certain particles
-			// loop over scheduled particles to remove and remove them
-			for (unsigned int y = 0; y< deletePoints.length(); y++) {
+			for (unsigned int y = 0; y< deletePoints.length(); y++) 
+			{ // loop over scheduled particles to remove and remove them
 				//remove the related fixed attributes
 				positions.remove(deletePoints[y]-y);
 				velocities.remove(deletePoints[y]-y);
 				lifespans.remove(deletePoints[y]-y);
-				// remove any double attributes
-				for (doubleIt = doubleAttrArrays.begin(); doubleIt != doubleAttrArrays.end(); doubleIt++) {
+				for (doubleIt = doubleAttrArrays.begin(); doubleIt != doubleAttrArrays.end(); doubleIt++) 
+				{ // remove any double attributes
 					doubleAttrArrays[doubleIt->first].remove(deletePoints[y]-y);
 				}
-				// remove any vector attributes
-				for (vecIt = vectorAttrArrays.begin(); vecIt != vectorAttrArrays.end(); vecIt++) {
+				for (vecIt = vectorAttrArrays.begin(); vecIt != vectorAttrArrays.end(); vecIt++) 
+				{ // remove any vector attributes
 					vectorAttrArrays[vecIt->first].remove(deletePoints[y]-y);
 				}
 				// update particle count
 				part.setCount (particles->numParticles());
 			}
-			//  now loop over and deal with new particles, which are all that is left in the map
-			for (it = particleIDMap.begin(); it != particleIDMap.end(); it++) {
+			for (it = particleIDMap.begin(); it != particleIDMap.end(); it++) 
+			{ //  now loop over and deal with new particles, which are all that is left in the map
 				// set up position, velocity, and id array pointers
 				const float* pos=particles->data<float>(posAttribute,it->second);
 				const float* vel=particles->data<float>(velAttribute,it->second);
@@ -546,8 +561,8 @@ MStatus partioEmitter::compute ( const MPlug& plug, MDataBlock& block ){
 				const int* id=particles->data<int>(IdAttribute,it->second);
 				MVector temp(pos[0], pos[1], pos[2]);
 				MVector jitter = partio4Maya::jitterPoint(it->second, jitterFreq, float(seed), jitterPos);
-				// if we are using the emmitters position apply it as an offset
-				if (useEmitterTxfm) {
+				if (useEmitterTxfm) 
+				{ // if we are using the emmitters position apply it as an offset
 					temp += emitterOffset;
 				}
 				// append the standard elements
@@ -555,15 +570,15 @@ MStatus partioEmitter::compute ( const MPlug& plug, MDataBlock& block ){
 				inPosArray.append(temp+(jitter));
 				inVelArray.append(velo*inheritFactor);
 				partioIDs.append(id[0]);
-				//loop through double value attributes and add those
-				for (doubleIt = doubleAttrArrays.begin(); doubleIt != doubleAttrArrays.end(); doubleIt++) {
+				for (doubleIt = doubleAttrArrays.begin(); doubleIt != doubleAttrArrays.end(); doubleIt++) 
+				{ //loop through double value attributes and add those
 					ParticleAttribute doubleAttr;
 					particles->attributeInfo(userPPMapping[doubleIt->first].c_str(),doubleAttr);
 					const float*  doubleVal = particles->data<float>(doubleAttr, it->second);
 					doubleAttrArrays[doubleIt->first].append(doubleVal[0]);
 				}
-				// loop through vector attributes and add those
-				for (vecIt = vectorAttrArrays.begin(); vecIt != vectorAttrArrays.end(); vecIt++) {
+				for (vecIt = vectorAttrArrays.begin(); vecIt != vectorAttrArrays.end(); vecIt++) 
+				{ // loop through vector attributes and add those
 					ParticleAttribute vectorAttr;
 					particles->attributeInfo(userPPMapping[vecIt->first].c_str(), vectorAttr);
 					const float* vecVal = particles->data<float>(vectorAttr, it->second);
@@ -579,12 +594,12 @@ MStatus partioEmitter::compute ( const MPlug& plug, MDataBlock& block ){
 			part.emit(inPosArray, inVelArray);
 			// set the id's of said particles
 			part.setPerParticleAttribute("partioID", partioIDs);
-			// loop through particles and set double values to new value
-			for (doubleIt = doubleAttrArrays.begin(); doubleIt != doubleAttrArrays.end(); doubleIt++) {
+			for (doubleIt = doubleAttrArrays.begin(); doubleIt != doubleAttrArrays.end(); doubleIt++) 
+			{ // loop through particles and set double values to new value
 				part.setPerParticleAttribute(MString(doubleIt->first.c_str()), doubleAttrArrays[doubleIt->first]);
 			}
-			// loop through particles and set vector values to new value
-			for (vecIt = vectorAttrArrays.begin(); vecIt != vectorAttrArrays.end(); vecIt++) {
+			for (vecIt = vectorAttrArrays.begin(); vecIt != vectorAttrArrays.end(); vecIt++) 
+			{ // loop through particles and set vector values to new value
 				part.setPerParticleAttribute(MString(vecIt->first.c_str()), vectorAttrArrays[vecIt->first]);
 			}
 			// free up memory
@@ -594,7 +609,8 @@ MStatus partioEmitter::compute ( const MPlug& plug, MDataBlock& block ){
 			//MArrayDataHandle outputArrayChx = block.outputArrayValue(aPartioAttrCheckbox, &stat);
 			//stat = outputArrayChx.set(builderChx);
 		} // we dealt with particle in the array
-	} else { // the new cache is invalid, display error
+	} else 
+	{ // the new cache is invalid, display error
 		MGlobal::displayError("PartioEmitter->Error loading the Cache file, it does not exist on disk, check path/file.");
 	} // if we got here everythign went smoothly and all particles are taken care of
 	// Update the data block with new dOutput and set plug clean.
@@ -604,8 +620,8 @@ MStatus partioEmitter::compute ( const MPlug& plug, MDataBlock& block ){
 	return MS::kSuccess;
 }
 
-/// Gets emitter position in world space
-MStatus partioEmitter::getWorldPosition ( MPoint &point ) {
+MStatus partioEmitter::getWorldPosition ( MPoint &point ) 
+{ /// Gets emitter position in world space
 	MStatus status;
 	MObject thisNode = thisMObject();
 	MFnDependencyNode fnThisNode ( thisNode );
@@ -618,20 +634,20 @@ MStatus partioEmitter::getWorldPosition ( MPoint &point ) {
 	// Get the value of the 'worldMatrix' attribute
 	MObject matrixObject;
 	status = matrixPlug.getValue ( matrixObject );
-	// if we can't get matrix node error out
-	if( !status ){
+	if( !status )
+	{ // if we can't get matrix node error out
 		status.perror ( "partioEmitter::getWorldPosition: get matrixObject" );
 		return status;
 	}
-	// if we cant get world matrix data error out
 	MFnMatrixData worldMatrixData ( matrixObject, &status );
-	if( !status ) {
+	if( !status ) 
+	{ // if we cant get world matrix data error out
 		status.perror ( "partioEmitter::getWorldPosition: get worldMatrixData" );
 		return status;
 	}
-	// if we cant get world matrix error out
 	MMatrix worldMatrix = worldMatrixData.matrix ( &status );
-	if( !status ) {
+	if( !status ) 
+	{ // if we cant get world matrix error out
 		status.perror ( "partioEmitter::getWorldPosition: get worldMatrix" );
 		return status;
 	}
@@ -642,8 +658,8 @@ MStatus partioEmitter::getWorldPosition ( MPoint &point ) {
 	return ( status );
 }
 
-/// DRAW  the  Partio Logo  helper
-void partioEmitter::draw ( M3dView& view, const MDagPath& path, M3dView::DisplayStyle style, M3dView:: DisplayStatus ) {
+void partioEmitter::draw ( M3dView& view, const MDagPath& path, M3dView::DisplayStyle style, M3dView:: DisplayStatus ) 
+{ /// DRAW  the  Partio Logo  helper
 	view.beginGL();
 		// get node and size
 		MObject thisNode = thisMObject();
@@ -656,30 +672,33 @@ void partioEmitter::draw ( M3dView& view, const MDagPath& path, M3dView::Display
 	view.endGL();
 }
 
-/// creates a particle attribute in the system
-MStatus partioEmitter::createPPAttr( MFnParticleSystem  &part, MString attrName, MString shortName, int type) {
+MStatus partioEmitter::createPPAttr( MFnParticleSystem  &part, MString attrName, MString shortName, int type) 
+{ /// creates a particle attribute in the system
 	// create start state
 	MFnTypedAttribute initialStateAttr;
 	MFnTypedAttribute ppAttr;
 	MStatus stat1,stat2 = MS::kFailure;
 	MObject initialStateAttrObj;
 	MObject attrObj;
-	// check which type of attr it is and if it is not already part of the system get ready to add it
-	switch (type) {
+	switch (type) 
+	{ // check which type of attr it is and if it is not already part of the system get ready to add it
 		case ATTR_TYPE_INT:
-			if (!part.isPerParticleIntAttribute((attrName+"0")) && !part.isPerParticleIntAttribute(attrName)){
+			if (!part.isPerParticleIntAttribute((attrName+"0")) && !part.isPerParticleIntAttribute(attrName))
+			{
 				initialStateAttrObj = initialStateAttr.create((attrName+"0"), (shortName+"0"), MFnData::kIntArray, &stat1);
 				attrObj = ppAttr.create((attrName), (shortName), MFnData::kIntArray, &stat2);
 			}
 			break;
 		case ATTR_TYPE_DOUBLE:
-			if (!part.isPerParticleDoubleAttribute((attrName+"0")) && !part.isPerParticleDoubleAttribute(attrName)){
+			if (!part.isPerParticleDoubleAttribute((attrName+"0")) && !part.isPerParticleDoubleAttribute(attrName))
+			{
 				initialStateAttrObj = initialStateAttr.create((attrName+"0"), (shortName+"0"), MFnData::kDoubleArray, &stat1);
 				attrObj = ppAttr.create((attrName), (shortName), MFnData::kDoubleArray, &stat2);
 			}
 			break;
 		case ATTR_TYPE_VECTOR:
-			if (!part.isPerParticleVectorAttribute((attrName+"0")) && !part.isPerParticleVectorAttribute(attrName)){
+			if (!part.isPerParticleVectorAttribute((attrName+"0")) && !part.isPerParticleVectorAttribute(attrName))
+			{
 				initialStateAttrObj = initialStateAttr.create((attrName+"0"), (shortName+"0"), MFnData::kVectorArray, &stat1);
 				attrObj = ppAttr.create((attrName), (shortName), MFnData::kVectorArray, &stat2);
 			}
@@ -687,23 +706,24 @@ MStatus partioEmitter::createPPAttr( MFnParticleSystem  &part, MString attrName,
 		default:
 			break;
 	}
-	// if creating the initial and attr succeeded add it to the particle system
-	if (stat1 == MStatus::kSuccess && stat2 == MStatus::kSuccess) {
+	if (stat1 == MStatus::kSuccess && stat2 == MStatus::kSuccess) 
+	{ // if creating the initial and attr succeeded add it to the particle system
 		initialStateAttr.setStorable (true);
 		ppAttr.setStorable (true);
 		ppAttr.setKeyable (true);
 		stat1 = part.addAttribute (initialStateAttrObj, MFnDependencyNode::kLocalDynamicAttr);
-		// if either state throw warning
-		if (!stat1) {
+		if (!stat1) 
+		{ // if either state throw warning
 			MGlobal::displayWarning("PartioEmitter->error:  was unable to create "+attrName+"0"+ " attr");
 		}
 		stat2 = part.addAttribute (attrObj, MFnDependencyNode::kLocalDynamicAttr);
-		if (!stat2) {
+		if (!stat2) 
+		{
 			MGlobal::displayWarning("PartioEmitter->error:  was unable to create "+ (attrName)+ " attr");
 		}
 	}
-	// if unsuccessfull error out
-	if (stat1 != MStatus::kSuccess || stat2 != MStatus::kSuccess) {
+	if (stat1 != MStatus::kSuccess || stat2 != MStatus::kSuccess) 
+	{ // if unsuccessfull error out
 		return MStatus::kFailure;
 	}
 	return MStatus::kSuccess;

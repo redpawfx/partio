@@ -88,7 +88,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 #include "partio4MayaShared.h"
 #include "iconArrays.h"
 
-class partioInstReaderCache {
+class partioInstReaderCache 
+{
 	public:
 		partioInstReaderCache();
 		int token;
@@ -107,7 +108,8 @@ class partioInstReaderCache {
 		MObject instanceDataObj;
 };
 
-class partioInstancerUI : public MPxSurfaceShapeUI {
+class partioInstancerUI : public MPxSurfaceShapeUI 
+{
 	public:
 		partioInstancerUI();
 		virtual ~partioInstancerUI();
@@ -119,7 +121,8 @@ class partioInstancerUI : public MPxSurfaceShapeUI {
 		virtual bool	select( MSelectInfo &selectInfo, MSelectionList &selectionList, MPointArray &worldSpaceSelectPts ) const;
 };
 
-class partioInstancer : public MPxSurfaceShape {
+class partioInstancer : public MPxSurfaceShape 
+{
 	public:
 		partioInstancer();
 		

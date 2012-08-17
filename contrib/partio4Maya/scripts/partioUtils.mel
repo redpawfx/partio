@@ -40,7 +40,7 @@ global  proc string[]  partioGetBaseFileName(string $inFileName) {
 			$ext = (`substring $breakdownFileName $l $l`)+$ext;
 			$breakdownFileName = `substring $breakdownFileName 1 ($l-1)`;
 		} else {
-		    $foundExt = 0;
+			$foundExt = 0;
 		}
 	}
 	if (`size $ext` > 0) {
@@ -69,7 +69,7 @@ global  proc string[]  partioGetBaseFileName(string $inFileName) {
 			$breakdownFileName = `substring $breakdownFileName 1 ($l-1)`;
 			$padding ++;
 		} else {
-		    $foundNum = 0;
+			$foundNum = 0;
 		}
 	}
 	if ($padding > 0) {
@@ -201,9 +201,9 @@ global proc pioAEoutpathNew(string $cacheName){
 	setUITemplate -pst attributeEditorTemplate;
 		columnLayout -adj true;
 			rowLayout -nc 3 outpathLayout;
-        		text -label "Particle Path" outpathText;
-		        textField diskNameField;
-		            symbolButton -image "navButtonBrowse.png" browser;
+				text -label "Particle Path" outpathText;
+				textField diskNameField;
+					symbolButton -image "navButtonBrowse.png" browser;
 				setParent ..;
 		setParent ..;
 	setUITemplate -ppt;

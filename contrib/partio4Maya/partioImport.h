@@ -67,7 +67,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 #include "Partio.h"
 #include "partio4MayaShared.h"
 
-class PartioImport : public MPxCommand {
+class PartioImport : public MPxCommand 
+{
 	public:
 		PartioImport(){};
 		virtual ~PartioImport(){};

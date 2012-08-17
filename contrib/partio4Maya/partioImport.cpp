@@ -41,11 +41,13 @@ static const char *kParticleS = "-p";
 using namespace std;
 using namespace Partio;
 
-bool PartioImport::hasSyntax(){
+bool PartioImport::hasSyntax()
+{
 	return true;
 }
 
-MSyntax PartioImport::createSyntax(){
+MSyntax PartioImport::createSyntax()
+{
 	MSyntax syntax;
 	syntax.addFlag(kParticleS, kParticleL ,  MSyntax::kString);
 	syntax.addFlag(kHelpFlagS, kHelpFlagL ,  MSyntax::kNoArg);
@@ -58,33 +60,39 @@ MSyntax PartioImport::createSyntax(){
 	return syntax;
 }
 
-void* PartioImport::creator(){
+void* PartioImport::creator()
+{
 	return new PartioImport;
 }
 
-MStatus PartioImport::doIt(const MArgList& Args){
+MStatus PartioImport::doIt(const MArgList& Args)
+{
 	bool makeParticle = false;
 	MStatus status;
 	MArgDatabase argData(syntax(), Args, &status);
-	//failed to parse arguments
-	if (status == MStatus::kFailure) {
+	if (status == MStatus::kFailure) 
+	{ //failed to parse arguments
 		MGlobal::displayError("Error parsing arguments" );
 	}
-	// help was requested
-	if( argData.isFlagSet(kHelpFlagL) ) {
+	
+	if( argData.isFlagSet(kHelpFlagL) ) 
+	{ // help was requested
 		printUsage();
 		return MStatus::kFailure;
 	}
-	// should we make a shape or load a specified shape
+	
 	MString particleShape;
-	if (argData.isFlagSet(kParticleL) ) {
+	if (argData.isFlagSet(kParticleL) ) 
+	{ // should we make a shape or load a specified shape
 		argData.getFlagArgument(kParticleL, 0, particleShape );
-		if (particleShape == "") {
+		if (particleShape == "") 
+		{
 			printUsage();
 			MGlobal::displayError("Please supply particleShape argument" );
 			return MStatus::kFailure;
 		}
-	} else { // they did not supply a shape
+	} else 
+	{ // they did not supply a shape
 		makeParticle = true;
 	}// shape initialization
 	//do something if they needed to flip
@@ -94,25 +102,36 @@ MStatus PartioImport::doIt(const MArgList& Args){
 	MStringArray  attrNames;
 	MStringArray  mayaAttrNames;
 	bool worldVeloCheck = false;
-	// loop through rest of attributes
-	for( unsigned int i = 0; i < numUses; i++ ){
+	
+	for( unsigned int i = 0; i < numUses; i++ )
+	{ // loop through rest of attributes
 		MArgList argList;
 		status = argData.getFlagArgumentList( kAttributeFlagL, i, argList );
-		if( !status ) return status;
+		if( !status )
+		{
+			return status;
+		}
 		MString AttrName = argList.asString( 0, &status );
-		if( !status ) return status;
-		// we have position or id in do something
-		if( AttrName == "position" || AttrName == "worldPosition"  || AttrName == "id" || AttrName == "particleId") { 
-		} else if( AttrName == "worldVelocity" || AttrName == "velocity" ) { // they passed in velocity
-			if (!worldVeloCheck) {
+		if( !status )
+		{
+			return status;
+		}
+		if( AttrName == "position" || AttrName == "worldPosition"  || AttrName == "id" || AttrName == "particleId") 
+		{ // we have position or id in do something
+		} else if( AttrName == "worldVelocity" || AttrName == "velocity" ) 
+		{ // they passed in velocity
+			if (!worldVeloCheck) 
+			{
 				attrNames.append("velocity");
 				worldVeloCheck = true;
 			}
-		} else { // this is not position, id, or velocity, add it!
+		} else 
+		{ // this is not position, id, or velocity, add it!
 			attrNames.append(AttrName);
 			if (argList.length() > 1) {
 				mayaAttrNames.append(argList.asString( 1 ));
-			} else {
+			} else 
+			{
 				mayaAttrNames.append(AttrName);
 			}
 		}// done wtih attribute attachment
@@ -120,13 +139,13 @@ MStatus PartioImport::doIt(const MArgList& Args){
 	
 	MString particleCache; // particleCache file
 	argData.getCommandArgument(0, particleCache);
-	// check if the cache file exists
-	if(!partio4Maya::partioCacheExists(particleCache.asChar())){
+	if(!partio4Maya::partioCacheExists(particleCache.asChar()))
+	{ // check if the cache file exists
 		MGlobal::displayError("Particle Cache Does not exist");
 		return MStatus::kFailure;
 	}
-	// if we are making a particle shape from scratch
-	if (makeParticle){
+	if (makeParticle)
+	{ // if we are making a particle shape from scratch
 		MStringArray foo;
 		MGlobal::executeCommand("particle -n partioImport -p 0 0 0", foo);
 		particleShape = foo[1];
@@ -136,8 +155,8 @@ MStatus PartioImport::doIt(const MArgList& Args){
 	list.add(particleShape);
 	MObject objNode;
 	list.getDependNode(0, objNode);
-	// if this isn't a  particle node error
-	if( objNode.apiType() != MFn::kParticle && objNode.apiType() != MFn::kNParticle ){
+	if( objNode.apiType() != MFn::kParticle && objNode.apiType() != MFn::kNParticle )
+	{ // if this isn't a  particle node error
 		MGlobal::displayError("PartioImport-> can't find your PARTICLESHAPE.");
 		return MStatus::kFailure;
 	}
@@ -145,16 +164,16 @@ MStatus PartioImport::doIt(const MArgList& Args){
 	MStatus stat;
 	MFnParticleSystem partSys(objNode, &stat);
 	MString partName = partSys.particleName();
-	// if we didn't make this node delete all particles in system
-	if (!makeParticle) {
+	if (!makeParticle) 
+	{ // if we didn't make this node delete all particles in system
 		MVectorArray clearOut;
 		clearOut.clear();
 		partSys.setCount(0);
 		partSys.setPerParticleAttribute("position", clearOut);
 		partSys.setPerParticleAttribute("velocity", clearOut);
 	}
-	// particle object was found and attached to
-	if (stat == MStatus::kSuccess) {
+	if (stat == MStatus::kSuccess) 
+	{ // particle object was found and attached to
 		Partio::ParticlesDataMutable* particles;
 		Partio::ParticleAttribute positionAttr;
 		Partio::ParticleAttribute velocityAttr;
@@ -165,21 +184,21 @@ MStatus PartioImport::doIt(const MArgList& Args){
 		char partCount[50];
 		sprintf (partCount, "%d", particles->numParticles());
 		MGlobal::displayInfo(MString ("PartioImport-> LOADED: ") + partCount + MString (" particles"));
-		// if there were no particles in cache, fail
-		if (!particles || particles->numParticles() <=0){
+		if (!particles || particles->numParticles() <=0)
+		{ // if there were no particles in cache, fail
 			MGlobal::displayError("Particle Cache cannot be read, or does not Contain any particles");
 			return MStatus::kFailure;
 		}
-		// if there was no position attribute in cache, fail
-		if (!particles->attributeInfo("position",positionAttr) && !particles->attributeInfo("Position",positionAttr)){
+		if (!particles->attributeInfo("position",positionAttr) && !particles->attributeInfo("Position",positionAttr))
+		{ // if there was no position attribute in cache, fail
 			MGlobal::displayError("PartioImport->Failed to find position attribute ");
 			return ( MS::kFailure );
 		}
-		// check for velocity attribute
 		if (!particles->attributeInfo("velocity",velocityAttr) &&
 				!particles->attributeInfo("Velocity",velocityAttr) &&
 				!particles->attributeInfo("vel",velocityAttr) &&
-				!particles->attributeInfo("Vel",velocityAttr)){
+				!particles->attributeInfo("Vel",velocityAttr))
+		{ // check for velocity attribute
 			MGlobal::displayWarning("PartioImport->Failed to find Velocity attribute ");
 			hasVelo = false;
 		}
@@ -190,15 +209,15 @@ MStatus PartioImport::doIt(const MArgList& Args){
 		std::map<std::string,  MDoubleArray  > doubleAttrArrays;
 		// we use this mapping to allow for direct writing of attrs to PP variables
 		std::map<std::string, std::string > userPPMapping;
-		// loop through each particle attribute
-		for (unsigned int i=0;i<attrNames.length();i++){
+		for (unsigned int i=0;i<attrNames.length();i++)
+		{ // loop through each particle attribute
 			Partio::ParticleAttribute testAttr;
-			// if the particles have this attribute
-			if (particles->attributeInfo(attrNames[i].asChar(), testAttr)) {
-				// if this is a vector attr
-				if (testAttr.count == 3){
-					// if this attribute is not already in the system add it
-					if (!partSys.isPerParticleVectorAttribute(mayaAttrNames[i])) {
+			if (particles->attributeInfo(attrNames[i].asChar(), testAttr)) 
+			{ // if the particles have this attribute
+				if (testAttr.count == 3)
+				{ // if this is a vector attr
+					if (!partSys.isPerParticleVectorAttribute(mayaAttrNames[i])) 
+					{ // if this attribute is not already in the system add it
 						MGlobal::displayInfo(MString("partioImport->adding ppAttr " + mayaAttrNames[i]) );
 						MString command;
 						command += "pioEmAddPPAttr ";
@@ -212,9 +231,10 @@ MStatus PartioImport::doIt(const MArgList& Args){
 					vAttribute.setLength(particles->numParticles());
 					vectorAttrArrays[attrNames[i].asChar()] = vAttribute;
 					userPPMapping[attrNames[i].asChar()] = mayaAttrNames[i].asChar();
-				} else if (testAttr.count == 1) { // this is a double attribute
-					// if this attribute is not already in the system add it
-					if (!partSys.isPerParticleDoubleAttribute(attrNames[i])) {
+				} else if (testAttr.count == 1) 
+				{ // this is a double attribute
+					if (!partSys.isPerParticleDoubleAttribute(attrNames[i])) 
+					{ // if this attribute is not already in the system add it
 						MGlobal::displayInfo(MString("PartioEmiter->adding ppAttr " + mayaAttrNames[i]));
 						MString command;
 						command += "pioEmAddPPAttr ";
@@ -228,27 +248,28 @@ MStatus PartioImport::doIt(const MArgList& Args){
 					dAttribute.setLength(particles->numParticles());
 					doubleAttrArrays[attrNames[i].asChar()] = dAttribute;
 					userPPMapping[attrNames[i].asChar()] = mayaAttrNames[i].asChar();
-				} else { // we don't know how to handle this attribute
+				} else 
+				{ // we don't know how to handle this attribute
 					MGlobal::displayError(MString("PartioEmitter->skipping attr: " + MString(attrNames[i])));
 				}
 			} // if the particle system had the attribute
 		} // looped through each particle attribute
 		std::map <std::string, MVectorArray >::iterator vecIt;
 		std::map <std::string, MDoubleArray >::iterator doubleIt;
-		//loop through each particle and add attribute to partio object
-		for (int i=0;i<particles->numParticles();i++){
+		for (int i=0;i<particles->numParticles();i++)
+		{ //loop through each particle and add attribute to partio object
 			// add position
 			const float * partioPositions = particles->data<float>(positionAttr,i);
 			MPoint pos (partioPositions[0], partioPositions[1], partioPositions[2]);
 			positions.append(pos);
-			// add velocity if it is there
-			if (hasVelo){
+			if (hasVelo)
+			{ // add velocity if it is there
 				const float * partioVelocities = particles->data<float>(velocityAttr,i);
 				MPoint vel (partioVelocities[0], partioVelocities[1], partioVelocities[2]);
 				velocities.append(vel);
 			}
-			// add vector attributes if they are present
-			if (vectorAttrArrays.size() > 0){
+			if (vectorAttrArrays.size() > 0)
+			{ // add vector attributes if they are present
 				for (vecIt = vectorAttrArrays.begin(); vecIt != vectorAttrArrays.end(); vecIt++){
 					ParticleAttribute vectorAttr;
 					particles->attributeInfo(vecIt->first.c_str(), vectorAttr);
@@ -256,8 +277,8 @@ MStatus PartioImport::doIt(const MArgList& Args){
 					vectorAttrArrays[vecIt->first][i] = MVector(vecVal[0],vecVal[1],vecVal[2]);
 				}
 			}
-			// add double attributes if they are present
-			if (doubleAttrArrays.size() > 0){
+			if (doubleAttrArrays.size() > 0)
+			{ // add double attributes if they are present
 				for (doubleIt = doubleAttrArrays.begin(); doubleIt != doubleAttrArrays.end(); doubleIt++) {
 					ParticleAttribute doubleAttr;
 					particles->attributeInfo(doubleIt->first.c_str(),doubleAttr);
@@ -266,36 +287,37 @@ MStatus PartioImport::doIt(const MArgList& Args){
 				}
 			}
 		}// looped through and added attributes to particles
-		// if the particles dont have velocity set the array length but dont fill in value
-		// NOTE: this does not set data to NULL could be junk velocities in this array
-		if (!hasVelo){
+		if (!hasVelo)
+		{ // if the particles dont have velocity set the array length but dont fill in value, NOTE: this does not set data to NULL could be junk velocities in this array
 			velocities.setLength(particles->numParticles());
 		}
-		// if there are particles, release them
-		if (particles){
+		if (particles)
+		{ // if there are particles, release them
 			particles->release();
 		}
 		// emit the system
 		partSys.setCount(positions.length());
 		stat = partSys.emit(positions,velocities);
-		// attach double attributes
-		for (doubleIt = doubleAttrArrays.begin(); doubleIt != doubleAttrArrays.end(); doubleIt++) {
+		for (doubleIt = doubleAttrArrays.begin(); doubleIt != doubleAttrArrays.end(); doubleIt++) 
+		{ // attach double attributes
 			partSys.setPerParticleAttribute(MString(userPPMapping[doubleIt->first].c_str()), doubleAttrArrays[doubleIt->first]);
 		}
-		// attach vector attributes
-		for (vecIt = vectorAttrArrays.begin(); vecIt != vectorAttrArrays.end(); vecIt++) {
+		for (vecIt = vectorAttrArrays.begin(); vecIt != vectorAttrArrays.end(); vecIt++) 
+		{ // attach vector attributes
 			partSys.setPerParticleAttribute(MString(userPPMapping[vecIt->first].c_str()), vectorAttrArrays[vecIt->first]);
 		}
 		// set this as initial state of particle system
 		partSys.saveInitialState();
-	} else { // we failed to initialize
+	} else 
+	{ // we failed to initialize
 		return stat;
 	}// particle object was found and attached to
 	
 	return MStatus::kSuccess;
 }
 
-void PartioImport::printUsage(){
+void PartioImport::printUsage()
+{
 	// build string
 	MString usage = "\n-----------------------------------------------------------------------------\n";
 	usage += "\tpartioImport -p/particle <particleShapeName> [Options] </full/path/to/particleCacheFile> \n";

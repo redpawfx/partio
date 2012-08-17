@@ -40,8 +40,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 using namespace Partio;
 using namespace std;
 
-/// generate a constant noise offset for this ID and return as a vector to add to the particle position
-MVector partio4Maya::jitterPoint(int id, float freq, float offset, float jitterMag) {
+MVector partio4Maya::jitterPoint(int id, float freq, float offset, float jitterMag) 
+{ /// generate a constant noise offset for this ID and return as a vector to add to the particle position
 	MVector jitter(0,0,0);
 	if (jitterMag > 0){
 		jitter.x = ((noiseAtValue(float((id+.124+offset))*freq))-.5)*2;
@@ -52,8 +52,8 @@ MVector partio4Maya::jitterPoint(int id, float freq, float offset, float jitterM
 	return  jitter;
 }
 
-/// returns true if the file exists
-bool partio4Maya::partioCacheExists(const char* fileName) {
+bool partio4Maya::partioCacheExists(const char* fileName) 
+{ /// returns true if the file exists
 	struct stat fileInfo;
 	bool statReturn;
 	int intStat;
@@ -66,8 +66,8 @@ bool partio4Maya::partioCacheExists(const char* fileName) {
 	return(statReturn);
 }
 
-/// C++ version of the same mel procedure
-MStringArray partio4Maya::partioGetBaseFileName(MString inFileName){
+MStringArray partio4Maya::partioGetBaseFileName(MString inFileName)
+{ /// C++ version of the same mel procedure
 	MString preDelim = "";
 	MString postDelim =  "";
 	MString ext = "";
@@ -87,77 +87,91 @@ MStringArray partio4Maya::partioGetBaseFileName(MString inFileName){
 	MString breakdownFileName = inFileName;
 	const char* c = breakdownFileName.asChar();
 	int end = breakdownFileName.length()-1;
-	while (foundExt) {
-		if (isalpha(c[end])) {
+	while (foundExt) 
+	{
+		if (isalpha(c[end])) 
+		{
 			end--;
-		} else {
+		} else 
+		{
 			foundExt = false;
 			ext = breakdownFileName.substringW(end+1, (breakdownFileName.length()-1) );
 			breakdownFileName = breakdownFileName.substringW(0,end);
 		}
 	}
-	if (ext.length() > 0) {
+	if (ext.length() > 0) 
+	{
 		outFileName[3] = ext;
 		//if (ext == "pts" || ext == "xyz") // special case for static lidar files
 		//{
 		//	return outFileName;
 		//}
 		outFileName[0] = breakdownFileName;
-	} else {
+	} else 
+	{
 		return outFileName;
 	}
 	// then we  determine the postDelim character (only support  "." or  "_"
 	l = breakdownFileName.length()-1;
 	MString last =  breakdownFileName.substringW(l,l);
-	if ( last == "_" || last == ".") {
+	if ( last == "_" || last == ".") 
+	{
 		outFileName[2] = last;
 		breakdownFileName = breakdownFileName.substringW(0,(l-1));
 		outFileName[0] = breakdownFileName;
-	} else {
+	} else 
+	{
 		return outFileName;
 	}
 	// now lets  get the frame numbers to determine padding
 	bool foundNum = true;
 	const char* f = breakdownFileName.asChar();
 	end = breakdownFileName.length()-1;
-	while (foundNum) {
-		if (isdigit(f[end])) {
+	while (foundNum) 
+	{
+		if (isdigit(f[end])) 
+		{
 			end--;
 			padding += "#";
-		} else {
+		} else 
+		{
 			foundNum = false;
 			origFrameString = breakdownFileName.substringW(end+1,(breakdownFileName.length()-1));
 			breakdownFileName = breakdownFileName.substringW(0,end);
 		}
 	}
-	if (padding.length() > 0) {
+	if (padding.length() > 0) 
+	{
 		outFileName[4] = padding;
 		outFileName[0] = breakdownFileName;
 		outFileName[5] = origFrameString;
-	} else {
+	} else 
+	{
 		outFileName[4] = "-1";
 		return outFileName;
 	}
 	//  lastly  we  get the  preDelim character, again only supporting "." or "_"
 	l = breakdownFileName.length()-1;
 	last =  breakdownFileName.substringW(l,l);
-	if ( last == "_" || last == ".") {
+	if ( last == "_" || last == ".") 
+	{
 		outFileName[1] = last;
 		breakdownFileName = breakdownFileName.substringW(0,(l-1));
 		outFileName[0] = breakdownFileName;
-	} else {
+	} else 
+	{
 		return outFileName;
 	}
 	// if we've gotten here, we have a fully populated outputFileNameArray
 	return outFileName;
 }
 
-/// returns new file name or same file name depending on values, cache type etc
 void partio4Maya::updateFileName (MString cacheFile, MString cacheDir,
 		bool cacheStatic, int cacheOffset,
 		short cacheFormat, int integerTime,
 		int &cachePadding, MString &formatExt,
-		MString &outputFramePath, MString &outputRenderPath) {
+		MString &outputFramePath, MString &outputRenderPath) 
+{ /// returns new file name or same file name depending on values, cache type etc
 	formatExt = setExt(cacheFormat);
 	MStringArray fileParts = partioGetBaseFileName(cacheFile);
 	MString cachePrefix = fileParts[0];
@@ -173,15 +187,17 @@ void partio4Maya::updateFileName (MString cacheFile, MString cacheDir,
 	//  output path  as normal
 	cacheFrame =  integerTime + cacheOffset;
 	MString formatString =  "%s%s%s%0";
-	// special case for PDCs and maya nCache files because of the funky naming convention  TODO: support substepped/retiming  caches
-	if (formatExt == "pdc"){
+	if (formatExt == "pdc")
+	{ // special case for PDCs and maya nCache files because of the funky naming convention  TODO: support substepped/retiming  caches
 		cacheFrame *= (int)(6000 / 24);
 		cachePadding = 1;
-	} else if (formatExt == "mc"){
+	} else if (formatExt == "mc")
+	{
 		cachePadding = 1;
 		formatString = "%s%sFrame%0";
 		int idx = cacheFile.rindexW("Frame");
-		if (idx != -1){
+		if (idx != -1)
+		{
 			cacheFile = cacheFile.substringW(0, idx-1);
 		}
 	}
@@ -189,7 +205,8 @@ void partio4Maya::updateFileName (MString cacheFile, MString cacheDir,
 	formatString += cachePadding;
 	formatString += "d%s%s";
 	const char* fmt = formatString.asChar();
-	if (cacheStatic){
+	if (cacheStatic)
+	{
 		stringstream s_str;
 		s_str << origFrameString.asChar();
 		s_str >> cacheFrame;
@@ -198,7 +215,8 @@ void partio4Maya::updateFileName (MString cacheFile, MString cacheDir,
 	newCacheFile = fileName;
 	// output path for render output path
 	MString frameString = "<frame>";
-	if (cacheStatic){
+	if (cacheStatic)
+	{
 		frameString = origFrameString;
 	}
 	formatString =  "%s%s%s%s%s%s";
@@ -210,15 +228,15 @@ void partio4Maya::updateFileName (MString cacheFile, MString cacheDir,
 	outputRenderPath = renderCacheFile;
 }
 
-/// set the current extension type
-MString partio4Maya::setExt(short extEnum){
+MString partio4Maya::setExt(short extEnum)
+{ /// set the current extension type
 	std::map<short,MString> formatExtMap;
 	buildSupportedExtensionList(formatExtMap, false);  // eventually this will be replaced with something from partio
 	return MString(formatExtMap[extEnum]);
 }
 
-/// eventually this will be replaced with something from partio directly
-void partio4Maya::buildSupportedExtensionList(std::map<short,MString> &formatExtMap,bool write = false){
+void partio4Maya::buildSupportedExtensionList(std::map<short,MString> &formatExtMap,bool write = false)
+{ /// eventually this will be replaced with something from partio directly
 	formatExtMap[0] = "bgeo";
 	formatExtMap[1] = "geo";
 	formatExtMap[2] = "pda";
@@ -231,7 +249,8 @@ void partio4Maya::buildSupportedExtensionList(std::map<short,MString> &formatExt
 	formatExtMap[9] = "pts";
 	formatExtMap[10] = "xyz";
 	formatExtMap[11] = "pcd";
-	if(write) {
+	if(write) 
+	{
 		formatExtMap[11] = "rib";
 		formatExtMap[12] = "ass";
 	}
@@ -242,7 +261,8 @@ void partio4Maya::drawPartioLogo(float multiplier)
 	glBegin ( GL_LINES );
 		int i,d;
 		int last = P1Count - 1;
-		for ( i = 0; i < last; ++i ){
+		for ( i = 0; i < last; ++i )
+		{
 			glVertex3f ( P1[i][0] * multiplier,
 				P1[i][1] * multiplier,
 				P1[i][2] * multiplier );
@@ -251,7 +271,8 @@ void partio4Maya::drawPartioLogo(float multiplier)
 				P1[i+1][2] * multiplier );
 		}
 		last = P2Count -1;
-		for ( i = 0; i < last; ++i ){
+		for ( i = 0; i < last; ++i )
+		{
 			glVertex3f ( P2[i][0] * multiplier,
 				P2[i][1] * multiplier,
 				P2[i][2] * multiplier );
@@ -260,7 +281,8 @@ void partio4Maya::drawPartioLogo(float multiplier)
 				P2[i+1][2] * multiplier );
 		}
 		last = a1Count -1;
-		for ( i = 0; i < last; ++i ){
+		for ( i = 0; i < last; ++i )
+		{
 			glVertex3f ( a1[i][0] * multiplier,
 				a1[i][1] * multiplier,
 				a1[i][2] * multiplier );
@@ -269,7 +291,8 @@ void partio4Maya::drawPartioLogo(float multiplier)
 				a1[i+1][2] * multiplier );
 		}
 		last = a2Count -1;
-		for ( i = 0; i < last; ++i ){
+		for ( i = 0; i < last; ++i )
+		{
 			glVertex3f ( a2[i][0] * multiplier,
 				a2[i][1] * multiplier,
 				a2[i][2] * multiplier );
@@ -278,7 +301,8 @@ void partio4Maya::drawPartioLogo(float multiplier)
 				a2[i+1][2] * multiplier );
 		}
 		last = rCount -1;
-		for ( i = 0; i < last; ++i ){
+		for ( i = 0; i < last; ++i )
+		{
 			glVertex3f ( r[i][0] * multiplier,
 				r[i][1] * multiplier,
 				r[i][2] * multiplier );
@@ -287,7 +311,8 @@ void partio4Maya::drawPartioLogo(float multiplier)
 				r[i+1][2] * multiplier );
 		}
 		last = tCount -1;
-		for ( i = 0; i < last; ++i ){
+		for ( i = 0; i < last; ++i )
+		{
 			glVertex3f ( t[i][0] * multiplier,
 				t[i][1] * multiplier,
 				t[i][2] * multiplier );
@@ -296,7 +321,8 @@ void partio4Maya::drawPartioLogo(float multiplier)
 				t[i+1][2] * multiplier );
 		}
 		last = i1Count -1;
-		for ( i = 0; i < last; ++i ){
+		for ( i = 0; i < last; ++i )
+		{
 			glVertex3f ( i1[i][0] * multiplier,
 				i1[i][1] * multiplier,
 				i1[i][2] * multiplier );
@@ -305,7 +331,8 @@ void partio4Maya::drawPartioLogo(float multiplier)
 				i1[i+1][2] * multiplier );
 		}
 		last = i2Count -1;
-		for ( i = 0; i < last; ++i ){
+		for ( i = 0; i < last; ++i )
+		{
 			glVertex3f ( i2[i][0] * multiplier,
 				i2[i][1] * multiplier,
 				i2[i][2] * multiplier );
@@ -314,7 +341,8 @@ void partio4Maya::drawPartioLogo(float multiplier)
 				i2[i+1][2] * multiplier );
 		}
 		last = o1Count -1;
-		for ( i = 0; i < last; ++i ){
+		for ( i = 0; i < last; ++i )
+		{
 			glVertex3f ( o1[i][0] * multiplier,
 				o1[i][1] * multiplier,
 				o1[i][2] * multiplier );
@@ -323,7 +351,8 @@ void partio4Maya::drawPartioLogo(float multiplier)
 				o1[i+1][2] * multiplier );
 		}
 		last = o2Count -1;
-		for ( i = 0; i < last; ++i ){
+		for ( i = 0; i < last; ++i )
+		{
 			glVertex3f ( o2[i][0] * multiplier,
 				o2[i][1] * multiplier,
 				o2[i][2] * multiplier );
@@ -331,8 +360,10 @@ void partio4Maya::drawPartioLogo(float multiplier)
 				o2[i+1][1] * multiplier,
 				o2[i+1][2] * multiplier );
 		}
-		for ( d = 0; d < debrisCount; d++ ){
-			for ( i = 0; i < ( debrisPointCount-1 ); ++i ){
+		for ( d = 0; d < debrisCount; d++ )
+		{
+			for ( i = 0; i < ( debrisPointCount-1 ); ++i )
+			{
 			glVertex3f ( circles[d][i][0] * multiplier,
 					circles[d][i][1] * multiplier,
 					circles[d][i][2] * multiplier );
@@ -362,7 +393,8 @@ float partio4Maya::noiseAtValue( float x )
 	int ix;
 	float fx;
 	
-	if ( !isInitialized ) {
+	if ( !isInitialized ) 
+	{
 		initTable( 23479015 );
 		isInitialized = 1;
 	}
@@ -392,7 +424,8 @@ void  partio4Maya::initTable( long seed )
 		srand48( seed );
 	#endif
 	
-	for ( int i = 0; i < TABLE_SIZE; i++ ) {
+	for ( int i = 0; i < TABLE_SIZE; i++ ) 
+	{
 		valueTable1[i] = (float)drand48();
 		valueTable2[i] = (float)drand48();
 		valueTable3[i] = (float)drand48();
@@ -421,36 +454,37 @@ float partio4Maya::spline( float x, float knot0, float knot1, float knot2, float
 
 int partio4Maya::isInitialized = 0;
 
-int partio4Maya::permtable[256] = {
-    254,    91,     242,    186,    90,     204,    85,     133,    233,
-    50,     187,    49,     182,    224,    144,    166,    7,      51,
-    20,     179,    36,     203,    114,    156,    195,    40,     24,
-    60,     162,    84,     126,    102,    63,     194,    220,    161,
-    72,     94,     193,    229,    140,    57,     3,      189,    106,
-    54,     164,    198,    199,    44,     245,    235,    100,    87,
-    25,     41,     62,     111,    13,     70,     27,     82,     69,
-    53,     66,     247,    124,    67,     163,    125,    155,    228,
-    122,    19,     113,    143,    121,    9,      1,      241,    171,
-    200,    83,     244,    185,    170,    141,    115,    190,    154,
-    48,     32,     178,    127,    167,    56,     134,    15,     160,
-    238,    64,     6,      11,     196,    232,    26,     89,     0,
-    219,    112,    68,     30,     215,    227,    75,     132,    71,
-    239,    251,    92,     14,     104,    231,    29,     180,    150,
-    226,    191,    47,     73,     37,     183,    88,     105,    42,
-    22,     2,      38,     5,      119,    74,     249,    184,    52,
-    8,      55,     118,    255,    206,    173,    165,    78,     31,
-    123,    98,     212,    80,     139,    61,     138,    77,     177,
-    45,     137,    145,    28,     168,    128,    95,     223,    35,
-    205,    76,     211,    175,    81,     33,     207,    21,     131,
-    58,     152,    16,     240,    18,     96,     210,    109,    214,
-    216,    202,    148,    34,     146,    117,    176,    93,     246,
-    172,    97,     159,    197,    218,    65,     147,    253,    221,
-    217,    79,     101,    142,    23,     149,    99,     39,     12,
-    135,    110,    234,    108,    153,    129,    4,      169,    174,
-    116,    243,    130,    107,    222,    10,     43,     188,    46,
-    213,    252,    86,     157,    192,    236,    158,    120,    17,
-    103,    248,    225,    230,    250,    208,    181,    151,    237,
-    201,    59,     136,    209
+int partio4Maya::permtable[256] = 
+{
+	254,    91,     242,    186,    90,     204,    85,     133,    233,
+	50,     187,    49,     182,    224,    144,    166,    7,      51,
+	20,     179,    36,     203,    114,    156,    195,    40,     24,
+	60,     162,    84,     126,    102,    63,     194,    220,    161,
+	72,     94,     193,    229,    140,    57,     3,      189,    106,
+	54,     164,    198,    199,    44,     245,    235,    100,    87,
+	25,     41,     62,     111,    13,     70,     27,     82,     69,
+	53,     66,     247,    124,    67,     163,    125,    155,    228,
+	122,    19,     113,    143,    121,    9,      1,      241,    171,
+	200,    83,     244,    185,    170,    141,    115,    190,    154,
+	48,     32,     178,    127,    167,    56,     134,    15,     160,
+	238,    64,     6,      11,     196,    232,    26,     89,     0,
+	219,    112,    68,     30,     215,    227,    75,     132,    71,
+	239,    251,    92,     14,     104,    231,    29,     180,    150,
+	226,    191,    47,     73,     37,     183,    88,     105,    42,
+	22,     2,      38,     5,      119,    74,     249,    184,    52,
+	8,      55,     118,    255,    206,    173,    165,    78,     31,
+	123,    98,     212,    80,     139,    61,     138,    77,     177,
+	45,     137,    145,    28,     168,    128,    95,     223,    35,
+	205,    76,     211,    175,    81,     33,     207,    21,     131,
+	58,     152,    16,     240,    18,     96,     210,    109,    214,
+	216,    202,    148,    34,     146,    117,    176,    93,     246,
+	172,    97,     159,    197,    218,    65,     147,    253,    221,
+	217,    79,     101,    142,    23,     149,    99,     39,     12,
+	135,    110,    234,    108,    153,    129,    4,      169,    174,
+	116,    243,    130,    107,    222,    10,     43,     188,    46,
+	213,    252,    86,     157,    192,    236,    158,    120,    17,
+	103,    248,    225,    230,    250,    208,    181,    151,    237,
+	201,    59,     136,    209
 };
 
 float partio4Maya::valueTable1[256];
