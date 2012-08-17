@@ -3,7 +3,6 @@ global proc shelf_Partio4Maya () {
     global string $gBuffStr0;
     global string $gBuffStr1;
 
-
     shelfButton
         -enableCommandRepeat 1
         -enable 1
@@ -132,5 +131,4 @@ global proc shelf_Partio4Maya () {
         -sourceType "mel"
         -commandRepeatable 1
     ;
-
 }

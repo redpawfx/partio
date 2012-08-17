@@ -38,9 +38,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 		return MS::kFailure;\
 	}
 
-#define ATTR_TYPE_INT 		0
-#define ATTR_TYPE_DOUBLE	1
-#define ATTR_TYPE_VECTOR	2
+#define ATTR_TYPE_INT 0
+#define ATTR_TYPE_DOUBLE 1
+#define ATTR_TYPE_VECTOR 2
 
 using namespace Partio;
 using namespace std;

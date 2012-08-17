@@ -31,11 +31,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 
 #define TABLE_SIZE 256
 
-#define LEAD_COLOR				18	// green
-#define ACTIVE_COLOR			15	// white
-#define ACTIVE_AFFECTED_COLOR	8	// purple
-#define DORMANT_COLOR			4	// blue
-#define HILITE_COLOR			17	// pale blue
+#define LEAD_COLOR 18 // green
+#define ACTIVE_COLOR 15 // white
+#define ACTIVE_AFFECTED_COLOR 8 // purple
+#define DORMANT_COLOR 4 // blue
+#define HILITE_COLOR 17 // pale blue
 
 using namespace Partio;
 using namespace std;

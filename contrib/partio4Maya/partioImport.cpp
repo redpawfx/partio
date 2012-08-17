@@ -29,14 +29,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 
 #include "partioImport.h"
 
-static const char *kAttributeFlagS	= "-atr";
-static const char *kAttributeFlagL      = "-attribute";
-static const char *kFlipFlagS		= "-flp";
-static const char *kFlipFlagL		= "-flip";
-static const char *kHelpFlagS 		= "-h";
-static const char *kHelpFlagL 		= "-help";
-static const char *kParticleL		= "-particle";
-static const char *kParticleS		= "-p";
+static const char *kAttributeFlagS = "-atr";
+static const char *kAttributeFlagL = "-attribute";
+static const char *kFlipFlagS = "-flp";
+static const char *kFlipFlagL = "-flip";
+static const char *kHelpFlagS = "-h";
+static const char *kHelpFlagL = "-help";
+static const char *kParticleL = "-particle";
+static const char *kParticleS = "-p";
 
 using namespace std;
 using namespace Partio;

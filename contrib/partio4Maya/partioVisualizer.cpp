@@ -32,16 +32,16 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 static MGLFunctionTable *gGLFT = NULL;
 
 #define ID_PARTIOVISUALIZER  0x00116ECF // id is registered with autodesk no need to change
-#define LEAD_COLOR				18	// green
-#define ACTIVE_COLOR			15	// white
-#define ACTIVE_AFFECTED_COLOR	8	// purple
-#define DORMANT_COLOR			4	// blue
-#define HILITE_COLOR			17	// pale blue
+#define LEAD_COLOR 18 // green
+#define ACTIVE_COLOR 15 // white
+#define ACTIVE_AFFECTED_COLOR 8 // purple
+#define DORMANT_COLOR 4 // blue
+#define HILITE_COLOR 17 // pale blue
 
-#define DRAW_STYLE_POINTS			0
-#define DRAW_STYLE_RADIUS			1
-#define DRAW_STYLE_DISK				2
-#define DRAW_STYLE_BOUNDING_BOX	3
+#define DRAW_STYLE_POINTS 0
+#define DRAW_STYLE_RADIUS 1
+#define DRAW_STYLE_DISK	 2
+#define DRAW_STYLE_BOUNDING_BOX 3
 
 using namespace Partio;
 using namespace std;
