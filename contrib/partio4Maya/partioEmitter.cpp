@@ -47,6 +47,20 @@ using namespace std;
 
 MTypeId partioEmitter::id ( ID_PARTIOEMITTER );
 
+MObject partioEmitter::aCacheDir;
+MObject partioEmitter::aCacheFile;
+MObject partioEmitter::aCacheOffset;
+MObject partioEmitter::aCacheActive;
+MObject partioEmitter::aCacheFormat;
+MObject partioEmitter::aCacheStatic;
+MObject partioEmitter::aUseEmitterTransform;
+MObject partioEmitter::aSize;
+MObject partioEmitter::aFlipYZ;
+MObject partioEmitter::aJitterPos;
+MObject partioEmitter::aJitterFreq;
+MObject partioEmitter::aPartioAttributes;
+MObject partioEmitter::aMayaPPAttributes;
+
 partioEmitter::partioEmitter():
 		lastWorldPoint ( 0, 0, 0, 1 ),
 		mLastFileLoaded(""),

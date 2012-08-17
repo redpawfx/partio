@@ -46,8 +46,6 @@ using namespace Partio;
 using namespace std;
 
 /// PARTIO INSTANCER
-MTypeId partioInstancer::id( ID_PARTIOINSTANCER );
-
 /*
 Names and types of all array attributes  the maya instancer looks for
 used by the geometry instancer nodes:  ( * = currently implemented)
@@ -66,6 +64,33 @@ aimWorldUp (vectorArray)
 age (doubleArray)
 id (doubleArray)
 */
+
+MTypeId partioInstancer::id( ID_PARTIOINSTANCER );
+
+MObject partioInstancer::time;
+MObject partioInstancer::aUpdateCache;
+MObject partioInstancer::aSize;         // The size of the logo
+MObject partioInstancer::aFlipYZ;
+MObject partioInstancer::aCacheDir;
+MObject partioInstancer::aCacheFile;
+MObject partioInstancer::aUseTransform;
+MObject partioInstancer::aCacheActive;
+MObject partioInstancer::aCacheOffset;
+MObject partioInstancer::aCacheStatic;
+MObject partioInstancer::aCacheFormat;
+MObject partioInstancer::aPartioAttributes;
+MObject partioInstancer::aPointSize;
+MObject partioInstancer::aDrawStyle;
+MObject partioInstancer::aForceReload;
+MObject partioInstancer::aRenderCachePath;
+MObject partioInstancer::aRotationFrom;
+MObject partioInstancer::aScaleFrom;
+MObject partioInstancer::aIndexFrom;
+MObject partioInstancer::aShaderIndexFrom;
+MObject partioInstancer::aInMeshInstances;
+MObject partioInstancer::aOutMesh;
+MObject partioInstancer::aInstanceData;
+MObject partioInstancer::aComputeVeloPos;
 
 partioInstReaderCache::partioInstReaderCache():
 		token(0),

@@ -48,6 +48,33 @@ using namespace std;
 
 MTypeId partioVisualizer::id( ID_PARTIOVISUALIZER );
 
+MObject partioVisualizer::time;
+MObject partioVisualizer::aDrawSkip;
+MObject partioVisualizer::aUpdateCache;
+MObject partioVisualizer::aSize;         // The size of the logo
+MObject partioVisualizer::aFlipYZ;
+MObject partioVisualizer::aCacheDir;
+MObject partioVisualizer::aCacheFile;
+MObject partioVisualizer::aUseTransform;
+MObject partioVisualizer::aCacheActive;
+MObject partioVisualizer::aCacheOffset;
+MObject partioVisualizer::aCacheStatic;
+MObject partioVisualizer::aCacheFormat;
+MObject partioVisualizer::aJitterPos;
+MObject partioVisualizer::aJitterFreq;
+MObject partioVisualizer::aPartioAttributes;
+MObject partioVisualizer::aColorFrom;
+MObject partioVisualizer::aRadiusFrom;
+MObject partioVisualizer::aAlphaFrom;
+MObject partioVisualizer::aPointSize;
+MObject partioVisualizer::aDefaultPointColor;
+MObject partioVisualizer::aDefaultAlpha;
+MObject partioVisualizer::aDefaultRadius;
+MObject partioVisualizer::aInvertAlpha;
+MObject partioVisualizer::aDrawStyle;
+MObject partioVisualizer::aForceReload;
+MObject partioVisualizer::aRenderCachePath;
+
 partioVizReaderCache::partioVizReaderCache():
 		token(0),
 		bbox(MBoundingBox(MPoint(0,0,0,0),MPoint(0,0,0,0))),
