@@ -929,13 +929,8 @@ void partioVisualizerUI::drawPartio(partioVizReaderCache* pvCache, int drawStyle
 			}
 			glDisableClientState( GL_VERTEX_ARRAY );
 			glDisableClientState( GL_COLOR_ARRAY );
-		} else
-		{ // we are not drawing points
-			glPointSize(pointSizeVal);
-			if (drawStyle == DRAW_STYLE_POINTS)
-			{
-				glBegin(GL_POINTS);
-			}
+		} else if (drawStyle != DRAW_STYLE_BOUNDING_BOX)
+		{ // we are drawing discs or spheres, loops through one by one
 			for (int i=0;i<pvCache->particles->numParticles();i+=(drawSkipVal+1))
 			{
 				if (defaultAlphaVal < 1 || alphaFromVal >=0)  
@@ -945,20 +940,10 @@ void partioVisualizerUI::drawPartio(partioVizReaderCache* pvCache, int drawStyle
 				{
 					glColor3f(pvCache->rgb[i*3],pvCache->rgb[(i*3)+1],pvCache->rgb[(i*3)+2]);
 				}
-				const float * partioPositions = pvCache->particles->data<float>(pvCache->positionAttr,i);
-				if (drawStyle == DRAW_STYLE_DISK || drawStyle == DRAW_STYLE_RADIUS) 
-				{ // unfilled circles, disks, or spheres
-						MVector position(partioPositions[0], partioPositions[1], partioPositions[2]);
-						float radius = pvCache->radius[i];
-						drawBillboardCircleAtPoint(position,  radius, 10, drawStyle);
-				} else 
-				{ // DRAW_STYLE_POINTS
-					glVertex3f(partioPositions[0], partioPositions[1], partioPositions[2]);
-				}
-			}
-			if (drawStyle == DRAW_STYLE_POINTS)
-			{ // end draw loopif the draw style was points only, otherwise we have duplicate glEnd() which could interfere with other contexts
-				glEnd();
+				const float* partioPositions = pvCache->particles->data<float>(pvCache->positionAttr,i);
+				MVector position(partioPositions[0], partioPositions[1], partioPositions[2]);
+				float radius = pvCache->radius[i];
+				drawBillboardCircleAtPoint(position,  radius, 10, drawStyle);
 			}
 		}
 		glDisable(GL_POINT_SMOOTH);
