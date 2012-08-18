@@ -86,7 +86,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 #include "partio4MayaShared.h"
 #include "iconArrays.h"
 
-
 struct partVizState 
 { // struct to keep track of state changes between renders
 	MString fileLoaded;
@@ -104,7 +103,6 @@ struct partVizState
 	float radius;
 	bool flipStatus;
 };
-
 
 struct partVizContext 
 { // struct to keep track of current context vars
