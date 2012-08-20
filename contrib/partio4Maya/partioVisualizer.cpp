@@ -247,6 +247,7 @@ MStatus partioVisualizer::initialize()
 	
 	aPartioAttributes = tAttr.create ("partioCacheAttributes", "pioCAts", MFnStringData::kString);
 	tAttr.setArray(true);
+	tAttr.setUsesArrayDataBuilder( true );
 	tAttr.setDisconnectBehavior(MFnAttribute::kDelete);
 	
 	aColorFrom = nAttr.create("colorFrom", "cfrm", MFnNumericData::kInt, -1, &stat);
@@ -761,6 +762,18 @@ void partioVisualizer::updateAEControls(const MPlug& plug, MDataBlock& block)
 			zPlug.setValue(MString(temp));
 			mContext.attributeList.append(mStringAttrName);
 			delete [] temp;
+		}
+		MArrayDataHandle hPartioAttrs = block.inputArrayValue(aPartioAttributes);
+		MArrayDataBuilder bPartioAttrs = hPartioAttrs.builder();
+		// do we need to clean up some attributes from our array?
+		if (bPartioAttrs.elementCount() > numAttr)
+		{
+			unsigned int current = bPartioAttrs.elementCount();
+			unsigned int attrArraySize = current - 1;
+			for (unsigned int x = 0; x < current - numAttr; x++)
+			{ // remove excess elements from the end of our attribute array
+				bPartioAttrs.removeElement(current--);
+			}
 		}
 	}
 }
