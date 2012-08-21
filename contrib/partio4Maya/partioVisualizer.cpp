@@ -138,7 +138,7 @@ void partioVisualizer::postConstructor()
 { /// POST CONSTRUCTOR
 	setRenderable(true);
 	// set callbacks
-	partioVisualizerOpenCallback = MSceneMessage::addCallback(MSceneMessage::kAfterOpen, partioVisualizer::reInit, this);
+	partioVisualizerOpenCallback = MSceneMessage::addCallback(MSceneMessage::kBeforeOpen, partioVisualizer::reInit, this);
 	partioVisualizerImportCallback = MSceneMessage::addCallback(MSceneMessage::kAfterImport, partioVisualizer::reInit, this);
 	partioVisualizerReferenceCallback = MSceneMessage::addCallback(MSceneMessage::kAfterReference, partioVisualizer::reInit, this);
 }
