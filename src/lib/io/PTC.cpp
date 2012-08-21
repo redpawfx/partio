@@ -52,6 +52,8 @@ namespace Partio
 
 using namespace std;
 
+// TODO:  we need to support  particle ID in here, if we can't use ints then lets just store ID into a float and extract it back out into an int
+
 static const int ptc_magic=((((('c'<<8)|'t')<<8)|'p')<<8)|'p';
 
 
@@ -79,7 +81,7 @@ bool ParseSpec(const string& spec,string& typeName,string& name)
     return true;
 }
 
-ParticlesDataMutable* readPTC(const char* filename,const bool headersOnly,char** attributes, int percentage)
+ParticlesDataMutable* readPTC(const char* filename,const bool headersOnly)
 {
     auto_ptr<istream> input(Gzip_In(filename,ios::in|ios::binary));
     if(!*input){

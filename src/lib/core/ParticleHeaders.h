@@ -48,7 +48,7 @@ protected:
 
     int numAttributes() const;
     int numParticles() const;
-    bool attributeInfo(const char* attributeName,ParticleAttribute& attribute) const;
+	bool attributeInfo(const char* attributeName,ParticleAttribute& attribute) const;
     bool attributeInfo(const int attributeInfo,ParticleAttribute& attribute) const;
 
     int registerIndexedStr(const ParticleAttribute& attribute,const char* str);

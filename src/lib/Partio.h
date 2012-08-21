@@ -44,6 +44,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 #include <string>
 #include <vector>
 #include <map>
+#include <cstdio>
+#include <cstring>
 #include <stdint.h>
 #include "PartioAttribute.h"
 #include "PartioIterator.h"
@@ -78,6 +80,7 @@ public:
 
     //! Number of per-particle attributes.
     virtual int numParticles() const=0;
+
 
     //! Lookup an attribute by name and store a handle to the attribute.
     virtual bool attributeInfo(const char* attributeName,ParticleAttribute& attribute) const=0;
@@ -176,7 +179,7 @@ private:
 class ParticlesDataMutable:public ParticlesData
 {
 protected:
-    virtual ~ParticlesDataMutable() {}
+    virtual ~ParticlesDataMutable(){}
 
 public:
 
@@ -245,6 +248,9 @@ ParticlesInfo* readHeaders(const char* filename);
 //! if filename ends with .gz or forceCompressed is true, the file is compressed.
 void write(const char* filename,const ParticlesData&,const bool forceCompressed=false);
 
+/// TODO:  this could be implemented as a logger function that takes a custom  input function from the  program using partio
+//! Provides  feedback on load progress
+void reportLoadProgress(float progress);
 
 //! Cached (only one copy) read only way to read a particle file
 /*!

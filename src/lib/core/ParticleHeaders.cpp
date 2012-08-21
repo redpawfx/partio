@@ -68,6 +68,7 @@ numAttributes() const
     return attributes.size();
 }
 
+
 bool ParticleHeaders::
 attributeInfo(const int attributeIndex,ParticleAttribute& attribute) const
 {
@@ -111,7 +112,7 @@ lookupIndexedStr(const ParticleAttribute& attribute,const char* str) const
 const std::vector<std::string>& ParticleHeaders::
 indexedStrs(const ParticleAttribute& attr) const
 {
-    static std::vector<std::string> dummy; 
+    static std::vector<std::string> dummy;
     assert(false);
     return dummy;
 }

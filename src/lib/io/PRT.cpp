@@ -2,10 +2,6 @@
 PARTIO SOFTWARE
 Copyright (c) 2011 Disney Enterprises, Inc. and Contributors,  All rights reserved
 
-Format Contributed by github user: K240
-Some Code for this format  was helped along  by referring to an implementation by  Bo Schwartzstein and ThinkBox Software   THANKS!
-Modifications from: github user: redpawfx (redpawFX@gmail.com)  and Luma Pictures  2011
-
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
 met:
@@ -36,6 +32,11 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 
+Format Contributed by github user: K240
+Some Code for this format  was helped along  by referring to an implementation by  Bo Schwartzstein and ThinkBox Software   THANKS!
+Modifications from: github user: redpawfx (redpawFX@gmail.com)  and Luma Pictures  2011
+
+
 */
 #include "../Partio.h"
 #include "PartioEndian.h"
@@ -44,7 +45,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 
 
 //#define USE_ILMHALF    // use Ilm's Half library
-#define AUTO_CASES    // auto upcase ie:position => Position
+//#define AUTO_CASES    // auto upcase ie:position => Position
 
 #ifdef USE_ILMHALF
 #include <half.h>
@@ -60,7 +61,7 @@ namespace Partio{
 
 #define OUT_BUFSIZE		(4096)
 
-typedef struct FileHeadder {
+typedef struct FileHeader {
     unsigned char	magic[8];
     unsigned int	headersize;
     unsigned char	signature[32];
@@ -137,7 +138,7 @@ static bool write_buffer(std::ostream& os, z_stream& z, char* out_buf, void* p, 
 
 
 
-ParticlesDataMutable* readPRT(const char* filename,const bool headersOnly, char** attributes, int percentage)
+ParticlesDataMutable* readPRT(const char* filename,const bool headersOnly)
 {
     std::auto_ptr<std::istream> input(new std::ifstream(filename,std::ios::in|std::ios::binary));
     if (!*input) {
@@ -150,8 +151,8 @@ ParticlesDataMutable* readPRT(const char* filename,const bool headersOnly, char*
     if (headersOnly) simple=new ParticleHeaders;
     else simple=create();
 
-    FileHeadder header;
-    input->read((char*)&header,sizeof(FileHeadder));
+    FileHeader header;
+    input->read((char*)&header,sizeof(FileHeader));
 
     if (memcmp(header.magic, magic, sizeof(magic))) {
         std::cerr<<"Partio: failed to get PRT magic"<<std::endl;
@@ -200,7 +201,7 @@ ParticlesDataMutable* readPRT(const char* filename,const bool headersOnly, char*
         if (type != NONE) {
 #ifdef AUTO_CASES
             if (ch.name[0] >= 'A' && ch.name[0] <= 'Z') {
-                ch.name[0] += 0x20;
+               ch.name[0] += 0x20;
             }
 #endif
             std::string name((char*)ch.name);
@@ -216,7 +217,7 @@ ParticlesDataMutable* readPRT(const char* filename,const bool headersOnly, char*
     z.zalloc = Z_NULL;z.zfree = Z_NULL;z.opaque = Z_NULL;
     if (inflateInit( &z ) != Z_OK) {
         std::cerr<<"Zlib inflateInit error"<<std::endl;
-        return false;
+        return 0;
     }
 
     char in_buf[OUT_BUFSIZE];
@@ -325,7 +326,7 @@ ParticlesDataMutable* readPRT(const char* filename,const bool headersOnly, char*
 	}
     if (inflateEnd( &z ) != Z_OK) {
         std::cerr<<"Zlib inflateEnd error"<<std::endl;
-        return false;
+        return 0;
     }
 
     // success
@@ -346,14 +347,14 @@ bool writePRT(const char* filename,const ParticlesData& p,const bool /*compresse
             return false;
         }
 
-        FileHeadder header;
+        FileHeader header;
         memcpy(header.magic, magic, sizeof(magic));
         memcpy(header.signature, signature, sizeof(signature));
         header.headersize = 0x38;
         header.version = 1;
         header.numParticles = p.numParticles();
         int reserve = 4;
-        output->write((char*)&header,sizeof(FileHeadder));
+        output->write((char*)&header,sizeof(FileHeader));
         write<LITEND>(*output, reserve);
         write<LITEND>(*output, (int)p.numAttributes());
             reserve = 0x2c;
