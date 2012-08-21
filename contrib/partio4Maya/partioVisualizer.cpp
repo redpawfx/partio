@@ -138,7 +138,7 @@ void partioVisualizer::postConstructor()
 { /// POST CONSTRUCTOR
 	setRenderable(true);
 	// set callbacks
-	partioVisualizerOpenCallback = MSceneMessage::addCallback(MSceneMessage::kBeforeOpen, partioVisualizer::reInit, this);
+	partioVisualizerOpenCallback = MSceneMessage::addCallback(MSceneMessage::kAfterOpen, partioVisualizer::reInit, this);
 	partioVisualizerImportCallback = MSceneMessage::addCallback(MSceneMessage::kAfterImport, partioVisualizer::reInit, this);
 	partioVisualizerReferenceCallback = MSceneMessage::addCallback(MSceneMessage::kAfterReference, partioVisualizer::reInit, this);
 }
@@ -1013,25 +1013,18 @@ void partioVisualizerUI::getDrawRequests(const MDrawInfo & info, bool objectAndA
 
 void partioVisualizerUI::drawBillboardCircleAtPoint(MVector position, float radius, int num_segments, int drawType) const 
 {
-	float m[16];
-	int j,k;
+	float m[16] = 
+	{ // set the identity matrix
+		1.0, 0.0, 0.0, 0.0,
+		0.0, 1.0, 0.0, 0.0,
+		0.0, 0.0, 1.0, 0.0,
+		0.0, 0.0, 0.0, 1.0 
+	};
+	
 	glPushMatrix();
 	glTranslatef( (GLfloat) position.x, (GLfloat) position.y, (GLfloat) position.z);
 	glGetFloatv(GL_MODELVIEW_MATRIX, m);
 	
-	for (j = 0; j<3; j++) 
-	{ // set the identity matrix
-		for (k = 0; k<3; k++) 
-		{
-			if (j==k) 
-			{
-				m[j*4+k] = 1.0;
-			} else 
-			{
-				m[j*4+k] = 0.0;
-			}
-		}
-	}
 	glLoadMatrixf(m);
 	float theta =(float)(  2 * 3.1415926 / float(num_segments)  );
 	float tangetial_factor = tanf(theta);//calculate the tangential factor

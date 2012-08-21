@@ -43,7 +43,8 @@ using namespace std;
 MVector partio4Maya::jitterPoint(int id, float freq, float offset, float jitterMag) 
 { /// generate a constant noise offset for this ID and return as a vector to add to the particle position
 	MVector jitter(0,0,0);
-	if (jitterMag > 0){
+	if (jitterMag > 0)
+	{
 		jitter.x = ((noiseAtValue(float((id+.124+offset))*freq))-.5)*2;
 		jitter.y = ((noiseAtValue(float((id+1042321+offset))*freq))-.5)*2;
 		jitter.z = ((noiseAtValue(float((id-2350212+offset))*freq))-.5)*2;
@@ -58,9 +59,11 @@ bool partio4Maya::partioCacheExists(const char* fileName)
 	bool statReturn;
 	int intStat;
 	intStat = stat(fileName, &fileInfo);
-	if (intStat == 0) {
+	if (intStat == 0) 
+	{
 		statReturn = true;
-	} else {
+	} else 
+	{
 		statReturn = false;
 	}
 	return(statReturn);
