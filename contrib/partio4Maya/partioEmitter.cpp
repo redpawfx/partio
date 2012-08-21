@@ -187,10 +187,12 @@ MStatus partioEmitter::initialize()
 	
 	aPartioAttributes = tAttr.create ("partioCacheAttributes", "pioCAts", MFnStringData::kString);
 	tAttr.setArray(true);
+	tAttr.setUsesArrayDataBuilder( true );
 	tAttr.setDisconnectBehavior(MFnAttribute::kDelete);
 	
 	aMayaPPAttributes = tAttr.create("mayaPPAttributes", "pioMPPAts" , MFnStringData::kString);
 	tAttr.setArray(true);
+	tAttr.setUsesArrayDataBuilder( true );
 	tAttr.setDisconnectBehavior(MFnAttribute::kDelete);
 	
 	// attach attributes
@@ -388,6 +390,21 @@ MStatus partioEmitter::compute ( const MPlug& plug, MDataBlock& block )
 			if (cacheChanged || zPlug.numElements() != numAttr) 
 			{ //if the cache has changed or num elements has changed update the AE Controls for attrs in the cache
 				MGlobal::displayInfo("partioEmitter->refreshing AE controls");
+				// get array builders
+				MArrayDataHandle hPartioAttrs = block.inputArrayValue(aPartioAttributes);
+				MArrayDataBuilder bPartioAttrs = hPartioAttrs.builder();
+				MArrayDataHandle hMayaPPAttrs = block.inputArrayValue(aPartioAttributes);
+				MArrayDataBuilder bMayaPPAttrs = hMayaPPAttrs.builder();
+				if (bPartioAttrs.elementCount() > numAttr)
+				{ // clear excess values from arrays
+					unsigned int current = bPartioAttrs.elementCount();
+					unsigned int attrArraySize = current - 1;
+					for (unsigned int x = 0; x < current - numAttr; x++)
+					{ // remove excess elements from the end of our attribute array
+						bPartioAttrs.removeElement(current);
+						bMayaPPAttrs.removeElement(current--);
+					}
+				}
 				for (unsigned int i=0;i<numAttr;i++) 
 				{ // set up plugs to take new attributes
 					ParticleAttribute attr;
@@ -403,7 +420,6 @@ MStatus partioEmitter::compute ( const MPlug& plug, MDataBlock& block )
 					yPlug.selectAncestorLogicalIndex(i,aMayaPPAttributes);
 					yPlug.setValue(MString(""));
 					delete [] temp;
-					MGlobal::executeCommand("refreshAE;");
 				}
 			} // end cache changed
 			std::map<std::string,  MVectorArray  > vectorAttrArrays;

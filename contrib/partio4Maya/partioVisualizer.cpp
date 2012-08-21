@@ -765,9 +765,8 @@ void partioVisualizer::updateAEControls(const MPlug& plug, MDataBlock& block)
 		}
 		MArrayDataHandle hPartioAttrs = block.inputArrayValue(aPartioAttributes);
 		MArrayDataBuilder bPartioAttrs = hPartioAttrs.builder();
-		// do we need to clean up some attributes from our array?
 		if (bPartioAttrs.elementCount() > numAttr)
-		{
+		{ // do we need to clean up some attributes from our array?
 			unsigned int current = bPartioAttrs.elementCount();
 			unsigned int attrArraySize = current - 1;
 			for (unsigned int x = 0; x < current - numAttr; x++)
