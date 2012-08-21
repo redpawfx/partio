@@ -27,120 +27,85 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 */
 
-global proc AEpartioEmitterTemplate( string $nodeName )
-{
+global proc AEpartioEmitterTemplate( string $nodeName ) {
 	editorTemplate -callCustom pioEmLogoHeader pioEmLogoHeader $nodeName;
 	editorTemplate -beginLayout "Global" -collapse 0;
-	editorTemplate -addControl "cacheActive";
-	// editorTemplate -addControl "flipYZ";  // not ready for prime time yet
-	editorTemplate -callCustom pioAEoutpathNew pioAEoutpathReplace cacheDir;
-	editorTemplate -addControl "cachePrefix";
-	editorTemplate -addControl "cacheOffset";
-	editorTemplate -addControl "cacheFormat";
-	editorTemplate -addControl "iconSize";
-
-
+		editorTemplate -addControl "cacheActive";
+		// editorTemplate -addControl "flipYZ";  // not ready for prime time yet
+		editorTemplate -callCustom pioAEoutpathNew pioAEoutpathReplace cacheDir;
+		editorTemplate -addControl "cachePrefix";
+		editorTemplate -addControl "cacheOffset";
+		editorTemplate -addControl "cacheFormat";
+		editorTemplate -addControl "iconSize";
 	editorTemplate -endLayout;
-
 	editorTemplate -beginScrollLayout;
-
 		editorTemplate -beginLayout "General Parameters" -collapse 0;
-		    editorTemplate -addControl "useEmitterTransform";
-		    editorTemplate -addControl -l "Jitter Position Magnitude" "jitterPos" ;
-		    editorTemplate -addControl -l "Jitter Position Frequency" "jitterFreq";
+			editorTemplate -addControl "useEmitterTransform";
+			editorTemplate -addControl -l "Jitter Position Magnitude" "jitterPos" ;
+			editorTemplate -addControl -l "Jitter Position Frequency" "jitterFreq";
 		editorTemplate -endLayout;
 		editorTemplate -beginLayout "Channels to import" -collapse 0;
-		editorTemplate -callCustom "pioEmCustomAttrsManage" "pioEmCustomAttrsManage" $nodeName;
+			editorTemplate -callCustom "pioEmCustomAttrsManage" "pioEmCustomAttrsManage" $nodeName;
 		editorTemplate -endLayout;
-
-	// include/call base class/node attributes
-	AEdependNodeTemplate $nodeName;
-
-	editorTemplate -addExtraControls;
+		// include/call base class/node attributes
+		AEdependNodeTemplate $nodeName;
+		editorTemplate -addExtraControls;
 	editorTemplate -endScrollLayout;
 }
 
-global proc pioEmCustomAttrsManage (string $nodeName)
-{
-    $nodeName = pioStripNodeName ($nodeName);
-    if (`columnLayout -q -exists "partioToParticleMapping"`)
-    { deleteUI "partioToParticleMapping"; }
-
-    columnLayout  partioToParticleMapping;
-
-    string $multiList[] = `listAttr -multi ($nodeName+".partioCacheAttributes")`;
-    for ($multi in $multiList)
-    {
+global proc pioEmCustomAttrsManage (string $nodeName) {
+	$nodeName = pioStripNodeName ($nodeName);
+	if (`columnLayout -q -exists "partioToParticleMapping"`){ 
+		deleteUI "partioToParticleMapping"; 
+	}
+	columnLayout  partioToParticleMapping;
+	string $multiList[] = `listAttr -multi ($nodeName+".partioCacheAttributes")`;
+	for ($multi in $multiList){
 		rowLayout -nc 3 -cw3 200 100 200 -bgc .2 .2 .2  -ebg true -w 500;
 		string $tok[];
 		tokenize $multi "[" $tok;
 		string $index = $tok[1];
 		$index = substituteAllString($index, "]", "");
 		string $attr = `getAttr ($nodeName+"."+$multi)`;
-		textFieldGrp -w 200
-       	 -label "partIO Attr"
-       	 -text  $attr
-       	-editable false -cw2 75 100 ;
+		textFieldGrp -w 200 -label "partIO Attr" -text  $attr -editable false -cw2 75 100 ;
 		text -w 75 -fn "boldLabelFont" -l "---map to--->";
 		string $mayaPPMapping = `textFieldGrp -w 175 -cw2 75 100   -label "ppAttr" -text "" -editable true`;
 		connectControl -index 2  $mayaPPMapping  ($nodeName+".mayaPPAttributes["+$index+"]");
 		setParent ..;
-    }
-
+	}
 }
 
-
-global proc  pioEmLogoHeader(string $nodeName)
-{
-	if (!`symbolButton -q -exists  pioEmHeaderIcon`)
-	{	rowLayout -nc 2 ;
+global proc  pioEmLogoHeader(string $nodeName) {
+	if (!`symbolButton -q -exists  pioEmHeaderIcon`){
+		rowLayout -nc 2 ;
 		symbolButton -h 45 -w 200 -c "pioEmSwapAboutText()" -image "partioEmitter_logo.png" pioEmHeaderIcon;
 		text -fn "smallBoldLabelFont" -l "Partio Emitter Tips: \n  turn on LifespanPP,  max Particles to -1\n and conserve to 0" pioEmAboutText;
 	}
 }
 
-
-global proc  pioEmSwapAboutText()
-{
-
+global proc  pioEmSwapAboutText(){
 	string $text1 =  "Partio Emitter Tips: \n  turn on LifespanPP,  max Particles to -1\n and conserve to 0";
 	string $text2 =  "Partio Emitter by: \n John Cassella  (redpawfx)\n  with Luma-Pictures  2011";
-
 	string $text = `text -q -l pioEmAboutText`;
-	if (`gmatch $text "Partio Emitter Tips:*"`)
-	{
+	if (`gmatch $text "Partio Emitter Tips:*"`) {
 		text -e -l $text2  pioEmAboutText;
-	}
-	else
-	{
+	} else {
 		text -e -l $text1 pioEmAboutText;
 	}
-
 }
 
-global proc pioEmAddPPAttr(string $ppAttrName, string $attrType, string $partName)
-
-{
-	if ($ppAttrName != "")
-	{
-		if (`nodeType $partName` != "particle" && `nodeType $partName` != "nParticle")
-		{
+global proc pioEmAddPPAttr(string $ppAttrName, string $attrType, string $partName) {
+	if ($ppAttrName != ""){
+		if (`nodeType $partName` != "particle" && `nodeType $partName` != "nParticle") {
 			string $shape[] = `listRelatives -s $partName`;
 			$part = $shape[0];
 		}
-		if (`nodeType $partName` == "particle" ||  `nodeType $partName` == "nParticle")
-		{
-			if (!`attributeExists $ppAttrName $partName`)
-			{
+		if (`nodeType $partName` == "particle" ||  `nodeType $partName` == "nParticle") {
+			if (!`attributeExists $ppAttrName $partName`){
 				addAttr -ln ($ppAttrName+"0") -dt $attrType $partName;
 				addAttr -ln ($ppAttrName) -dt $attrType $partName;
 				setAttr -e -keyable true ($partName+"."+$ppAttrName);
 			}
 		}
 	}
-
 }
-
-
-
-

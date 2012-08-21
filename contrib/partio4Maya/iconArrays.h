@@ -27,11 +27,10 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 */
 
-/////////////////////////////////
-//// OPEN GL  arrays to draw icon
-///  for partIo emitter
-//
-//
+/// OPEN GL  arrays to draw icon for partIo emitter
+
+#ifndef Partio4MayaIconArrays_H
+#define Partio4MayaIconArrays_H
 
 #include <partio4MayaShared.h>
 
@@ -536,4 +535,5 @@ static GLfloat circles[][10][3] =
 }
 ;
 
+#endif
 
