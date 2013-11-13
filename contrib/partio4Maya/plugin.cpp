@@ -37,6 +37,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 
 
 
+#ifdef _WIN32
+__declspec(dllexport)
+#else
+__attribute__ ((visibility("default")))
+#endif
 MStatus initializePlugin ( MObject obj )
 {
 
@@ -99,6 +104,11 @@ MStatus initializePlugin ( MObject obj )
     return status;
 }
 
+#ifdef _WIN32
+__declspec(dllexport)
+#else
+__attribute__ ((visibility("default")))
+#endif
 MStatus uninitializePlugin ( MObject obj )
 {
     MStatus status;

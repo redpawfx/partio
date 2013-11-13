@@ -277,6 +277,8 @@ icecache_attribute createAttribute ( ParticleAttribute& attr )
         attribute.attribute_length=3;
         break;
     }
+    default:
+        break;
     }
     attribute.ptlocator_size    = 0;
     attribute.structtype        = siICENodeStructureSingle;

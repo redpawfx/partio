@@ -63,9 +63,11 @@ struct fixedFloatArray
 };
 %}
 
+#ifdef PARTIO_USE_NUMPY
 %init %{ 
 import_array();
 %}
+#endif
 
 // Particle Types
 enum ParticleAttributeType {NONE=0,VECTOR=1,FLOAT=2,INT=3,INDEXEDSTR=4};
@@ -312,6 +314,7 @@ public:
     }
 #endif
 
+#ifdef PARTIO_USE_NUMPY
     %feature("autodoc");
     %feature("docstring","Get");
     PyObject* getNDArray(const ParticleAttribute& attr)
@@ -344,6 +347,7 @@ public:
  
         return PyArray_Return((PyArrayObject *)array);
     }
+#endif
 
     %feature("autodoc");
     %feature("docstring","Gets a single flattened tuple, containing attribute data for all particles");

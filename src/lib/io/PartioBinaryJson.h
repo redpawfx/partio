@@ -93,7 +93,7 @@ class JSONParseError : public std::runtime_error
     std::string offsetStr(const JSONParserState& state){
         size_t offset=state.getOffset();
         char buf[1024];
-        sprintf(buf,"offset %d ",offset);
+        sprintf(buf,"offset %lu ",offset);
         return buf;
     }
 public:
@@ -246,8 +246,6 @@ struct JSONParser
 
     int64 readLength(){
         uint8 lengthCode;
-        uint32 length32;
-        int64 length64;
         read<LITEND>(state.fp,lengthCode);
         //std::cerr<<"length code "<<int(lengthCode)<<std::endl;
         if(lengthCode<0xf1) return lengthCode;
@@ -279,7 +277,8 @@ struct JSONParser
             requireKey();
 
             nextToken();
-            TOKEN val=value();
+            //TOKEN val=value();
+            value();
         }
         Derived().arrayEnd();
     }
@@ -310,7 +309,8 @@ struct JSONParser
             if(currToken == JID_MAP_END) break;
             requireKey();
             nextToken();
-            TOKEN finalValue=value();
+            //TOKEN finalValue=value();
+            value();
             currKey=0;
         }
         Derived().mapEnd();

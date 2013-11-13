@@ -99,7 +99,7 @@ void writeAttrData(std::ostream& output, const ParticlesData& particles, icecach
     ParticlesData::const_iterator iterator=particles.begin();
     iterator.addAccessor(accessor);
     int index = 0;
-    T val[ice_attr.attr_handle.count];
+    //T val[ice_attr.attr_handle.count];
     // Iterate over all points
     for (ParticlesData::const_iterator end=particles.end();iterator!=end;++iterator)
 	{
@@ -138,13 +138,13 @@ ParticlesDataMutable* readICECACHE(const char* filename,const bool headersOnly)
 
     // Header values
     ULONG versionnumber     = read<ULONG>(*input);
-    ULONG objecttype        = read<ULONG>(*input);
+    /*ULONG objecttype        =*/ read<ULONG>(*input);
     ULONG pointcount        = read<ULONG>(*input);
-    ULONG edgecount         = read<ULONG>(*input);
-    ULONG polygoncount      = read<ULONG>(*input);
-    ULONG samplecount       = read<ULONG>(*input);
-    ULONG substep           = read<ULONG>(*input);
-    ULONG userdatablobcount = read<ULONG>(*input);
+    /*ULONG edgecount         =*/ read<ULONG>(*input);
+    /*ULONG polygoncount      =*/ read<ULONG>(*input);
+    /*ULONG samplecount       =*/ read<ULONG>(*input);
+    /*ULONG substep           =*/ read<ULONG>(*input);
+    /*ULONG userdatablobcount =*/ read<ULONG>(*input);
     ULONG attributecount    = read<ULONG>(*input);
 
     // Make sure the the cache is exactly version 103
@@ -196,6 +196,8 @@ ParticlesDataMutable* readICECACHE(const char* filename,const bool headersOnly)
             break;
         case VECTOR:
             readAttrData<VECTOR>(*input, *simple, ice_attr);
+            break;
+        default:
             break;
         }
     }
@@ -277,5 +279,6 @@ bool writeICECACHE(const char* filename,const ParticlesData& p,const bool compre
         }
     }
 
+    return true;
 }
 }

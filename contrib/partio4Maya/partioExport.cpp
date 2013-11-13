@@ -28,6 +28,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 */
 
 #include "partioExport.h"
+#include <maya/MPlugArray.h>
+#include <maya/MPlug.h>
 
 #define  kAttributeFlagS	"-atr"
 #define  kAttributeFlagL	"-attribute"
@@ -346,7 +348,52 @@ MStatus PartioExport::doIt(const MArgList& Args)
 
                     if ( attrName == "id" || attrName == "particleId" )
                     {
-                        PS.particleIds( IA );
+                        MPlugArray plugs;
+                        MPlug plug = PS.findPlug("deformedPosition");
+                        plug.connectedTo(plugs, true, false);
+                        if (plugs.length() >= 1)
+                        {
+                            MObject srcP = plugs[0].node();
+                            while (!srcP.hasFn(MFn::kParticle))
+                            {
+                                MFnDependencyNode dn(srcP);
+                                plug = dn.findPlug("inputGeometry");
+                                if (!plug.isNull())
+                                {
+                                    plugs.clear();
+                                    plug.connectedTo(plugs, true, false);
+                                    if (plugs.length() >= 1)
+                                    {
+                                        srcP = plugs[0].node();
+                                    }
+                                    else
+                                    {
+                                        break;
+                                    }
+                                }
+                                else
+                                {
+                                    break;
+                                }
+                            }
+                            if (srcP.hasFn(MFn::kParticle))
+                            {
+                                MFnParticleSystem srcPS(srcP);
+                                srcPS.particleIds(IA);
+                            }
+                            else
+                            {
+                                MGlobal::displayWarning("Filling in dummy IDs for \"" + PS.name() + "\" particles");
+                                for (unsigned long j=0; j<PS.count(); ++j)
+                                {
+                                    IA.append(j);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            PS.particleIds( IA );
+                        }
                         attrName = "id";
                         if (Format == "pdc")
                         {

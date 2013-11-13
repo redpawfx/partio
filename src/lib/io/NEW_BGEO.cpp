@@ -46,7 +46,7 @@ infringement.
 #include <fstream>
 #include <cstdlib>
 #include <cstring>
-#include <Partio.h>
+#include "../Partio.h"
 
 namespace Partio{
 
@@ -120,7 +120,7 @@ struct BGEOAttributeValues:public JSONParser<BGEOAttributeValues>
         //return true;
         if(strcmp(key,"rawpagedata")==0){
             // TODO: check for size and storage
-            int nparts=particles->numParticles();
+            //int nparts=particles->numParticles();
             std::cerr<<"attr "<<attrName<<" reading raw page data with packing ";
             for(size_t k=0;k<packing.size();k++) std::cerr<<" "<<packing[k];
             std::cerr<<" storage "<<storage<<" length "<<length<<std::endl;

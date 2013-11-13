@@ -109,7 +109,7 @@ public:
     //! list of particles. Specify whether or not your indices are sorted.
     //! note if T is void, then type checking is disabled.
     template<class T> inline void data(const ParticleAttribute& attribute,
-        const int indexCount,const ParticleIndex* particleIndices,const bool sorted,T* values)
+        const int indexCount,const ParticleIndex* particleIndices,const bool sorted,T* values) const
     {
     	assert(typeCheck<T>(attribute.type));
         dataInternalMultiple(attribute,indexCount,particleIndices,sorted,(char*)values);

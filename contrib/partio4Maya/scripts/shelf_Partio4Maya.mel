@@ -25,7 +25,7 @@ global proc shelf_Partio4Maya () {
         -style "iconOnly"
         -marginWidth 1
         -marginHeight 1
-        -command "catch(`loadPlugin \"partio4Maya\"`); \nstring $node = `createNode -n \"partioVizShape1\" partioVisualizer`;\nconnectAttr  \"time1.outTime\"  ($node+\".time\");\n\n\n"
+        -command "if (`pluginInfo -q -l \"partio4Maya\"` != 1) {loadPlugin \"partio4Maya\";}\nstring $node = `createNode -n \"partioVizShape1\" partioVisualizer`;\nconnectAttr  \"time1.outTime\"  ($node+\".time\");\n\n\n"
         -sourceType "mel"
         -commandRepeatable 1
     ;
@@ -50,7 +50,7 @@ global proc shelf_Partio4Maya () {
         -style "iconOnly"
         -marginWidth 1
         -marginHeight 1
-        -command "catch(`loadPlugin \"partio4Maya\"`);\nstring $node = `createNode -n \"partioEmitter1\" partioEmitter`;"
+        -command "if (`pluginInfo -q -l \"partio4Maya\"` != 1) {loadPlugin \"partio4Maya\";}\nstring $node = `createNode -n \"partioEmitter1\" partioEmitter`;"
         -sourceType "mel"
         -commandRepeatable 1
     ;
@@ -75,10 +75,10 @@ global proc shelf_Partio4Maya () {
         -style "iconOnly"
         -marginWidth 1
         -marginHeight 1
-        -command "catch(`loadPlugin \"partio4Maya\"`); \nstring $sel[] = `ls -sl`;\nstring $node = `createNode -n \"partio_InstancerShape1\" partioInstancer`;\nconnectAttr time1.outTime ($node+\".time\");\nselect -cl;\nselect $node;\nselect -add $sel;\nattachPartioInstancerToInstancer();"
+        -command "if (`pluginInfo -q -l \"partio4Maya\"` != 1) {loadPlugin \"partio4Maya\";}\nstring $sel[] = `ls -sl`;\nstring $node = `createNode -n \"partio_InstancerShape1\" partioInstancer`;\nconnectAttr time1.outTime ($node+\".time\");\nselect -cl;\nselect $node;\nselect -add $sel;\nattachPartioInstancerToInstancer();"
         -sourceType "mel"
         -commandRepeatable 1
-        -mi "create with instancer " ( "loadPlugin \"partio4Maya.so\";\nstring $node = `createNode -n \"partio_InstancerShape1\" partioInstancer`;\nconnectAttr time1.outTime ($node+\".time\");\nstring $instancer = `createNode instancer`;\nconnectAttr -f ($node + \".instanceData\") ($instancer+\".inputPoints\");\n" )
+        -mi "create with instancer " ( "if (`pluginInfo -q -l \"partio4Maya\"` != 1) {loadPlugin \"partio4Maya\";}\nstring $node = `createNode -n \"partio_InstancerShape1\" partioInstancer`;\nconnectAttr time1.outTime ($node+\".time\");\nstring $instancer = `createNode instancer`;\nconnectAttr -f ($node + \".instanceData\") ($instancer+\".inputPoints\");\n" )
         -mi "attach to instancer" ( "attachPartioInstancerToInstancer();" )
 
     ;
@@ -103,7 +103,7 @@ global proc shelf_Partio4Maya () {
         -style "iconOnly"
         -marginWidth 1
         -marginHeight 1
-        -command "catch(`loadPlugin \"partio4Maya\"`);\nsource partioExportGui.mel;\npartioExportGui;"
+        -command "if (`pluginInfo -q -l \"partio4Maya\"` != 1) {loadPlugin \"partio4Maya\";}\nsource partioExportGui.mel;\npartioExportGui;"
         -sourceType "mel"
         -commandRepeatable 1
     ;

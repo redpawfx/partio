@@ -226,7 +226,14 @@ void partio4Maya::updateFileName (MString cacheFile, MString cacheDir,
     MString cachePrefix = fileParts[0];
     MString preDelim = fileParts[1];
     MString postDelim = fileParts[2];
-    //formatExt = fileParts[3];
+
+	// future proofing..  if number of formats changes, this  entry will change, and could fail and crash
+	// so if the formats don't jive take the one from the filename.
+	if (formatExt != fileParts[3])
+	{
+		formatExt = fileParts[3];
+	}
+
     cachePadding = fileParts[4].length();
     MString origFrameString = fileParts[5];
 
