@@ -289,7 +289,7 @@ MStatus partioInstancer::initialize()
         eAttr.addField(formatExtMap[i].toUpperCase(),	i);
     }
 
-    eAttr.setDefault(4);  // PDC
+    eAttr.setDefault(Partio::readFormatIndex("pdc"));  // PDC
     eAttr.setChannelBox(true);
 
     aDrawStyle = eAttr.create( "drawStyle", "drwStyl");

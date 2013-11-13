@@ -42,10 +42,8 @@ namespace Partio{
 using namespace std;
 
 // reader and writer code
-typedef ParticlesDataMutable* (*READER_FUNCTION)(const char*,const bool);
-typedef bool (*WRITER_FUNCTION)(const char*,const ParticlesData&,const bool);
 
-map<string,READER_FUNCTION>&
+const map<string,READER_FUNCTION>&
 readers()
 {
     static map<string,READER_FUNCTION> data;
@@ -75,7 +73,7 @@ readers()
     return data;
 }
 
-map<string,WRITER_FUNCTION>&
+const map<string,WRITER_FUNCTION>&
 writers()
 {
     static map<string,WRITER_FUNCTION> data;
@@ -134,7 +132,7 @@ read(const char* c_filename)
     string extension;
     bool endsWithGz;
     if(!extensionIgnoringGz(filename,extension,endsWithGz)) return 0;
-    map<string,READER_FUNCTION>::iterator i=readers().find(extension);
+    map<string,READER_FUNCTION>::const_iterator i=readers().find(extension);
     if(i==readers().end()){
         cerr<<"Partio: No reader defined for extension "<<extension<<endl;
         return 0;
@@ -149,7 +147,7 @@ readHeaders(const char* c_filename)
     string extension;
     bool endsWithGz;
     if(!extensionIgnoringGz(filename,extension,endsWithGz)) return 0;
-    map<string,READER_FUNCTION>::iterator i=readers().find(extension);
+    map<string,READER_FUNCTION>::const_iterator i=readers().find(extension);
     if(i==readers().end()){
         cerr<<"Partio: No reader defined for extension "<<extension<<endl;
         return 0;
@@ -164,7 +162,7 @@ write(const char* c_filename,const ParticlesData& particles,const bool forceComp
     string extension;
     bool endsWithGz;
     if(!extensionIgnoringGz(filename,extension,endsWithGz)) return;
-    map<string,WRITER_FUNCTION>::iterator i=writers().find(extension);
+    map<string,WRITER_FUNCTION>::const_iterator i=writers().find(extension);
     if(i==writers().end()){
         cerr<<"Partio: No writer defined for extension "<<extension<<endl;
         return;

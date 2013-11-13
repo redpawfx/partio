@@ -35,7 +35,20 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 #ifndef _READERS_h_
 #define _READERS_h_
 
+#include <map>
+#include <string>
+
 namespace Partio{
+
+typedef ParticlesDataMutable* (*READER_FUNCTION)(const char*,const bool);
+typedef bool (*WRITER_FUNCTION)(const char*,const ParticlesData&,const bool);
+
+typedef std::map<std::string, READER_FUNCTION> ReaderMap;
+typedef std::map<std::string, WRITER_FUNCTION> WriterMap;
+
+const ReaderMap& readers();
+const WriterMap& writers();
+
 ParticlesDataMutable* readBGEO(	const char* filename,const bool headersOnly);
 ParticlesDataMutable* readGEO(	const char* filename,const bool headersOnly);
 ParticlesDataMutable* readPDB(	const char* filename,const bool headersOnly);

@@ -76,7 +76,7 @@ MSyntax PartioExport::createSyntax()
     syntax.addFlag(kFilePrefixFlagS,kFilePrefixFlagL, MSyntax::kString);
 	syntax.addFlag(kPerFrameFlagS,kPerFrameFlagL, MSyntax::kString);
     syntax.addArg(MSyntax::kString);
-    syntax.enableQuery(false);
+    syntax.enableQuery(true); // for format flag only
     syntax.enableEdit(false);
 
     return syntax;
@@ -94,6 +94,23 @@ MStatus PartioExport::doIt(const MArgList& Args)
 
     MStatus status;
     MArgDatabase argData(syntax(), Args, &status);
+
+    if ( argData.isQuery() )
+    {
+        if ( argData.isFlagSet(kFormatFlagL) )
+        {
+            MStringArray rv;
+            
+            size_t n = Partio::numWriteFormats();
+            for (size_t i=0; i<n; ++i)
+            {
+                rv.append(Partio::writeFormatExtension(i));
+            }
+            
+            setResult(rv);
+        }
+        return MS::kSuccess;
+    }
 
     if ( argData.isFlagSet(kHelpFlagL))
     {
@@ -135,24 +152,19 @@ MStatus PartioExport::doIt(const MArgList& Args)
 
     Format = Format.toLowerCase();
 
-    if (Format != "pda" &&
-            Format != "pdb" &&
-            Format != "pdc" &&
-            Format != "prt" &&
-            Format != "bin" &&
-            Format != "bgeo" &&
-            Format != "geo" &&
-            Format != "ptc" &&
-            Format != "mc" &&
-            Format != "rib" &&
-            Format != "pts" &&
-            Format != "xyz" &&
-            Format != "pcd" &&
-            //Format != "icecache" &&
-            Format != "rib" )
+    if (Partio::writeFormatIndex(Format.asChar()) == Partio::InvalidIndex)
     {
-        //MGlobal::displayError("PartioExport-> format is one of: pda,pdb,pdc,prt,bin,bgeo,geo,ptc,mc,icecache,rib,ass");
-		MGlobal::displayError("PartioExport-> format is one of: pda,pdb,pdc,prt,bin,bgeo,geo,ptc,mc,rib,ass");
+        MString writefmts;
+        size_t n = Partio::numWriteFormats();
+        for (size_t i=0; i<n; ++i)
+        {
+            writefmts += Partio::writeFormatExtension(i);
+            if (i+1 < n)
+            {
+                writefmts += ", ";
+            }
+        }
+        MGlobal::displayError("PartioExport-> format is one of: " + writefmts);
         return MStatus::kFailure;
     }
 
@@ -507,15 +519,24 @@ MStatus PartioExport::doIt(const MArgList& Args)
 
 void PartioExport::printUsage()
 {
-
+    MString writefmts;
+    size_t n = Partio::numWriteFormats();
+    for (size_t i=0; i<n; ++i)
+    {
+        writefmts += Partio::writeFormatExtension(i);
+        if (i+1 < n)
+        {
+            writefmts += ", ";
+        }
+    }
+    
     MString usage = "\n-----------------------------------------------------------------------------\n";
     usage += "\tpartioExport [Options]  node \n";
     usage += "\n";
     usage += "\t[Options]\n";
     usage += "\t\t-mnf/minFrame <int> \n";
     usage += "\t\t-mxf/maxFrame <int> \n";
-    //usage += "\t\t-f/format <string> (format is one of: pda,pdb,pdc,prt,bin,bgeo,geo,ptc,mc,pts,xyz,pcd,icecache,rib,ass)\n";
-	usage += "\t\t-f/format <string> (format is one of: pda,pdb,pdc,prt,bin,bgeo,geo,ptc,mc,pts,xyz,pcd,rib,ass)\n";
+    usage += "\t\t-f/format <string> (format is one of: " + writefmts + ")\n";
     usage += "\t\t-atr/attribute (multi use)  <PP attribute name>\n";
     usage += "\t\t     (position/id) are always exported \n";
     usage += "\t\t-p/path	 <directory file path> \n";

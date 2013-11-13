@@ -37,6 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 #endif
 #include "ParticleSimple.h"
 #include "ParticleSimpleInterleave.h"
+#include "../io/readers.h"
 #include <iostream>
 #include <string>
 #include <cassert>
@@ -124,5 +125,90 @@ print(const ParticlesData* particles)
     }
 }
 
+size_t numReadFormats()
+{
+    return readers().size();
+}
+
+const char* readFormatExtension(size_t i)
+{
+    size_t j = 0;
+    const ReaderMap &rdrs = readers();
+    ReaderMap::const_iterator it = rdrs.begin();
+    while (it != rdrs.end())
+    {
+        if (j == i)
+        {
+            return it->first.c_str();
+        }
+        ++j;
+        ++it;
+    }
+    return NULL;
+}
+
+size_t readFormatIndex(const char *ext)
+{
+    if (!ext)
+    {
+        return InvalidIndex;
+    }
+    size_t j = 0;
+    const ReaderMap &rdrs = readers();
+    ReaderMap::const_iterator it = rdrs.begin();
+    while (it != rdrs.end())
+    {
+        if (it->first == ext)
+        {
+            return j;
+        }
+        ++j;
+        ++it;
+    }
+    return InvalidIndex;
+}
+
+size_t numWriteFormats()
+{
+    return writers().size();
+}
+
+const char* writeFormatExtension(size_t i)
+{
+    size_t j = 0;
+    const WriterMap &wrts = writers();
+    WriterMap::const_iterator it = wrts.begin();
+    while (it != wrts.end())
+    {
+        if (j == i)
+        {
+            return it->first.c_str();
+        }
+        ++j;
+        ++it;
+    }
+    return NULL;
+}
+
+size_t writeFormatIndex(const char *ext)
+{
+    if (!ext)
+    {
+        return InvalidIndex;
+    }
+    size_t j = 0;
+    const WriterMap &wrts = writers();
+    WriterMap::const_iterator it = wrts.begin();
+    while (it != wrts.end())
+    {
+        if (it->first == ext)
+        {
+            return j;
+        }
+        ++j;
+        ++it;
+    }
+    return InvalidIndex;
+}
 
 }

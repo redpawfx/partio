@@ -302,35 +302,29 @@ void partio4Maya::updateFileName (MString cacheFile, MString cacheDir,
     outputRenderPath = renderCacheFile;
 }
 ////////////////////////////////////////////////////////////////
-MString partio4Maya::setExt(short extEnum)
+MString partio4Maya::setExt(short extEnum,bool write)
 {
-    std::map<short,MString> formatExtMap;
-    buildSupportedExtensionList(formatExtMap, false);  // eventually this will be replaced with something from partio
-    return MString(formatExtMap[extEnum]);
+    const char *ext = (write ? Partio::writeFormatExtension(size_t(extEnum)) : Partio::readFormatExtension(size_t(extEnum)));
+    return MString(ext ? ext : "");
 }
 
 ///////////////////////////////////////////////////////////
 // eventually this will be replaced with something from partio directly
-void partio4Maya::buildSupportedExtensionList(std::map<short,MString> &formatExtMap,bool write = false)
+void partio4Maya::buildSupportedExtensionList(std::map<short,MString> &formatExtMap,bool write)
 {
-
-    formatExtMap[0] = "bgeo";
-    formatExtMap[1] = "geo";
-    formatExtMap[2] = "pda";
-    formatExtMap[3] = "pdb";
-    formatExtMap[4] = "pdc";
-    formatExtMap[5] = "mc";
-    formatExtMap[6] = "bin";
-    formatExtMap[7] = "prt";
-    formatExtMap[8] = "ptc";
-    formatExtMap[9] = "pts";
-    formatExtMap[10] = "xyz";
-    formatExtMap[11] = "pcd";
-	//formatExtMap[12] = "icecache";
     if (write)
     {
-        formatExtMap[12] = "rib";
-        formatExtMap[13] = "ass";
+        for (size_t i=0; i<Partio::numWriteFormats(); ++i)
+        {
+            formatExtMap[short(i)] = Partio::writeFormatExtension(i);
+        }
+    }
+    else
+    {
+        for (size_t i=0; i<Partio::numReadFormats(); ++i)
+        {
+            formatExtMap[short(i)] = Partio::readFormatExtension(i);
+        }
     }
 }
 

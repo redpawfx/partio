@@ -288,5 +288,16 @@ void print(const ParticlesData* particles);
 //! TODO: this is a temporary hack to develop binary json support
 Partio::ParticlesDataMutable*  testRead(const char* filename);
 
+
+const size_t InvalidIndex = (size_t)-1;
+
+size_t numReadFormats();
+const char* readFormatExtension(size_t i);
+size_t readFormatIndex(const char *ext);
+
+size_t numWriteFormats();
+const char* writeFormatExtension(size_t i);
+size_t writeFormatIndex(const char *ext);
+
 }
 #endif

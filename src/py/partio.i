@@ -584,3 +584,13 @@ void write(const char* filename,const ParticlesData&,const bool=false);
 %feature("autodoc");
 %feature("docstring","Print a summary of particle file");
 void print(const ParticlesData* particles);
+
+%constant size_t InvalidIndex = (size_t)-1;
+
+size_t numReadFormats();
+const char* readFormatExtension(size_t i);
+size_t readFormatIndex(const char *ext);
+
+size_t numWriteFormats();
+const char* writeFormatExtension(size_t i);
+size_t writeFormatIndex(const char *ext);

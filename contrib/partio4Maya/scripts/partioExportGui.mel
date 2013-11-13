@@ -43,7 +43,7 @@ global proc partioExportGui  ()
     if (`window  -exists  partioExportGui`)
         deleteUI partioExportGui ;
 
-    window  -s true -title "partioExportGui v0.9.6" -w 520 -h 600
+    window  -s true -title "partioExportGui v0.9.7a" -w 520 -h 600
 			-iconName "partioExportGui" partioExportGui;
 
 ////////////////////////////////////////////
@@ -65,23 +65,20 @@ global proc partioExportGui  ()
     string $dynExportButton    = `button -w 200 -h 35 -ebg true -bgc 0 .25  0 -l "partioExport" `;
 
 	string $partioExportFormatOptionMenu = `optionMenuGrp -l "PartioFormat" partioExportFormat`;
-	// TODO: make this call a function from  the plugin to return a proper list of formats it currently supports for writing
-	menuItem -label "BGEO";
-    menuItem -label "GEO";
-    menuItem -label "PDA";
-    menuItem -label "PDB";
-    menuItem -label "PDC";
-    menuItem -label "BIN";
-    menuItem -label "PRT";
-    menuItem -label "PTC";
-	menuItem -label "PTS";
-	menuItem -label "XYZ";
-	menuItem -label "PCD";
-	//menuItem -label "ICEcache";
-	menuItem -label "RIB";
-//	menuItem -label "ASS";
+    string $fmt, $fmts[] = `partioExport -query -format`;
+    int $default = 0, $ifmt = 1;
+    for ($fmt in $fmts)
+    {
+		$fmt = `toupper $fmt`;
+        if ($fmt == "PDC")
+        {
+            $default = $ifmt;
+        }
+        menuItem -label $fmt;
+        $ifmt++;
+    }
 
-    optionMenuGrp -e -sl 5 $partioExportFormatOptionMenu;
+    optionMenuGrp -e -sl $default $partioExportFormatOptionMenu;
 
     string $exportPerFrameCheckbox = `checkBoxGrp -numberOfCheckBoxes 1  -label1 "Per/Frame"  -v1  0`;
 
@@ -445,6 +442,75 @@ global proc  updatePath (string $cacheDirControl, int $button)
 		textFieldButtonGrp -e -text $startingDir  $cacheDirControl;
 		optionVar -sv "partioExportGUICachePath" $startingDir;
 	}
+}
+
+
+/////////////////////////////////////////////
+//// update cacheDir
+
+global proc  updateCacheDir (string $cacheDirControl, string $manageCacheDirControl, string $dynGlobalsNode, int $switch)
+
+{
+    string $mayaCacheDir;
+
+    if ($switch)
+    {
+        $mayaCacheDir = `textFieldButtonGrp -q -text $manageCacheDirControl`;
+        textFieldGrp -e -text $mayaCacheDir $cacheDirControl;
+    }
+    else
+    {
+        $mayaCacheDir = `textFieldGrp -q -text $cacheDirControl`;
+        textFieldButtonGrp -e -text $mayaCacheDir $manageCacheDirControl;
+    }
+
+    setAttr -type "string" ($dynGlobalsNode+".cacheDirectory") $mayaCacheDir;
+
+    string $workspace = `workspace -q -rd`;
+    string $rebuildParticleDir = ($workspace+"/particles/"+$mayaCacheDir);
+
+    buildCacheDirList  $rebuildParticleDir;
+}
+
+
+//////////////////////////////////////////////
+//// parse particle name
+
+global proc  string[]  parseCacheDir (string $cacheListing)
+
+{
+    string $parts[];
+
+/// parsing the following
+//  MainMast_sail_softParticleShape.250-125000x250.pdc
+
+// returns an array  of values...  0= particleShape, 1= first frame, 2= second frame
+
+    string $x[];
+
+    tokenize $cacheListing "." $x;
+
+//int $size = `size $x[1]`;
+//$x[1] =  `substring  $x[1] 2  $size`;
+//$x[1] =  `substring  $x[1] 1  ($size-2)`;
+
+    string $negative = "";
+    if (`substring $x[1] 1 1` == "-")
+    {
+        $negative = "-";
+    }
+
+    string $frames[];
+
+    tokenize $x[1] "-x" $frames;
+
+    $parts[0] = $x[0];
+    $parts[1] = $negative +$frames[0];
+    $parts[2] = $frames[1];
+    $parts[3] = `substituteAllString $frames[2] "@" ""`;
+
+    return $parts;
+
 }
 
 

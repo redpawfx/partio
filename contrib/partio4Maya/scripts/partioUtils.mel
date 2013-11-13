@@ -148,56 +148,21 @@ global proc int pioAEassignCacheFileCB( string $fileAttribute,
 
 	setAttr ($nodeName + ".cachePrefix") -type "string" $baseFileName;
 
+	float $dv[] = `attributeQuery -node $nodeName -listDefault "cacheFormat"`;
+	int $extIndex = int($dv[0]);
 
-	int $extIndex = 0;
-
-	switch ($ext)
+	string $el[] = `attributeQuery -node $nodeName -listEnum "cacheFormat"`;
+	string $exts[];
+	int $i, $n = `tokenize $el[0] ":" $exts`;
+	for ($i=0; $i<$n; $i++)
 	{
-		case "bgeo":
-			$extIndex = 0;
+		if (tolower($exts[$i]) == $ext || $exts[$i] == $ext)
+		{
+			$extIndex = $i;
 			break;
-		case "geo":
-			$extIndex = 1;
-			break;
-		case "pda":
-			$extIndex = 2;
-			break;
-		case "pdb":
-			$extIndex = 3;
-			break;
-		case "pdc":
-			$extIndex = 4;
-			break;
-		case "mc":
-			$extIndex = 5;
-			break;
-		case "bin":
-			$extIndex = 6;
-			break;
-		case "prt":
-			$extIndex = 7;
-			break;
-		case "ptc":
-			$extIndex = 8;
-			break;
-		case "pts":
-			$extIndex = 9;
-			break;
-		case "xyz":
-			$extIndex = 10;
-			break;
-		case "pcd":
-			$extIndex = 11;
-			break;
-		//case "icecache":
-		//	$extIndex = 12;
-		//	break;
-		default:
-			$extIndex = 4;
-			break;
-
+		}
 	}
-
+   
 // if padding is not -1 we have a number in the file name otherwise we want to use static cache
 	if ($pad >=0)
 	{

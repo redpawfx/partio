@@ -84,8 +84,8 @@ public:
                                  int &cachePadding, MString &formatExt,
                                  MString &outputFramePath, MString &outputRenderPath);
 
-    static MString 	setExt(short extNum);
-    static void 	buildSupportedExtensionList(std::map<short,MString> &formatExtMap,bool write);
+    static MString 	setExt(short extNum,bool write=false);
+    static void 	buildSupportedExtensionList(std::map<short,MString> &formatExtMap,bool write=false);
     static void 	drawPartioLogo(float multiplier);
     static MVector 	jitterPoint(int id, float freq, float offset, float jitterMag);
     static float  	noiseAtValue( float x);
