@@ -30,6 +30,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 #include "partioExport.h"
 #include <maya/MPlugArray.h>
 #include <maya/MPlug.h>
+#include <maya/MMatrix.h>
+#include <maya/MDagPath.h>
+#include <maya/MAnimControl.h>
 
 #define  kAttributeFlagS	"-atr"
 #define  kAttributeFlagL	"-attribute"
@@ -49,6 +52,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 #define  kFilePrefixFlagL	"-filePrefix"
 #define  kPerFrameFlagS     "-pf"
 #define  kPerFrameFlagL   	"-perFrame"
+#define  kSkipDynamicsL     "-skipDynamics"
+#define  kSkipDynamicsS     "-sd"
 
 
 using namespace std;
@@ -77,6 +82,7 @@ MSyntax PartioExport::createSyntax()
     syntax.addFlag(kMaxFrameFlagS, kMaxFrameFlagL, MSyntax::kLong);
     syntax.addFlag(kFilePrefixFlagS,kFilePrefixFlagL, MSyntax::kString);
 	syntax.addFlag(kPerFrameFlagS,kPerFrameFlagL, MSyntax::kString);
+    syntax.addFlag(kSkipDynamicsS,kSkipDynamicsL, MSyntax::kNoArg);
     syntax.addArg(MSyntax::kString);
     syntax.enableQuery(true); // for format flag only
     syntax.enableEdit(false);
@@ -134,7 +140,7 @@ MStatus PartioExport::doIt(const MArgList& Args)
     MString fileNamePrefix;
     bool hasFilePrefix = false;
 	bool perFrame = false;
-
+    bool skipDynamics = argData.isFlagSet(kSkipDynamicsL);
 
     if (argData.isFlagSet(kPathFlagL))
     {
@@ -167,7 +173,7 @@ MStatus PartioExport::doIt(const MArgList& Args)
                 writefmts += ", ";
             }
         }
-        MGlobal::displayError("PartioExport-> format is one of: " + writefmts);
+        MGlobal::displayError("PartioExport-> Format is one of: " + writefmts);
         setResult(outFiles);
         return MStatus::kFailure;
     }
@@ -267,19 +273,17 @@ MStatus PartioExport::doIt(const MArgList& Args)
     MFnParticleSystem PS(objNode);
 
     int outFrame= -123456;
+    bool firstFrame = true;
 
     for  (int frame = startFrame; frame<=endFrame; frame++)
     {
-		MTime dynTime;
-		dynTime.setValue(frame);
-		if (frame == startFrame && startFrame < endFrame)
-		{
-			PS.evaluateDynamics(dynTime,true);
-		}
-		else
-		{
-			PS.evaluateDynamics(dynTime,false);
-		}
+        MTime dynTime;
+        dynTime.setValue(frame);
+
+        if (!skipDynamics)
+        {
+            PS.evaluateDynamics(dynTime, firstFrame);
+        }
 
 		/// why is this being done AFTER the evaluate dynamics stuff?
         if (startFrameSet && endFrameSet && startFrame < endFrame)
@@ -292,6 +296,7 @@ MStatus PartioExport::doIt(const MArgList& Args)
             outFrame = (int)MAnimControl::currentTime().as(MTime::kFilm);
         }
 
+        firstFrame = false;
         char padNum [10];
 
         // temp usage for this..  PDC's  are counted by 250s..  TODO:  implement  "substeps"  setting
@@ -310,7 +315,7 @@ MStatus PartioExport::doIt(const MArgList& Args)
         MString  outputPath =  Path;
         outputPath += "/";
 
-        // if we have supplied a fileName prefix, then use it instead of the particle shape name
+        // If we have supplied a fileName prefix, then use it instead of the particle shape name
         if (hasFilePrefix)
         {
             outputPath += fileNamePrefix;
@@ -324,7 +329,7 @@ MStatus PartioExport::doIt(const MArgList& Args)
         outputPath += ".";
         outputPath += Format;
 
-        MGlobal::displayInfo("PartioExport-> exporting: "+ outputPath);
+        MGlobal::displayInfo("PartioExport-> Exporting: "+ outputPath);
 
 
         unsigned int particleCount = PS.count();
@@ -335,7 +340,6 @@ MStatus PartioExport::doIt(const MArgList& Args)
 
         if (particleCount > 0)
         {
-
             for (unsigned int i = 0; i< attrNames.length(); i++)
             {
                 // you must reset the iterator before adding new attributes or accessors
@@ -595,6 +599,7 @@ void PartioExport::printUsage()
     usage += "\t\t-p/path	 <directory file path> \n";
     usage += "\t\t-fp/filePrefix <fileNamePrefix>  \n";
     usage += "\t\t-flp/flip  (flip y->z axis to go to Z up packages) \n";
+    usage += "\t\t-sd/skipDynamics (skip dynamics eval completely) \n";
     usage += "\n";
     usage += "\tExample:\n";
     usage += "\n";
