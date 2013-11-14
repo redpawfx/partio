@@ -64,6 +64,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 #include <maya/MVector.h>
 #include <maya/MGlobal.h>
 #include <maya/MStringArray.h>
+#include <maya/MTimeArray.h>
 #include <maya/MTime.h>
 
 #include "iconArrays.h"
@@ -72,9 +73,20 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 extern const int kTableMask;
 #define MODPERM(x) permtable[(x)&kTableMask]
 
+// Indices in filename breakdown array
+#define BD_FILENAME 0
+#define BD_PREDELIM 1
+#define BD_POSTDELIM 2
+#define BD_EXT 3
+#define BD_FRAMEPAD 4
+#define BD_SFRAMEPAD 5
+#define BD_ORGFRAME 6
+
 class partio4Maya
 {
 public:
+
+    typedef std::map<MTime, MString> CacheFiles;
 
     static bool 	partioCacheExists(const char* fileName);
     static MStringArray partioGetBaseFileName(MString inFileName);
@@ -90,6 +102,23 @@ public:
     static MVector 	jitterPoint(int id, float freq, float offset, float jitterMag);
     static float  	noiseAtValue( float x);
     static void   	initTable( long seed );
+
+    static bool identifyPath(const MString &path, MString &dirname, MString &basename, MString &frame, MTime &t, MString &ext);
+    static unsigned long getFileList(const MString &path, CacheFiles &files);
+    static unsigned long getFileList(const MString &dirname, const MString &basename, const MString &ext, CacheFiles &files);
+    static void getFrameAndSubframe(double t, int &frame, int &subframe, int subFramePadding=3);
+
+    enum FindMode
+    {
+        FM_EXACT = 0,
+        FM_CLOSEST,
+        FM_PREV,
+        FM_NEXT
+    };
+    static bool findCacheFile(const CacheFiles &files, FindMode mode, MTime t,
+                              CacheFiles::const_iterator &it);
+    static bool findCacheFile(CacheFiles &files, FindMode mode, MTime t,
+                              CacheFiles::iterator &it);
 
 private:
 

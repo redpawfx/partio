@@ -1,0 +1,28 @@
+
+global proc string partioScriptsDir()
+{
+    string $rv = `whatIs partioScriptsDir`;
+    if ($rv == "Unknown")
+    {
+        return "";
+    }
+    else
+    {
+        string $parts[];
+        int $nparts = `tokenize $rv ":" $parts`;
+        if ($nparts >= 2)
+        {
+            $rv = $parts[1];
+            for ($i=2; $i<$nparts; $i++)
+            {
+                $rv += ":";
+                $rv += $parts[$i];
+            }
+            return dirname(python("\"" + $rv + "\".strip()"));
+        }
+        else
+        {
+            return "";
+        }
+   }
+}

@@ -37,6 +37,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 using namespace Partio;
 using namespace std;
 
+static inline int fround(double n, int d)
+{
+    return int(floor(n * pow(double(10), d) + .5));
+}
+
 //////////////////////////////////
 MVector partio4Maya::jitterPoint(int id, float freq, float offset, float jitterMag)
 ///* generate a constant noise offset for this  ID
@@ -76,6 +81,291 @@ bool partio4Maya::partioCacheExists(const char* fileName)
 
     return(statReturn);
 
+}
+
+//////////////////////////////////
+void partio4Maya::getFrameAndSubframe(double t, int &frame, int &subframe, int subFramePadding)
+{
+    frame = int(floor(t));
+    if (subFramePadding > 0)
+    {
+        subframe = fround(t - frame, subFramePadding);
+    }
+    else
+    {
+        subframe = 0;
+    }
+}
+
+/////////////////////////////////
+bool partio4Maya::findCacheFile(partio4Maya::CacheFiles &files,
+                                partio4Maya::FindMode mode,
+                                MTime t,
+                                partio4Maya::CacheFiles::iterator &fit)
+{
+    partio4Maya::CacheFiles::iterator fit1, fit2;
+
+    fit = files.end();
+    fit1 = files.find(t);
+
+    if (fit1 != files.end())
+    {
+        fit = fit1;
+    }
+    else if (mode != FM_EXACT)
+    {
+        fit1 = files.upper_bound(t);
+        if (mode == FM_NEXT)
+        {
+            fit = fit1;
+        }
+        else
+        {
+            fit2 = fit1;
+            if (fit2 == files.begin())
+            {
+                fit2 = files.end();
+            }
+            else
+            {
+                fit2--;
+            }
+            if (mode == FM_PREV)
+            {
+                fit = fit2;
+            }
+            else
+            {
+                if (fit1 == files.end())
+                {
+                    fit = fit2;
+                }
+                else if (fit2 == files.end())
+                {
+                    fit = fit1;
+                }
+                else
+                {
+                    double dt1 = fabs(fit1->first.value() - t.value());
+                    double dt2 = fabs(fit2->first.value() - t.value());
+                    fit = (dt1 < dt2 ? fit1 : fit2);
+                }
+            }
+        }
+    }
+
+    return (fit != files.end());
+}
+
+bool partio4Maya::findCacheFile(const partio4Maya::CacheFiles &files,
+                                partio4Maya::FindMode mode,
+                                MTime t,
+                                partio4Maya::CacheFiles::const_iterator &fit)
+{
+    partio4Maya::CacheFiles::iterator it;
+    if (findCacheFile((partio4Maya::CacheFiles&)files, mode, t, it))
+    {
+        fit = it;
+        return true;
+    }
+    else
+    {
+        fit = files.end();
+        return false;
+    }
+}
+
+/////////////////////////////////
+#include <regex.h>
+
+class FramePatterns
+{
+public:
+
+    static regex_t Pattern1;
+    static regex_t Pattern2;
+    static regex_t Pattern3;
+
+    FramePatterns()
+    {
+        regcomp(&Pattern1, "[.]([0-9]+)([.]([0-9]+))?$", REG_EXTENDED);
+        regcomp(&Pattern2, "_([0-9]+)(_([0-9]+))?$", REG_EXTENDED);
+        regcomp(&Pattern3, "Frame([0-9]+)(Tick([0-9]+))?$", REG_EXTENDED);
+    }
+
+    ~FramePatterns()
+    {
+        regfree(&Pattern1);
+        regfree(&Pattern2);
+        regfree(&Pattern3);
+    }
+};
+
+int regsearch(regex_t *re, const char *str, size_t nmatch, regmatch_t *pmatch, int flags)
+{
+    const char *c = str;
+    int rv = -1;
+
+    while (*c != '\0')
+    {
+        rv = regexec(re, c, nmatch, pmatch, flags);
+        if (rv == 0)
+        {
+            break;
+        }
+        ++c;
+    }
+
+    return rv;
+}
+
+regex_t FramePatterns::Pattern1;
+regex_t FramePatterns::Pattern2;
+regex_t FramePatterns::Pattern3;
+
+static FramePatterns _framePatterns;
+
+// ---
+
+bool partio4Maya::identifyPath(const MString &path, MString &dirname, MString &basename, MString &frame, MTime &t, MString &ext)
+{
+    int idx;
+
+#ifdef _WIN32
+    int idx0 = path.rindexW('\\');
+    int idx1 = path.rindexW('/');
+    idx = (idx0 > idx1 ? idx0 : idx1);
+#else
+    idx = path.rindexW('/');
+#endif
+
+    if (idx == -1)
+    {
+        dirname = "";
+        basename = path;
+    }
+    else
+    {
+        dirname = path.substringW(0, idx-1);
+        basename = path.substringW(idx+1, path.length()-1);
+    }
+
+    idx = basename.rindexW('.');
+    if (idx == -1)
+    {
+        ext = "";
+    }
+    else
+    {
+        ext = basename.substringW(idx+1, basename.length()-1);
+        basename = basename.substringW(0, idx-1);
+    }
+
+    // Now identify frame pattern in basename, and extract frame
+    regmatch_t m[8];
+
+
+    // .rm.so/.rm_eo (== -> empty string, -1 -> no match)
+    if (regsearch(&FramePatterns::Pattern1, basename.asChar(), 8, m, 0) == 0 ||
+        regsearch(&FramePatterns::Pattern2, basename.asChar(), 8, m, 0) == 0)
+    {
+        frame = basename.substringW(m[0].rm_so+1, basename.length()-1);
+        basename = basename.substringW(0, m[0].rm_so);
+#ifdef _DEBUG
+        MGlobal::displayInfo("partio4Maya::identifyPath: Frame pattern 1 or 2 (" + frame + ")");
+#endif
+        int idx = frame.rindexW('_');
+        if (idx != -1)
+        {
+            //frame[idx] = '.';
+            MString tmp = frame;
+            frame = tmp.substringW(0, idx-1);
+            frame += ".";
+            frame += tmp.substringW(idx+1, tmp.length()-1);
+        }
+        double tval = 0;
+        sscanf(frame.asChar(), "%lf", &tval);
+        if (ext == "pdc")
+        {
+            tval *= MTime(1.0, MTime::k6000FPS).asUnits(MTime::uiUnit());
+        }
+        t.setValue(tval);
+    }
+    else if (regsearch(&FramePatterns::Pattern3, basename.asChar(), 8, m, 0) == 0)
+    {
+        frame = basename.substringW(m[0].rm_so+1, basename.length()-1);
+        basename = basename.substringW(0, m[0].rm_so);
+#ifdef _DEBUG
+        MGlobal::displayInfo("partio4Maya::identifyPath: Frame pattern 3 (" + frame + ")");
+#endif
+        double tval = 0;
+        int iframe = 0, iticks = 0;
+        sscanf(frame.asChar(), "Frame%dTick%d", &iframe, &iticks);
+        tval = double(iframe) + iticks * MTime(1.0, MTime::k6000FPS).asUnits(MTime::uiUnit());
+        t.setValue(tval);
+
+    }
+    else
+    {
+        frame = "";
+    }
+
+#ifdef _DEBUG
+    MGlobal::displayInfo("partio4Maya::identifyPath: \"" + path + "\" -> dirname=" + dirname + ", basename=" + basename + ", frame=" + frame + ", ext=" + ext + ", time=" + t.value());
+#endif
+
+    return (frame.length() > 0);
+}
+
+unsigned long partio4Maya::getFileList(const MString &path, partio4Maya::CacheFiles &files)
+{
+    MString dirname, basename, frame, ext;
+    MTime t;
+
+    identifyPath(path, dirname, basename, frame, t, ext);
+    return getFileList(dirname, basename, ext, files);
+}
+
+unsigned long partio4Maya::getFileList(const MString &dirname, const MString &basename, const MString &ext, partio4Maya::CacheFiles &files)
+{
+    MStringArray tmp;
+
+    std::string dn = dirname.asChar();
+    if (dn.length() > 0)
+    {
+        char lc = dn[dn.length()-1];
+#ifdef _WIN32
+        if (lc != '\\' && lc != '/')
+#else
+        if (lc != '/')
+#endif
+        {
+            dn.push_back('/');
+        }
+    }
+    else
+    {
+        dn = "./";
+    }
+
+    MString mdn = dn.c_str();
+
+    MGlobal::executeCommand("getFileList -folder \"" + mdn + "\" -filespec \"" + basename + "*." + ext + "\"", tmp);
+
+    files.clear();
+
+    MString _dn, _bn, _fn, _e;
+    MTime t;
+
+    for (unsigned long i=0; i<tmp.length(); ++i)
+    {
+        if (identifyPath(tmp[i], _dn, _bn, _fn, t, _e))
+        {
+            files[t] = mdn + tmp[i];
+        }
+    }
+
+    return (unsigned long) files.size();
 }
 
 

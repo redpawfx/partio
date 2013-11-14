@@ -54,6 +54,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 #define  kPerFrameFlagL   	"-perFrame"
 #define  kSkipDynamicsL     "-skipDynamics"
 #define  kSkipDynamicsS     "-sd"
+#define  kNoXMLS            "-nx"
+#define  kNoXMLL            "-noXML"
 
 
 using namespace std;
@@ -83,7 +85,9 @@ MSyntax PartioExport::createSyntax()
     syntax.addFlag(kFilePrefixFlagS,kFilePrefixFlagL, MSyntax::kString);
 	syntax.addFlag(kPerFrameFlagS,kPerFrameFlagL, MSyntax::kString);
     syntax.addFlag(kSkipDynamicsS,kSkipDynamicsL, MSyntax::kNoArg);
-    syntax.addArg(MSyntax::kString);
+    syntax.addFlag(kNoXMLS,kNoXMLL, MSyntax::kNoArg);
+    syntax.setObjectType(MSyntax::kStringObjects, 1, 1);
+    syntax.useSelectionAsDefault(false);
     syntax.enableQuery(true); // for format flag only
     syntax.enableEdit(false);
 
@@ -103,18 +107,24 @@ MStatus PartioExport::doIt(const MArgList& Args)
     MStatus status;
     MArgDatabase argData(syntax(), Args, &status);
 
+    if (status == MStatus::kFailure)
+    {
+        MGlobal::displayError("Error parsing arguments" );
+        return MStatus::kFailure;
+    }
+
     if ( argData.isQuery() )
     {
         if ( argData.isFlagSet(kFormatFlagL) )
         {
             MStringArray rv;
-            
+
             size_t n = Partio::numWriteFormats();
             for (size_t i=0; i<n; ++i)
             {
                 rv.append(Partio::writeFormatExtension(i));
             }
-            
+
             setResult(rv);
         }
         return MS::kSuccess;
@@ -140,6 +150,7 @@ MStatus PartioExport::doIt(const MArgList& Args)
     MString fileNamePrefix;
     bool hasFilePrefix = false;
 	bool perFrame = false;
+    bool noXML = argData.isFlagSet(kNoXMLL);
     bool skipDynamics = argData.isFlagSet(kSkipDynamicsL);
 
     if (argData.isFlagSet(kPathFlagL))
@@ -215,8 +226,16 @@ MStatus PartioExport::doIt(const MArgList& Args)
 		perFrame = true;
 	}
 
+    MStringArray objects;
+    argData.getObjects(objects);
+    if (objects.length() != 1)
+    {
+        MGlobal::displayError("No or many Particle Shape specified");
+        return MStatus::kFailure;
+    }
+
     MString PSName; // particle shape name
-    argData.getCommandArgument(0, PSName);
+    PSName = objects[0];
     MSelectionList list;
     list.add(PSName);
     MObject objNode;
@@ -225,7 +244,7 @@ MStatus PartioExport::doIt(const MArgList& Args)
 
     if ( objNode.apiType() != MFn::kParticle && objNode.apiType() != MFn::kNParticle )
     {
-        MGlobal::displayError("PartioExport-> can't find your PARTICLESHAPE.");
+        MGlobal::displayError("PartioExport-> Can't find your PARTICLESHAPE.");
         setResult(outFiles);
         return MStatus::kFailure;
     }
@@ -299,7 +318,7 @@ MStatus PartioExport::doIt(const MArgList& Args)
         firstFrame = false;
         char padNum [10];
 
-        // temp usage for this..  PDC's  are counted by 250s..  TODO:  implement  "substeps"  setting
+        // Temp usage for this..  PDC's  are counted by 250s..  TODO:  implement  "substeps"  setting
 
         if (Format == "pdc")
         {
@@ -570,6 +589,23 @@ MStatus PartioExport::doIt(const MArgList& Args)
 
 	} /// loop frames
 
+    // Also output xml file
+    if (outFiles.length() > 0 && !noXML)
+    {
+        MString scriptsDir = MGlobal::executeCommandStringResult("partioScriptsDir();");
+
+		// temp for framestep... don't like gatgui's subframe implementation want something more universal that will work with all formats
+		int frameStep = 1;
+
+        MString pyCmd = "import sys\n";
+        pyCmd += "if not \"" + scriptsDir + "\" in sys.path:\n";
+        pyCmd += "    sys.path.append(\"" + scriptsDir + "\")\n";
+        pyCmd += "import cacheXML\n";
+        pyCmd += "cacheXML.Create(\"" + outFiles[outFiles.length()-1] + "\", channelPrefix=\"" + PS.name() + "\", frameRange=(" + startFrame + ", " + endFrame + "), frameStep=" + frameStep + ")\n";
+
+        MGlobal::executePythonCommand(pyCmd);
+    }
+
     setResult(outFiles);
     return MStatus::kSuccess;
 }
@@ -586,7 +622,7 @@ void PartioExport::printUsage()
             writefmts += ", ";
         }
     }
-    
+
     MString usage = "\n-----------------------------------------------------------------------------\n";
     usage += "\tpartioExport [Options]  node \n";
     usage += "\n";
@@ -600,6 +636,7 @@ void PartioExport::printUsage()
     usage += "\t\t-fp/filePrefix <fileNamePrefix>  \n";
     usage += "\t\t-flp/flip  (flip y->z axis to go to Z up packages) \n";
     usage += "\t\t-sd/skipDynamics (skip dynamics eval completely) \n";
+    usage += "\t\t-nx/noXML (don't export xml file for nCache) \n";
     usage += "\n";
     usage += "\tExample:\n";
     usage += "\n";

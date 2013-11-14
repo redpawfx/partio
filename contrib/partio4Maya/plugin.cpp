@@ -33,8 +33,28 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 #include "partioExport.h"
 #include "partioImport.h"
 #include "partio4MayaShared.h"
+#include "partioCache.h"
 #include <maya/MFnPlugin.h>
 
+#define REGISTER_CACHE_FORMAT(n)\
+    if (n >= 0 && n < PartioCache::TotalNumFormats())\
+    {\
+        status = plugin.registerCacheFormat(MString("partio-")+PartioCache::FormatExtension(n), PartioCache::Create<n>);\
+        if (!status)\
+        {\
+            status.perror("registerCacheFormat " + MString(PartioCache::FormatExtension(n)) + " failed");\
+        }\
+    }
+
+#define DEREGISTER_CACHE_FORMAT(n)\
+    if (n >= 0 && n < PartioCache::TotalNumFormats())\
+    {\
+        status = plugin.deregisterCacheFormat(MString("partio-")+PartioCache::FormatExtension(n));\
+        if (!status)\
+        {\
+            status.perror("deregisterCacheFormat " + MString(PartioCache::FormatExtension(n)) + " failed");\
+        }\
+    }
 
 
 #ifdef _WIN32
@@ -100,7 +120,30 @@ MStatus initializePlugin ( MObject obj )
     {
         status.perror("registerCommand partioImport failed");
     }
-
+    
+    // Register up to 20 cache formats
+    REGISTER_CACHE_FORMAT(0);
+    REGISTER_CACHE_FORMAT(1);
+    REGISTER_CACHE_FORMAT(2);
+    REGISTER_CACHE_FORMAT(3);
+    REGISTER_CACHE_FORMAT(4);
+    REGISTER_CACHE_FORMAT(5);
+    REGISTER_CACHE_FORMAT(6);
+    REGISTER_CACHE_FORMAT(7);
+    REGISTER_CACHE_FORMAT(8);
+    REGISTER_CACHE_FORMAT(9);
+    REGISTER_CACHE_FORMAT(10);
+    REGISTER_CACHE_FORMAT(11);
+    REGISTER_CACHE_FORMAT(12);
+    REGISTER_CACHE_FORMAT(13);
+    REGISTER_CACHE_FORMAT(14);
+    REGISTER_CACHE_FORMAT(15);
+    REGISTER_CACHE_FORMAT(16);
+    REGISTER_CACHE_FORMAT(17);
+    REGISTER_CACHE_FORMAT(18);
+    REGISTER_CACHE_FORMAT(19);
+    REGISTER_CACHE_FORMAT(20);
+    
     return status;
 }
 
@@ -145,6 +188,30 @@ MStatus uninitializePlugin ( MObject obj )
     {
         status.perror("deregisterCommand partioImport failed");
     }
+    
+    // Cache formats
+    DEREGISTER_CACHE_FORMAT(0);
+    DEREGISTER_CACHE_FORMAT(1);
+    DEREGISTER_CACHE_FORMAT(2);
+    DEREGISTER_CACHE_FORMAT(3);
+    DEREGISTER_CACHE_FORMAT(4);
+    DEREGISTER_CACHE_FORMAT(5);
+    DEREGISTER_CACHE_FORMAT(6);
+    DEREGISTER_CACHE_FORMAT(7);
+    DEREGISTER_CACHE_FORMAT(8);
+    DEREGISTER_CACHE_FORMAT(9);
+    DEREGISTER_CACHE_FORMAT(10);
+    DEREGISTER_CACHE_FORMAT(11);
+    DEREGISTER_CACHE_FORMAT(12);
+    DEREGISTER_CACHE_FORMAT(13);
+    DEREGISTER_CACHE_FORMAT(14);
+    DEREGISTER_CACHE_FORMAT(15);
+    DEREGISTER_CACHE_FORMAT(16);
+    DEREGISTER_CACHE_FORMAT(17);
+    DEREGISTER_CACHE_FORMAT(18);
+    DEREGISTER_CACHE_FORMAT(19);
+    DEREGISTER_CACHE_FORMAT(20);
+    
     return status;
 
 }
