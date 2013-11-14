@@ -232,7 +232,6 @@ MStatus PartioExport::doIt(const MArgList& Args)
     attrNames.append(MString("id"));
     attrNames.append(MString("position"));
 
-    bool worldVeloCheck = false;
 
     for ( unsigned int i = 0; i < numUses; i++ )
     {
@@ -244,25 +243,19 @@ MStatus PartioExport::doIt(const MArgList& Args)
             return status;
         }
 
-        MString AttrName = argList.asString( 0, &status );
+        MString attrName = argList.asString( 0, &status );
         if ( !status )
         {
             setResult(outFiles);
             return status;
         }
 
-        if ( AttrName == "position" || AttrName == "worldPosition"  || AttrName == "id" || AttrName == "particleId") {}
-        else if ( AttrName == "worldVelocity" || AttrName == "velocity" )
+        if ( attrName == "position" || attrName == "id" || attrName == "particleId")
         {
-            if (!worldVeloCheck)
-            {
-                attrNames.append("velocity");
-                worldVeloCheck = true;
-            }
         }
         else
         {
-            attrNames.append(AttrName);
+            attrNames.append(attrName);
         }
 
     }
