@@ -290,38 +290,49 @@ setupAccessor(Partio::ParticleIterator<true>& iterator,ParticleAccessor& accesso
 void* ParticlesSimpleInterleave::
 dataInternal(const ParticleAttribute& attribute,const ParticleIndex particleIndex) const
 {
-    return data+particleIndex*stride+attributeOffsets[attribute.attributeIndex];
+    return data + particleIndex*stride + attributeOffsets[attribute.attributeIndex];
 }
 
 void ParticlesSimpleInterleave::
 dataInternalMultiple(const ParticleAttribute& attribute,const int indexCount,
     const ParticleIndex* particleIndices,const bool sorted,char* values) const
 {
-#if 0
     assert(attribute.attributeIndex>=0 && attribute.attributeIndex<(int)attributes.size());
 
-    char* base=attributeData[attribute.attributeIndex];
-    int bytes=attributeStrides[attribute.attributeIndex];
-    for(int i=0;i<indexCount;i++)
-        memcpy(values+bytes*i,base+particleIndices[i]*bytes,bytes);
-#endif
+    char* base = data + attributeOffsets[attribute.attributeIndex];
+    char* dst = values;
+    int bytes = TypeSize(attribute.type) * attribute.count;
+    
+    for (int i=0; i<indexCount; ++i, dst+=bytes)
+    {
+        memcpy(dst, base + particleIndices[i]*stride, bytes);
+    }
 }
 
 void ParticlesSimpleInterleave::
 dataAsFloat(const ParticleAttribute& attribute,const int indexCount,
     const ParticleIndex* particleIndices,const bool sorted,float* values) const
 {
-#if 0
-    assert(attribute.attributeIndex>=0 && attribute.attributeIndex<(int)attributes.size());
-
-    if(attribute.type==FLOAT || attribute.type==VECTOR) dataInternalMultiple(attribute,indexCount,particleIndices,sorted,(char*)values);
-    else if(attribute.type==INT){
-        char* attrrawbase=attributeData[attribute.attributeIndex];
-        int* attrbase=(int*)attrrawbase;
-        int count=attribute.count;
-        for(int i=0;i<indexCount;i++) for(int k=0;k<count;k++) values[i*count+k]=(int)attrbase[particleIndices[i]*count+k];
+    if (attribute.type == FLOAT || attribute.type == VECTOR)
+    {
+        dataInternalMultiple(attribute,indexCount,particleIndices,sorted,(char*)values);
     }
-#endif
+    else if (attribute.type == INT || attribute.type == INDEXEDSTR)
+    {
+        assert(attribute.attributeIndex>=0 && attribute.attributeIndex<(int)attributes.size());
+        
+        char* base = data + attributeOffsets[attribute.attributeIndex];
+        float *dst = values;
+        
+        for (int i=0; i<indexCount; ++i)
+        {
+            int* ipart = (int*) (base + particleIndices[i]*stride);
+            for (int k=0; k<attribute.count; ++k, ++dst)
+            {
+                *dst = ipart[k];
+            }
+        }
+    }
 }
 
 
