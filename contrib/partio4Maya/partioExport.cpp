@@ -128,6 +128,7 @@ MStatus PartioExport::doIt(const MArgList& Args)
         return MStatus::kFailure;
     }
 
+    MStringArray outFiles;
     MString Path;   // directory path
     MString Format;
     MString fileNamePrefix;
@@ -167,6 +168,7 @@ MStatus PartioExport::doIt(const MArgList& Args)
             }
         }
         MGlobal::displayError("PartioExport-> format is one of: " + writefmts);
+        setResult(outFiles);
         return MStatus::kFailure;
     }
 
@@ -218,6 +220,7 @@ MStatus PartioExport::doIt(const MArgList& Args)
     if ( objNode.apiType() != MFn::kParticle && objNode.apiType() != MFn::kNParticle )
     {
         MGlobal::displayError("PartioExport-> can't find your PARTICLESHAPE.");
+        setResult(outFiles);
         return MStatus::kFailure;
     }
 
@@ -235,10 +238,18 @@ MStatus PartioExport::doIt(const MArgList& Args)
     {
         MArgList argList;
         status = argData.getFlagArgumentList( kAttributeFlagL, i, argList );
-        if ( !status ) return status;
+        if ( !status )
+        {
+            setResult(outFiles);
+            return status;
+        }
 
         MString AttrName = argList.asString( 0, &status );
-        if ( !status ) return status;
+        if ( !status )
+        {
+            setResult(outFiles);
+            return status;
+        }
 
         if ( AttrName == "position" || AttrName == "worldPosition"  || AttrName == "id" || AttrName == "particleId") {}
         else if ( AttrName == "worldVelocity" || AttrName == "velocity" )
@@ -544,6 +555,7 @@ MStatus PartioExport::doIt(const MArgList& Args)
             }
 
             Partio::write(outputPath.asChar(), *p );
+            outFiles.append(outputPath);
             //cout << "partioCount" << endl;
             //cout << "end FRAME: " << outFrame << endl;
             //cout << "num particles" << p->numParticles() << endl;
@@ -561,6 +573,7 @@ MStatus PartioExport::doIt(const MArgList& Args)
 
 	} /// loop frames
 
+    setResult(outFiles);
     return MStatus::kSuccess;
 }
 
