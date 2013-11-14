@@ -333,8 +333,8 @@ struct JSONParser
     template<class T> void uniformArray(){
         int64 length=readLength();
         // give delegate chance to do something
-        if(!Derived().uniformArray<T>(currKey,length)){
-            uniformArrayDefaultImpl<T>(currKey,length);
+        if(!Derived().uniformArray<T>(currKey, int(length))) {
+            uniformArrayDefaultImpl<T>(currKey, int(length));
         }
     }
     template<class T> bool uniformArrayDefaultImpl(const char* currKey,int length){

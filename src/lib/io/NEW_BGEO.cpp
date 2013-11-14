@@ -138,7 +138,7 @@ struct BGEOAttributeValues:public JSONParser<BGEOAttributeValues>
                         float* partioVal=particles->dataWrite<float>(attrH,i);
                         for(int k=0;k<packsize;k++){
                             T val=((JSONParser<BGEOAttributeValues>*)this)->numberData<T>();
-                            partioVal[offset+k]=val;
+                            partioVal[offset+k]=float(val);
                         }
                     }
                     offset+=packing[pack];
@@ -154,7 +154,7 @@ struct BGEOAttributeValues:public JSONParser<BGEOAttributeValues>
                         float* partioVal=particles->dataWrite<float>(attrH,i);
                         for(int k=0;k<packsize;k++){
                             T val=((JSONParser<BGEOAttributeValues>*)this)->numberData<T>();
-                            partioVal[offset+k]=val;
+                            partioVal[offset+k]=float(val);
                         }
                     }
                     offset+=packing[pack];
@@ -166,7 +166,7 @@ struct BGEOAttributeValues:public JSONParser<BGEOAttributeValues>
         }else if(strcmp(key,"packing")==0){
             for(int i=0;i<length;i++){
                 T val=((JSONParser<BGEOAttributeValues>*)this)->numberData<T>();
-                packing.push_back(val);
+                packing.push_back(int(val));
             }
             return true;
         }
@@ -174,7 +174,7 @@ struct BGEOAttributeValues:public JSONParser<BGEOAttributeValues>
     }
     template<class T> void numberData(const char* key,T x){
         std::cerr<<"key "<<keyString(key)<<" "<<int64(x)<<std::endl;
-        if(strcmp(key,"size")==0){size=x;}
+        if(strcmp(key,"size")==0){size=int(x);}
     }
     void boolData(const char* key,bool x){
         std::cerr<<"key "<<keyString(key)<<" "<<x<<std::endl;
@@ -341,11 +341,11 @@ struct BGEOMainParser:public JSONParser<BGEOMainParser>
         //if(strcmp(key,"fileversion")==0) std::cerr<<"saw file version "<<s<<std::endl;
     }
     template<class T> void numberData(const char* key,T x){
-        if(strcmp(key,"primitivecount")==0) primitivecount=x;
-        else if(strcmp(key,"vertexcount")==0) vertexcount=x;
+        if(strcmp(key,"primitivecount")==0) primitivecount=int64(x);
+        else if(strcmp(key,"vertexcount")==0) vertexcount=int64(x);
         else if(strcmp(key,"pointcount")==0){
-            pointcount=x;
-            particles->addParticles(pointcount);
+            pointcount=int64(x);
+            particles->addParticles(int(pointcount));
         }else{
             std::cerr<<"WARNING unknown number data ignored in key "<<keyString(key)<<std::endl;
         }

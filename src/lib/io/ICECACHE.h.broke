@@ -178,7 +178,7 @@ std::string iceReadName ( std::istream& input )
 // Write a name to cache file
 void writeName ( std::ostream& output, std::string name )
 {
-    ULONG length = name.size();
+    ULONG length = ULONG(name.size());
     write<ULONG> ( output, length );
     ULONG right_fill = length%4;
     ULONG write_length = length;
@@ -232,6 +232,7 @@ void readAttribute ( std::istream& input, icecache_attribute& attribute, Particl
         break;
     }
     }
+    std::vector<char> datablock;
     attribute.ptlocator_size    = 0;
     attribute.structtype        = read<ULONG> ( input );
     attribute.contexttype       = read<ULONG> ( input );
@@ -240,8 +241,8 @@ void readAttribute ( std::istream& input, icecache_attribute& attribute, Particl
     if ( attribute.datatype == 2048 )
     {
         attribute.ptlocator_size = read<ULONG> ( input );
-        char datablock[attribute.ptlocator_size];
-        input.read ( datablock, attribute.ptlocator_size );
+        datablock.resize(attribute.ptlocator_size);
+        input.read ( &datablock[0], attribute.ptlocator_size );
     }
     return;
 }

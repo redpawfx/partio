@@ -116,17 +116,20 @@ public:
     float distance;
 
     Camera()
-        :lookAt(0,0,0),
-        theta(0.8),phi(0.3),
+        :lookAt(0, 0, 0),
+        theta(0.8f),
+        phi(0.3f),
         distance(3),
-        tumble(false),pan(false),zoom(false)
+        tumble(false),
+        pan(false),
+        zoom(false)
     {}
 
     void look() const
     {
-        Vec3 view=distance*Vec3(sin(theta)*cos(phi),sin(phi),cos(theta)*cos(phi));
-        Vec3 up=distance*Vec3(sin(theta)*cos(phi+M_PI/2),sin(phi+M_PI/2),cos(theta)*cos(phi+M_PI/2));
-        Vec3 eye=lookAt+view;
+        Vec3 view = distance * Vec3(float(sin(theta)*cos(phi)), float(sin(phi)), float(cos(theta)*cos(phi)));
+        Vec3 up = distance * Vec3(float(sin(theta)*cos(phi+M_PI/2)), float(sin(phi+M_PI/2)), float(cos(theta)*cos(phi+M_PI/2)));
+        Vec3 eye = lookAt + view;
 //        Vec3 up(0,1,0);
         gluLookAt(eye.x,eye.y,eye.z,lookAt.x,lookAt.y,lookAt.z,up.x,up.y,up.z);
         //std::cout<<"eye "<<eye<<std::endl;
@@ -150,17 +153,17 @@ public:
     void update(const int x,const int y)
     {
         if(tumble){
-            theta+=-(x-this->x)*M_PI/180.;
-            phi+=(y-this->y)*M_PI/180.;
+            theta += float(-(x-this->x)*M_PI/180.);
+            phi += float((y-this->y)*M_PI/180.);
         }else if(pan){
-            Vec3 view=Vec3(sin(theta)*cos(phi),sin(phi),cos(theta)*cos(phi));
-            Vec3 up=Vec3(sin(theta)*cos(phi+M_PI/2),sin(phi+M_PI/2),cos(theta)*cos(phi+M_PI/2));
-            Vec3 right=view.normalized().cross(up.normalized()).normalized();
-            lookAt+=right*distance*.001*(x-this->x);
-            lookAt+=up*distance*.001*(y-this->y);
-        }else if(zoom){
+            Vec3 view = Vec3(float(sin(theta)*cos(phi)), float(sin(phi)), float(cos(theta)*cos(phi)));
+            Vec3 up = Vec3(float(sin(theta)*cos(phi+M_PI/2)), float(sin(phi+M_PI/2)), float(cos(theta)*cos(phi+M_PI/2)));
+            Vec3 right = view.normalized().cross(up.normalized()).normalized();
+            lookAt += right*distance*.001f*float(x-this->x);
+            lookAt += up*distance*.001f*float(y-this->y);
+        } else if(zoom){
             int move=y-this->y;
-            distance*=exp(move*.01);
+            distance *= float(exp(move*.01));
         }
         this->x=x;this->y=y;
     }
@@ -172,8 +175,8 @@ public:
     {
         lookAt=.5*(boxmin+boxmax);
         Vec3 edges=boxmax-boxmin;
-        float half_extent=.5*std::max(edges.x,std::max(edges.y,edges.z));
-        distance=std::max(1e-3,half_extent/tan(.5*fov*M_PI/180.));
+        float half_extent = .5f * std::max(edges.x,std::max(edges.y,edges.z));
+        distance = std::max(float(1e-3), float(half_extent/tan(.5*fov*M_PI/180.)));
     }
 };
 

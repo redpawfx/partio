@@ -67,12 +67,6 @@ namespace Partio
       This can be propagated down during traversal.
 */
 
-#include <string.h>
-#include <vector>
-#include <float.h>
-#include <algorithm>
-#include <cassert>
-
 template <int k> class BBox
 {
  public:
@@ -220,7 +214,7 @@ template <int k> class KdTree
     ~KdTree();
     /** \brief returns number of points in tree
     */
-    int size() const { return _points.size(); }
+    int size() const { return int(_points.size()); }
     /** \brief Returns the bounding box containing all points in the tree
     */
     const BBox<k>& bbox() const { return _bbox; }
@@ -320,7 +314,7 @@ void KdTree<k>::sort()
     _sorted = 1;
 
     // reorder ids to sort points
-    int np = _points.size();
+    int np = int(_points.size());
     if (!np) return;
     if (np > 1) sortSubtree(0, np, 0);
 
@@ -372,7 +366,7 @@ int KdTree<k>::findNPoints(uint64_t *result, float *distanceSquared, float *fina
 {
     float radius_squared=maxRadius*maxRadius;
 
-    if (!size() || !_sorted || nPoints<1) return 0;
+    if (!size() || !_sorted || nPoints<1) return (int)radius_squared;
 
     NearestQuery query(result,distanceSquared,p,nPoints,radius_squared);
     findNPoints(query,0,size(),0);

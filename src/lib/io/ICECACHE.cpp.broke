@@ -65,7 +65,7 @@ void readAttrData(std::istream& input, ParticlesDataMutable& particles, icecache
     typedef typename ETYPE_TO_TYPE<ETYPE>::TYPE TYPE;
     int index = 0;
     ULONG isConstant = 0;
-    TYPE val[ice_attr.attr_handle.count];
+    TYPE *val = new TYPE[ice_attr.attr_handle.count];
     // Iterate over all points
     for (ParticlesDataMutable::iterator end=particles.end();iterator!=end;++iterator)
 	{
@@ -90,6 +90,7 @@ void readAttrData(std::istream& input, ParticlesDataMutable& particles, icecache
         }
         index++;
     }
+    delete[] val;
 }
 
 template<class T>

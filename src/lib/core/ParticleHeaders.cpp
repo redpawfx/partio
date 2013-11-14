@@ -77,7 +77,7 @@ numParticles() const
 int ParticleHeaders::
 numAttributes() const
 {
-    return attributes.size();
+    return int(attributes.size());
 }
 
 
@@ -158,10 +158,10 @@ addAttribute(const char* attribute,ParticleAttributeType type,const int count)
     ParticleAttribute attr;
     attr.name=attribute;
     attr.type=type;
-    attr.attributeIndex=attributes.size(); //  all arrays separate so we don't use this here!
+    attr.attributeIndex = int(attributes.size()); //  all arrays separate so we don't use this here!
     attr.count=count;
     attributes.push_back(attr);
-    nameToAttribute[attribute]=attributes.size()-1;
+    nameToAttribute[attribute] = int(attributes.size() - 1);
     return attr;
 }
 

@@ -211,11 +211,11 @@ ParticlesDataMutable* readPTC(const char* filename,const bool headersOnly)
 	     float nz = (float)z / 65535.0f;
 	     norm[2] = 2.0f * nz - 1.0f;
 	     float fphi = (float)phi / 65535.0f;
-	     fphi = 2.0 * M_PI * (fphi - 0.5);
+	     fphi = float(2.0 * M_PI * (fphi - 0.5));
 	     //assert(-M_PI-0.0001 <= fphi && fphi <= M_PI+0.0001);
 	     double rxy = sqrt(1.0 - norm[2]*norm[2]);
-	     norm[0] = rxy * sin(fphi);
-	     norm[1] = rxy * cos(fphi);
+	     norm[0] = float(rxy * sin(fphi));
+	     norm[1] = float(rxy * cos(fphi));
 	} else {
 	     norm[0] = norm[1] = norm[2] = 0.0f;
 	}        
@@ -287,7 +287,7 @@ bool writePTC(const char* filename,const ParticlesData& p,const bool compressed)
             else write<LITEND>(*output,(float)0);
     }
     // eye-to-screen
-    const float foo[4][4]={{1.8,0,0,0}, {0,2.41,0,0}, {0,0,1,1}, {0,0,-.1,0}};
+    const float foo[4][4]={{1.8f,0,0,0}, {0,2.41f,0,0}, {0,0,1,1}, {0,0,-.1f,0}};
     for(int i=0;i<4;i++) for(int j=0;j<4;j++){
             write<LITEND>(*output,foo[i][j]);
     }

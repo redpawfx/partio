@@ -232,7 +232,7 @@ void partioInstancer::reInit(void *data)
 
 MStatus partioInstancer::initialize()
 {
-	//cout << "initialize" << endl;
+
     MFnEnumAttribute 	eAttr;
     MFnUnitAttribute 	uAttr;
     MFnNumericAttribute nAttr;
@@ -289,7 +289,7 @@ MStatus partioInstancer::initialize()
         eAttr.addField(formatExtMap[i].toUpperCase(),	i);
     }
 
-    eAttr.setDefault(Partio::readFormatIndex("pdc"));  // PDC
+    eAttr.setDefault(short(Partio::readFormatIndex("pdc")));  // PDC
     eAttr.setChannelBox(true);
 
     aDrawStyle = eAttr.create( "drawStyle", "drwStyl");
@@ -1065,39 +1065,39 @@ MStatus partioInstancer::compute( const MPlug& plug, MDataBlock& block )
         unsigned int numAttr=pvCache.particles->numAttributes();
         MPlug zPlug (thisMObject(), aPartioAttributes);
 
-        if ((rotationFromIndex+1) > zPlug.numElements())
+        if ((rotationFromIndex+1) > int(zPlug.numElements()))
         {
             block.outputValue(aRotationFrom).setInt(-1);
         }
-        if ((scaleFromIndex+1) > zPlug.numElements())
+        if ((scaleFromIndex+1) > int(zPlug.numElements()))
         {
             block.outputValue(aScaleFrom).setInt(-1);
         }
-        if ((lastRotFromIndex+1) > zPlug.numElements())
+        if ((lastRotFromIndex+1) > int(zPlug.numElements()))
         {
             block.outputValue(aLastRotationFrom).setInt(-1);
         }
-        if ((lastScaleFromIndex+1) > zPlug.numElements())
+        if ((lastScaleFromIndex+1) > int(zPlug.numElements()))
         {
             block.outputValue(aLastScaleFrom).setInt(-1);
         }
-        if ((indexFromIndex+1) > zPlug.numElements())
+        if ((indexFromIndex+1) > int(zPlug.numElements()))
         {
             block.outputValue(aIndexFrom).setInt(-1);
         }
-        if ((aimDirectionFromIndex+1) > zPlug.numElements())
+        if ((aimDirectionFromIndex+1) > int(zPlug.numElements()))
         {
             block.outputValue(aAimDirectionFrom).setInt(-1);
         }
-        if ((aimPositionFromIndex+1) > zPlug.numElements())
+        if ((aimPositionFromIndex+1) > int(zPlug.numElements()))
         {
             block.outputValue(aAimPositionFrom).setInt(-1);
         }
-        if ((aimAxisFromIndex+1) > zPlug.numElements())
+        if ((aimAxisFromIndex+1) > int(zPlug.numElements()))
         {
             block.outputValue(aAimAxisFrom).setInt(-1);
         }
-        if ((aimWorldUpFromIndex+1) > zPlug.numElements())
+        if ((aimWorldUpFromIndex+1) > int(zPlug.numElements()))
         {
             block.outputValue(aAimWorldUpFrom).setInt(-1);
         }
@@ -1382,13 +1382,13 @@ void partioInstancerUI::drawPartio(partioInstReaderCache* pvCache, int drawStyle
 		/// looping thru particles one by one...
 
         glPointSize(pointSizeVal);
-        glColor3f(1.0,1.0,1.0);
+        glColor3f(1.0f, 1.0f, 1.0f);
         glBegin(GL_POINTS);
 
 		MVectorArray positions = pvCache->instanceData.vectorArray("position");
         for (unsigned int i=0; i < positions.length(); i++)
         {
-            glVertex3f(positions[i].x, positions[i].y, positions[i].z);
+            glVertex3d(positions[i].x, positions[i].y, positions[i].z);
         }
 
         glEnd( );
@@ -1396,7 +1396,7 @@ void partioInstancerUI::drawPartio(partioInstReaderCache* pvCache, int drawStyle
 
         if (drawStyle == DRAW_STYLE_LABEL)
         {
-            glColor3f(0.0,0.0,0.0);
+            glColor3f(0.0f, 0.0f, 0.0f);
             for (unsigned int i=0; i < positions.length();i++)
             {
 				MString idVal;

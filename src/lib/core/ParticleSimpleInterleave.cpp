@@ -88,7 +88,7 @@ numParticles() const
 int ParticlesSimpleInterleave::
 numAttributes() const
 {
-    return attributes.size();
+    return int(attributes.size());
 }
 
 
@@ -194,10 +194,10 @@ addAttribute(const char* attribute,ParticleAttributeType type,const int count)
     ParticleAttribute attr;
     attr.name=attribute;
     attr.type=type;
-    attr.attributeIndex=attributes.size(); //  all arrays separate so we don't use this here!
+    attr.attributeIndex = int(attributes.size()); //  all arrays separate so we don't use this here!
     attr.count=count;
     attributes.push_back(attr);
-    nameToAttribute[attribute]=attributes.size()-1;
+    nameToAttribute[attribute] = int(attributes.size()) - 1;
 
     // repackage data for new attribute
     int oldStride=stride;
@@ -329,7 +329,7 @@ dataAsFloat(const ParticleAttribute& attribute,const int indexCount,
             int* ipart = (int*) (base + particleIndices[i]*stride);
             for (int k=0; k<attribute.count; ++k, ++dst)
             {
-                *dst = ipart[k];
+                *dst = float(ipart[k]);
             }
         }
     }
@@ -342,7 +342,7 @@ registerIndexedStr(const ParticleAttribute& attribute,const char* str)
     IndexedStrTable& table=attributeIndexedStrs[attribute.attributeIndex];
     std::map<std::string,int>::const_iterator it=table.stringToIndex.find(str);
     if(it!=table.stringToIndex.end()) return it->second;
-    int newIndex=table.strings.size();
+    int newIndex = int(table.strings.size());
     table.strings.push_back(str);
     table.stringToIndex[str]=newIndex;
     return newIndex;
