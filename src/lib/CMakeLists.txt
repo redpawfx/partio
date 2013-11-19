@@ -34,7 +34,8 @@
 FILE(GLOB io_cpp "io/*.cpp" )
 FILE(GLOB 3rdParty_io_cpp "io/3rdParty/*/*.cpp" )
 FILE(GLOB core_cpp "core/*.cpp")
-ADD_LIBRARY (partio ${3rdParty_io_cpp} ${io_cpp} ${core_cpp})
+FILE(GLOB utils_cpp "utils/*.cpp")
+ADD_LIBRARY (partio ${3rdParty_io_cpp} ${io_cpp} ${core_cpp} ${utils_cpp})
 
 FILE(GLOB public_includes "*.h")
 

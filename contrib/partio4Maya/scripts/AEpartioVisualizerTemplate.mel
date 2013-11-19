@@ -63,6 +63,10 @@ global proc AEpartioVisualizerTemplate( string $nodeName )
 		editorTemplate -callCustom "pioVizCustomAttrsManage" "pioVizCustomAttrsManage" $nodeName;
 		editorTemplate -endLayout;
 
+		editorTemplate -beginLayout "Particle Expansion" -collapse 1;
+		editorTemplate -addControl "expandNumCopies";
+		editorTemplate -endLayout;
+
 	// include/call base class/node attributes
 	//AEdependNodeTemplate $nodeName;
 	editorTemplate -beginLayout ("Render Stats");

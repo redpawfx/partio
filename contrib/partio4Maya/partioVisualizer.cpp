@@ -81,6 +81,7 @@ MObject partioVisualizer::aInvertAlpha;
 MObject partioVisualizer::aDrawStyle;
 MObject partioVisualizer::aForceReload;
 MObject partioVisualizer::aRenderCachePath;
+MObject partioVisualizer::aExpNumCopies;
 
 
 partioVizReaderCache::partioVizReaderCache():
@@ -175,6 +176,7 @@ void partioVisualizer::initCallback()
     MPlug(tmo,aSize).getValue(multiplier);
     MPlug(tmo,aInvertAlpha).getValue(mLastInvertAlpha);
     MPlug(tmo,aCacheStatic).getValue(mLastStatic);
+	MPlug(tmo,aExpNumCopies).getValue(mLastNumCopies);
     cacheChanged = false;
 
 }
@@ -322,6 +324,9 @@ MStatus partioVisualizer::initialize()
     aRenderCachePath = tAttr.create ( "renderCachePath", "rcp", MFnStringData::kString );
     nAttr.setHidden(true);
 
+	aExpNumCopies = nAttr.create("expandNumCopies", "exnc", MFnNumericData::kInt,0);
+	nAttr.setKeyable(false);
+
 
     addAttribute ( aUpdateCache );
     addAttribute ( aSize );
@@ -345,6 +350,7 @@ MStatus partioVisualizer::initialize()
     addAttribute ( aDrawStyle );
     addAttribute ( aForceReload );
     addAttribute ( aRenderCachePath );
+	addAttribute ( aExpNumCopies );
 	addAttribute ( aByFrame );
     addAttribute ( time );
 
@@ -368,6 +374,7 @@ MStatus partioVisualizer::initialize()
     attributeAffects ( aForceReload, aUpdateCache );
 	attributeAffects ( aByFrame, aUpdateCache );
 	attributeAffects ( aByFrame, aRenderCachePath );
+	attributeAffects ( aExpNumCopies, aUpdateCache );
 	attributeAffects (time, aUpdateCache);
     attributeAffects (time,aRenderCachePath);
 
@@ -428,6 +435,7 @@ MStatus partioVisualizer::compute( const MPlug& plug, MDataBlock& block )
 		int byFrame 				= block.inputValue( aByFrame ).asInt();
         bool flipYZ 				= block.inputValue( aFlipYZ ).asBool();
         MString renderCachePath 	= block.inputValue( aRenderCachePath ).asString();
+		int expNumCopies			= block.inputValue( aExpNumCopies ).asInt();
 
         MString formatExt = "";
         int cachePadding = 0;
@@ -456,6 +464,7 @@ MStatus partioVisualizer::compute( const MPlug& plug, MDataBlock& block )
                 mLastFile != cacheFile ||
                 mLastFlipStatus  != flipYZ ||
                 mLastStatic !=  cacheStatic ||
+                mLastNumCopies != expNumCopies ||
                 forceReload )
         {
             cacheChanged = true;
@@ -465,6 +474,7 @@ MStatus partioVisualizer::compute( const MPlug& plug, MDataBlock& block )
             mLastPath = cacheDir;
             mLastFile = cacheFile;
             mLastStatic = cacheStatic;
+			mLastNumCopies = expNumCopies;
             block.outputValue(aForceReload).setBool(false);
         }
 
@@ -535,6 +545,10 @@ MStatus partioVisualizer::compute( const MPlug& plug, MDataBlock& block )
 				}
 			}
 			pvCache.particles = read(newCacheFile.asChar());
+			if (expNumCopies > 0)
+			{
+				pvCache.particles = expand(pvCache.particles, false, expNumCopies);
+			}
 			///////////////////////////////////////
 
             mLastFileLoaded = newCacheFile;

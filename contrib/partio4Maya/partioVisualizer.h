@@ -82,6 +82,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 #include <Partio.h>
 #include <PartioAttribute.h>
 #include <PartioIterator.h>
+#include <utils/expansion.h>
 
 #include "partio4MayaShared.h"
 
@@ -171,6 +172,7 @@ public:
     static MObject  aDrawStyle;
     static MObject  aForceReload;
     static MObject  aRenderCachePath;
+	static MObject  aExpNumCopies;
 
 
     static	MTypeId			id;
@@ -196,6 +198,7 @@ private:
     float mLastRadius;
     bool mLastFlipStatus;
     bool mFlipped;
+	int mLastNumCopies;
     bool  frameChanged;
     MStringArray attributeList;
 
