@@ -44,4 +44,6 @@ void test_ParticlesSimple();
 
 }
 
+int main(int argc, char* argv[])
+
 #endif

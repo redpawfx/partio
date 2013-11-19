@@ -119,3 +119,9 @@ void test_str()
 }
 
 } // end namespace PartioTesting
+
+int main(int argc,char *argv[])
+{
+	PartioTests::test_str();
+	return 0;
+}

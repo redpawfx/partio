@@ -5,5 +5,6 @@ namespace PartioTests {
     void test_Cache();
 }
 
+int main(int argc,char* argv[]);
 
 #endif // TESTCACHE_H_INCLUDED

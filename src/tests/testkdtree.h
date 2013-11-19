@@ -46,4 +46,6 @@ namespace PartioTests {
 void test_KDTree();
 }
 
+int main(int argc, char* argv[]);
+
 #endif

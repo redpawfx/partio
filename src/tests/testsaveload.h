@@ -46,4 +46,7 @@ namespace PartioTests {
 	void test_SaveLoad();
 }
 
+int main(int argc,char *argv[]);
+
+
 #endif

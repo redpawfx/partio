@@ -178,3 +178,8 @@ void test_iterator()
 }
 
 }
+
+int main(int argc, char* argv[])
+{
+    PartioTests::test_iterator();
+}

@@ -202,3 +202,8 @@ void test_KDTree()
 }
 
 }
+
+int main(int argc, char* argv[])
+{
+	PartioTests::test_KDTree();
+}

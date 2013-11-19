@@ -31,7 +31,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 
-foreach(item makecircle makeline jsontest)
+foreach(item makecircle makeline jsontest testiterator testcache testkdtree testparticlessimple testsaveload teststr)
     ADD_EXECUTABLE(${item} "${item}.cpp")
     TARGET_LINK_LIBRARIES(${item} ${PARTIO_LIBRARIES})
     INSTALL(TARGETS ${item} DESTINATION ${EXECUTABLE_INSTALL_PATH})

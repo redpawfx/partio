@@ -106,3 +106,11 @@ void test_SaveLoad()
 
 }
 }
+
+int main(int argc,char *argv[])
+{
+   	PartioTests::test_SaveLoad();
+	return 0;
+
+}
+

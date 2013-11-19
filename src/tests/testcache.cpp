@@ -36,6 +36,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 #include <Partio.h>
 #include <cassert>
 #include <iostream>
+#include <typeinfo>
+#include <cstdlib>
 #include "partiotesting.h"
 #include "testcache.h"
 
@@ -64,3 +66,9 @@ void test_Cache()
 }
 
 } // namespace PartioTesting
+
+int main(int argc,char* argv[])
+{
+    PartioTests::test_Cache();
+    return 0;
+}

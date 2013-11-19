@@ -8,5 +8,5 @@ namespace PartioTests {
 	void test_str();
 	void failure(const std::string& x);
 }
-
+int main(int argc,char *argv[]);
 #endif
