@@ -285,6 +285,9 @@ void endCachedAccess(ParticlesData* particles);
 //! Prints a subset of particle data in a textual form
 void print(const ParticlesData* particles);
 
+//! returns a comma sep list of attribute names
+std::string getAttrList(const ParticlesData* particles);
+
 //! TODO: this is a temporary hack to develop binary json support
 Partio::ParticlesDataMutable*  testRead(const char* filename);
 

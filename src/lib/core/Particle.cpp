@@ -125,6 +125,22 @@ print(const ParticlesData* particles)
     }
 }
 
+std::string getAttrList(const ParticlesData* particles)
+{
+	std::string attrList;
+	for (int i = 0; i < particles->numAttributes(); i++)
+	{
+		Partio::ParticleAttribute attr;
+        particles->attributeInfo(i,attr);
+		attrList.append(attr.name);
+		if( i < particles->numAttributes()-1)
+		{
+			attrList.append(",");
+		}
+	}
+	return (attrList);
+}
+
 size_t numReadFormats()
 {
     return readers().size();
