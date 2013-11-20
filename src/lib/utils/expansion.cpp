@@ -40,7 +40,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 namespace Partio{
 using namespace std;
 
-ParticlesDataMutable* expand(ParticlesDataMutable* expandedPData, bool sort, int numCopies)
+ParticlesDataMutable* expandSoft(ParticlesDataMutable* expandedPData, bool sort, int numCopies)
 {
 
 	if(sort)
@@ -74,10 +74,9 @@ ParticlesDataMutable* expand(ParticlesDataMutable* expandedPData, bool sort, int
 		}
 		char velAttrName[75];
 		ParticleAttribute partitionVel;
-		sprintf(velAttrName,"velocity_p%d",expCount);
+		sprintf(velAttrName,"velocity_p%i",expCount+1);
 		if (!expandedPData->attributeInfo(velAttrName,partitionVel))
 		{
-			sprintf(velAttrName,"velocity_p:%i",expCount+1);
 			partitionVel = expandedPData->addAttribute(velAttrName,  VECTOR, 3);
 			velVec.push_back(partitionVel);
 		}
@@ -85,7 +84,7 @@ ParticlesDataMutable* expand(ParticlesDataMutable* expandedPData, bool sort, int
 
 	for (int partIndex = 0; partIndex< expandedPData->numParticles(); partIndex++)
 	{
-		for (int expCount = 0; expCount < numCopies; expCount++)
+		for (int expCount = 1; expCount <= numCopies; expCount++)
 		{
 			expandedPData->dataWrite<float>(posVec[expCount], partIndex)[0] = (float)masterPositions[partIndex*3];
 			expandedPData->dataWrite<float>(posVec[expCount], partIndex)[1] = (float)masterPositions[(partIndex*3)+1]-expCount;

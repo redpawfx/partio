@@ -39,7 +39,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 
 namespace Partio{
 
-	ParticlesDataMutable*  expand(ParticlesDataMutable* pData, bool sort, int numCopies);
+	// expandSoft adds n number of extra position and velo channels to existing cache
+	// it does not increase the particle count
+	ParticlesDataMutable*  expandSoft(ParticlesDataMutable* pData, bool sort, int numCopies);
 
 
 } // end Partio namespace
