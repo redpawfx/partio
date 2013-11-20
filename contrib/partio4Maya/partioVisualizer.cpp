@@ -70,9 +70,12 @@ MObject partioVisualizer::aCacheFormat;
 MObject partioVisualizer::aJitterPos;
 MObject partioVisualizer::aJitterFreq;
 MObject partioVisualizer::aPartioAttributes;
+MObject partioVisualizer::aPartioPosAttributes;
+MObject partioVisualizer::aPartioVelAttributes;
 MObject partioVisualizer::aColorFrom;
 MObject partioVisualizer::aRadiusFrom;
 MObject partioVisualizer::aAlphaFrom;
+MObject partioVisualizer::aPartioDisplayPartitions;
 MObject partioVisualizer::aPointSize;
 MObject partioVisualizer::aDefaultPointColor;
 MObject partioVisualizer::aDefaultAlpha;
@@ -108,6 +111,7 @@ partioVisualizer::partioVisualizer()
         mLastRadiusFromIndex(-1),
         mLastColor(1,0,0),
         mLastRadius(1.0),
+        mLastNumCopies(0),
         cacheChanged(false),
         frameChanged(false),
         multiplier(1.0),
@@ -279,6 +283,18 @@ MStatus partioVisualizer::initialize()
     tAttr.setArray(true);
     tAttr.setUsesArrayDataBuilder( true );
 
+	aPartioPosAttributes = tAttr.create ("partioPosAttributes", "pioPAts", MFnStringData::kString);
+    tAttr.setArray(true);
+    tAttr.setUsesArrayDataBuilder( true );
+
+	aPartioVelAttributes = tAttr.create ("partioVelAttributes", "pioVAts", MFnStringData::kString);
+    tAttr.setArray(true);
+    tAttr.setUsesArrayDataBuilder( true );
+
+	aPartioDisplayPartitions = nAttr.create ("displayPartitionData", "dpd", MFnNumericData::kBoolean);
+    nAttr.setArray(true);
+    nAttr.setUsesArrayDataBuilder( true );
+
     aColorFrom = nAttr.create("colorFrom", "cfrm", MFnNumericData::kInt, -1, &stat);
     nAttr.setDefault(-1);
     nAttr.setKeyable(true);
@@ -339,9 +355,12 @@ MStatus partioVisualizer::initialize()
     addAttribute ( aCacheActive );
     addAttribute ( aCacheFormat );
     addAttribute ( aPartioAttributes );
+	addAttribute ( aPartioPosAttributes );
+	addAttribute ( aPartioVelAttributes );
     addAttribute ( aColorFrom );
     addAttribute ( aAlphaFrom );
     addAttribute ( aRadiusFrom );
+	addAttribute ( aPartioDisplayPartitions );
     addAttribute ( aPointSize );
     addAttribute ( aDefaultPointColor );
     addAttribute ( aDefaultAlpha );
@@ -365,6 +384,7 @@ MStatus partioVisualizer::initialize()
     attributeAffects ( aColorFrom, aUpdateCache );
     attributeAffects ( aAlphaFrom, aUpdateCache );
     attributeAffects ( aRadiusFrom, aUpdateCache );
+	attributeAffects ( aPartioDisplayPartitions, aUpdateCache );
     attributeAffects ( aPointSize, aUpdateCache );
     attributeAffects ( aDefaultPointColor, aUpdateCache );
     attributeAffects ( aDefaultAlpha, aUpdateCache );
@@ -394,11 +414,35 @@ partioVizReaderCache* partioVisualizer::updateParticleCache()
 MStatus partioVisualizer::compute( const MPlug& plug, MDataBlock& block )
 {
 
+	cout << "Compute: " <<  plug.name() << endl;
     int colorFromIndex  = block.inputValue( aColorFrom ).asInt();
     int opacityFromIndex= block.inputValue( aAlphaFrom ).asInt();
     int radiusFromIndex = block.inputValue( aRadiusFrom ).asInt();
     bool cacheActive = block.inputValue(aCacheActive).asBool();
 
+	MPlug partitionPlug (thisMObject(), aPartioDisplayPartitions);
+
+	//MIntArray  activePartitions;
+	uint partitionCount = partitionPlug.numElements();
+	//activePartitions.setLength(partitionCount);
+	displayPartition.clear();
+
+	// hopefully this will only happen if it does not exist once
+	if (partitionCount == 0)
+	{
+		displayPartition.setLength(1); // default for position
+		partitionPlug.selectAncestorLogicalIndex(0,aPartioDisplayPartitions);
+		displayPartition[0] = 1;
+	}
+	else
+	{
+		displayPartition.setLength(partitionCount);
+		for (uint i=0;i<partitionCount;i++)
+		{
+			partitionPlug.selectAncestorLogicalIndex(i,aPartioDisplayPartitions);
+			displayPartition[i] = partitionPlug.asInt();
+		}
+	}
 
     // Determine if we are requesting the output plug for this node.
     //
@@ -411,8 +455,8 @@ MStatus partioVisualizer::compute( const MPlug& plug, MDataBlock& block )
     {
         MStatus stat;
 
-        MString cacheDir 	= block.inputValue(aCacheDir).asString();
-        MString cacheFile = block.inputValue(aCacheFile).asString();
+        MString cacheDir	= block.inputValue(aCacheDir).asString();
+        MString cacheFile	= block.inputValue(aCacheFile).asString();
 
         drawError = 0;
         if (cacheDir  == "" || cacheFile == "" )
@@ -499,6 +543,7 @@ MStatus partioVisualizer::compute( const MPlug& plug, MDataBlock& block )
             pvCache.bbox.clear();
 			mLastFileLoaded = "";
 			drawError = 1;
+
         }
 
         //  after updating all the file path stuff,  exit here if we don't want to actually load any new data
@@ -523,8 +568,8 @@ MStatus partioVisualizer::compute( const MPlug& plug, MDataBlock& block )
 		}
 
         if ( newCacheFile != "" &&
-                partio4Maya::partioCacheExists(newCacheFile.asChar()) &&
-                (newCacheFile != mLastFileLoaded || forceReload)
+             partio4Maya::partioCacheExists(newCacheFile.asChar()) &&
+             (newCacheFile != mLastFileLoaded || forceReload)
            )
         {
             cacheChanged = true;
@@ -545,9 +590,14 @@ MStatus partioVisualizer::compute( const MPlug& plug, MDataBlock& block )
 				}
 			}
 			pvCache.particles = read(newCacheFile.asChar());
-			if (expNumCopies > 0)
+
+			int partitionsFromFile = 0;
+
+
+			// we only support one way for expansion you can't use both together
+			if (expNumCopies > 0 && partitionsFromFile == 0)
 			{
-				pvCache.particles = expand(pvCache.particles, false, expNumCopies);
+				pvCache.particles = expandSoft(pvCache.particles, true, expNumCopies);
 			}
 			///////////////////////////////////////
 
@@ -556,6 +606,41 @@ MStatus partioVisualizer::compute( const MPlug& plug, MDataBlock& block )
             {
                 return (MS::kSuccess);
             }
+
+			// get the attr list from the cache
+			mAttributeList.clear();
+			std::string attrs = getAttrList(pvCache.particles);
+			MString attrList = MString(attrs.c_str());
+			attrList.split(',',mAttributeList);
+
+			// DEBUG
+			cout << mAttributeList << endl;
+
+			// now lets search thru the attr list and get a separate list of the position and velocity attrs
+			mPosAttrs.clear();
+			mVelAttrs.clear();
+
+			pvCache.partitions.clear();
+
+			partio4Maya::findPosAndVelAttrs(mAttributeList, mPosAttrs, mVelAttrs);
+			cout << mPosAttrs << endl;
+			cout << mVelAttrs << endl;
+
+			for (int i = 0; i < mPosAttrs.length(); i++)
+			{
+				if (displayPartition[i])
+				{
+					ParticleAttribute temp;
+					if (pvCache.particles->attributeInfo(mPosAttrs[i].asChar(),temp))
+					{
+						cout << "ATTRIBUTES: " <<  temp.name << endl;
+						pvCache.partitions.push_back(temp);
+					}
+				}
+			}
+
+
+			//cout << pvCache.partitions.size() << endl;
 
             char partCount[50];
             sprintf (partCount, "%d", pvCache.particles->numParticles());
@@ -790,6 +875,9 @@ MStatus partioVisualizer::compute( const MPlug& plug, MDataBlock& block )
     {
         unsigned int numAttr=pvCache.particles->numAttributes();
         MPlug zPlug (thisMObject(), aPartioAttributes);
+		MPlug yPlug (thisMObject(), aPartioPosAttributes);
+		MPlug xPlug (thisMObject(), aPartioVelAttributes);
+		MPlug wPlug (thisMObject(), aPartioDisplayPartitions);
 
         if ((colorFromIndex+1) > int(zPlug.numElements()))
         {
@@ -808,26 +896,10 @@ MStatus partioVisualizer::compute( const MPlug& plug, MDataBlock& block )
         {
             //cout << "partioVisualizer->refreshing AE controls" << endl;
 
-            attributeList.clear();
-
-            for (unsigned int i=0;i<numAttr;i++)
+            for (unsigned int i=0;i<mAttributeList.length();i++)
             {
-                ParticleAttribute attr;
-                pvCache.particles->attributeInfo(i,attr);
-
-                // crazy casting string to  char
-                char *temp;
-                temp = new char[(attr.name).length()+1];
-                strcpy (temp, attr.name.c_str());
-
-                MString  mStringAttrName("");
-                mStringAttrName += MString(temp);
-
                 zPlug.selectAncestorLogicalIndex(i,aPartioAttributes);
-                zPlug.setValue(MString(temp));
-                attributeList.append(mStringAttrName);
-
-                delete [] temp;
+                zPlug.setValue(mAttributeList[i]);
             }
 
             MArrayDataHandle hPartioAttrs = block.inputArrayValue(aPartioAttributes);
@@ -835,6 +907,7 @@ MStatus partioVisualizer::compute( const MPlug& plug, MDataBlock& block )
             // do we need to clean up some attributes from our array?
             if (bPartioAttrs.elementCount() > numAttr)
             {
+				//cout << "counts don't match.. deleting" << endl;
                 unsigned int current = bPartioAttrs.elementCount();
                 //unsigned int attrArraySize = current - 1;
 
@@ -845,6 +918,59 @@ MStatus partioVisualizer::compute( const MPlug& plug, MDataBlock& block )
                 }
             }
         }
+        if (cacheChanged || (yPlug.numElements() != mPosAttrs.length() ||
+			                 xPlug.numElements() != mVelAttrs.length() ||
+							 wPlug.numElements() != displayPartition.length()))
+		{
+			// add / update the arrays for position/vel
+			for (unsigned int i=0;i<mPosAttrs.length();i++)
+            {
+                yPlug.selectAncestorLogicalIndex(i,aPartioPosAttributes);
+                yPlug.setValue(mPosAttrs[i]);
+				xPlug.selectAncestorLogicalIndex(i,aPartioVelAttributes);
+				xPlug.setValue(mVelAttrs[i]);
+				//wPlug.selectAncestorLogicalIndex(i,aPartioDisplayPartitions);
+				//wPlug.setValue(displayPartition[i]);
+			}
+
+			MArrayDataHandle hPosAttrs = block.inputArrayValue(aPartioPosAttributes);
+            MArrayDataBuilder bPosAttrs = hPosAttrs.builder();
+			MArrayDataHandle hVelAttrs = block.inputArrayValue(aPartioVelAttributes);
+            MArrayDataBuilder bVelAttrs = hVelAttrs.builder();
+			MArrayDataHandle hPartitions = block.inputArrayValue(aPartioDisplayPartitions);
+			MArrayDataBuilder bPartitions =hPartitions.builder();
+
+			// these shouldn't ever get out of sync unless the user adds the attrs manually so we take some liberties
+			if (bPosAttrs.elementCount() > mPosAttrs.length())
+            {
+                unsigned int current = bPosAttrs.elementCount();
+                // remove excess elements from the end of our attribute array
+                for (unsigned int x = mPosAttrs.length(); x < current; x++)
+                {
+					//cout << "removing element " << x << endl;
+                    bPosAttrs.removeElement(x);
+                }
+            }
+            if (bVelAttrs.elementCount() > mVelAttrs.length())
+            {
+                unsigned int current = bVelAttrs.elementCount();
+                // remove excess elements from the end of our attribute array
+                for (unsigned int x = mVelAttrs.length(); x < current; x++)
+                {
+					bVelAttrs.removeElement(x);
+                }
+            }
+
+            if (bPartitions.elementCount() > mPosAttrs.length())
+            {
+                unsigned int current = bPartitions.elementCount();
+                // remove excess elements from the end of our attribute array
+                for (unsigned int x = mPosAttrs.length(); x < current; x++)
+                {
+					bPartitions.removeElement(x);
+                }
+            }
+		}
     }
     block.setClean(plug);
     return MS::kSuccess;
@@ -1090,20 +1216,23 @@ void partioVisualizerUI::drawPartio(partioVizReaderCache* pvCache, int drawStyle
             {
                 // now setup the position/color/alpha output pointers
 
-                const float * partioPositions = pvCache->particles->data<float>(pvCache->positionAttr,0);
+				for (int i = 0; i< pvCache->partitions.size(); i++)
+				{
+					const float * partioPositions = pvCache->particles->data<float>(pvCache->partitions[i],0);
 
-                glVertexPointer( 3, GL_FLOAT, stride, partioPositions );
+					glVertexPointer( 3, GL_FLOAT, stride, partioPositions );
 
 
-                if (defaultAlphaVal < 1 || alphaFromVal >=0)  // use transparency switch
-                {
-                    glColorPointer(  4, GL_FLOAT, stride, pvCache->rgba );
-                }
-                else
-                {
-                    glColorPointer(  3, GL_FLOAT, stride, pvCache->rgb );
-                }
-                glDrawArrays( GL_POINTS, 0, (pvCache->particles->numParticles()/(drawSkipVal+1)) );
+					if (defaultAlphaVal < 1 || alphaFromVal >=0)  // use transparency switch
+					{
+						glColorPointer(  4, GL_FLOAT, stride, pvCache->rgba );
+					}
+					else
+					{
+						glColorPointer(  3, GL_FLOAT, stride, pvCache->rgb );
+					}
+					glDrawArrays( GL_POINTS, 0, (pvCache->particles->numParticles()/(drawSkipVal+1)) );
+				}
             }
             glDisableClientState( GL_VERTEX_ARRAY );
             glDisableClientState( GL_COLOR_ARRAY );

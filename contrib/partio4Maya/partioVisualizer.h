@@ -36,6 +36,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 #include <vector>
 #include <math.h>
 #include <set>
+#include <string>
 
 #include <maya/MBoundingBox.h>
 #include <maya/MColor.h>
@@ -97,6 +98,7 @@ public:
     Partio::ParticleAttribute colorAttr;
     Partio::ParticleAttribute opacityAttr;
     Partio::ParticleAttribute radiusAttr;
+	std::vector<Partio::ParticleAttribute> partitions;
     float* rgb;
     float* rgba;
     MFloatArray radius;
@@ -161,6 +163,9 @@ public:
     static MObject 	aJitterPos;
     static MObject 	aJitterFreq;
     static MObject 	aPartioAttributes;
+	static MObject  aPartioPosAttributes;
+	static MObject	aPartioVelAttributes;
+	static MObject  aPartioDisplayPartitions;
     static MObject  aColorFrom;
     static MObject  aAlphaFrom;
     static MObject  aRadiusFrom;
@@ -200,7 +205,10 @@ private:
     bool mFlipped;
 	int mLastNumCopies;
     bool  frameChanged;
-    MStringArray attributeList;
+    MStringArray mAttributeList;
+	MStringArray mPosAttrs;
+	MStringArray mVelAttrs;
+	MIntArray displayPartition;
 
 
 protected:

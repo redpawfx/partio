@@ -90,6 +90,7 @@ public:
     static MVector 	jitterPoint(int id, float freq, float offset, float jitterMag);
     static float  	noiseAtValue( float x);
     static void   	initTable( long seed );
+	static void  	findPosAndVelAttrs(MStringArray inputAttrArray, MStringArray& posArray, MStringArray& velArray);
 
 private:
 

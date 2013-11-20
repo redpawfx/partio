@@ -65,6 +65,9 @@ global proc AEpartioVisualizerTemplate( string $nodeName )
 
 		editorTemplate -beginLayout "Particle Expansion" -collapse 1;
 		editorTemplate -addControl "expandNumCopies";
+		editorTemplate -beginLayout "Display Partitions" -collapse 0;
+		editorTemplate -callCustom "pioVizPartitionControls" "pioVizPartitionControls" $nodeName;
+		editorTemplate -endLayout;
 		editorTemplate -endLayout;
 
 	// include/call base class/node attributes
@@ -170,6 +173,32 @@ global proc pioVizCustomAttrsManage (string $nodeName)
 	}
 
 }
+
+global proc pioVizPartitionControls (string $nodeName)
+{
+    $nodeName = pioStripNodeName ($nodeName);
+    if (`rowColumnLayout -q -exists "partioPartitions"`)
+    { deleteUI "partioPartitions"; }
+
+    rowColumnLayout -nc 3  -bgc .2 .2 .2  -ebg true partioPartitions;
+
+    string $multiList[] = `listAttr -multi ($nodeName+".partioPosAttributes")`;
+    for ($multi in $multiList)
+    {
+		//rowLayout -nc 1 -bgc .2 .2 .2  -ebg true -w 250;
+		string $tok[];
+		tokenize $multi "[" $tok;
+		string $index = $tok[1];
+		$index = substituteAllString($index, "]", "");
+		string $attr = `getAttr ($nodeName+"."+$multi)`;
+		string $mayaPosAttr = `checkBoxGrp  -v1 0 -l $attr`;
+		connectControl -index 2  $mayaPosAttr  ($nodeName+".displayPartitionData["+$index+"]");
+		//setParent ..;
+    }
+
+}
+
+
 
 global proc pioVizSwitchAttributeFrom(string $nodeName, int $attr, string $menu)
 {

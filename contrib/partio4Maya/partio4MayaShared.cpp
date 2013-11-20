@@ -318,7 +318,7 @@ MString partio4Maya::setExt(short extEnum,bool write)
 }
 
 ///////////////////////////////////////////////////////////
-// eventually this will be replaced with something from partio directly
+// uses built in partio functions that return formats
 void partio4Maya::buildSupportedExtensionList(std::map<short,MString> &formatExtMap,bool write)
 {
     if (write)
@@ -335,6 +335,40 @@ void partio4Maya::buildSupportedExtensionList(std::map<short,MString> &formatExt
             formatExtMap[short(i)] = Partio::readFormatExtension(i);
         }
     }
+}
+
+
+//////////////////////////////////////////////////////////
+// separates out an array of attributes
+void  	partio4Maya::findPosAndVelAttrs(MStringArray inputAttrArray, MStringArray& posArray, MStringArray& velArray)
+{
+	for (uint atr = 0; atr < inputAttrArray.length(); atr++)
+	{
+		MStringArray foo;
+		inputAttrArray[atr].split('_',foo);
+		if (foo.length() > 0) // we found an extra position attr
+		{
+			if (foo[0] == "position" ||
+				foo[0] == "Position" ||
+				foo[0] == "worldPosition" ||
+				foo[0] == "WorldPosition" ||
+				foo[0] == "P" ||
+				foo[0] == "p")
+			{
+				posArray.append(inputAttrArray[atr]);
+			}
+			else if (foo[0] == "velocity" ||
+						foo[0] == "Velocity" ||
+						foo[0] == "v" ||
+						foo[0] == "V" ||
+						foo[0] == "worldVelocity" ||
+						foo[0] == "WorldVelocity")
+			{
+				velArray.append(inputAttrArray[atr]);
+			}
+		}
+
+	}
 }
 
 
