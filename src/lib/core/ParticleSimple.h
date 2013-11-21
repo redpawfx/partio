@@ -69,6 +69,7 @@ public:
     const std::vector<std::string>& indexedStrs(const ParticleAttribute& attr) const;
     void sort();
     void findPoints(const float bboxMin[3],const float bboxMax[3],std::vector<ParticleIndex>& points) const;
+	float findNPoints(const float center[3],const int nPoints,const float maxRadius,std::vector<std::pair<ParticleIndex,float> >&indexDistancePair) const;
     float findNPoints(const float center[3],int nPoints,const float maxRadius,
         std::vector<ParticleIndex>& points,std::vector<float>& pointDistancesSquared) const;
     int findNPoints(const float center[3],int nPoints,const float maxRadius,

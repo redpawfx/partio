@@ -136,6 +136,13 @@ findPoints(const float bboxMin[3],const float bboxMax[3],std::vector<ParticleInd
 }
 
 float ParticleHeaders::
+findNPoints(const float center[3],const int nPoints,const float maxRadius,std::vector<std::pair<ParticleIndex,float> >& idDistancePair) const
+{
+    assert(false);
+    return 0;
+}
+
+float ParticleHeaders::
 findNPoints(const float center[3],const int nPoints,const float maxRadius,std::vector<ParticleIndex>& points,
     std::vector<float>& pointDistancesSquared) const
 {

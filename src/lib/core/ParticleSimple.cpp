@@ -156,6 +156,20 @@ findPoints(const float bboxMin[3],const float bboxMax[3],std::vector<ParticleInd
 }
 
 float ParticlesSimple::
+findNPoints(const float center[3],const int nPoints,const float maxRadius,std::vector<std::pair<ParticleIndex,float> >& indexDistancePair) const
+{
+    if(!kdtree){
+        std::cerr<<"Partio: findNPoints without first calling sort()"<<std::endl;
+        return 0;
+    }
+
+    //assert(sizeof(ParticleIndex)==sizeof(uint64_t));
+    //std::vector<uint64_t>& rawPoints=points;
+    float maxDistance=kdtree->findNPoints(indexDistancePair,center,nPoints,maxRadius);
+    return maxDistance;
+}
+
+float ParticlesSimple::
 findNPoints(const float center[3],const int nPoints,const float maxRadius,std::vector<ParticleIndex>& points,
     std::vector<float>& pointDistancesSquared) const
 {

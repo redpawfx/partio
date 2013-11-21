@@ -157,6 +157,23 @@ findPoints(const float bboxMin[3],const float bboxMax[3],std::vector<ParticleInd
 }
 
 float ParticlesSimpleInterleave::
+findNPoints(const float center[3],const int nPoints,const float maxRadius,std::vector<std::pair<ParticleIndex,float> >& idDistancePair) const
+{
+#if 0
+    if(!kdtree){
+        std::cerr<<"Partio: findNPoints without first calling sort()"<<std::endl;
+        return 0;
+    }
+
+    float maxDistance=kdtree->findNPoints(points,pointDistancesSquared,center,nPoints,maxRadius);
+    // remap all points since findNPoints clears array
+    for(unsigned int i=0;i<points.size();i++) points[i]=kdtree->id(points[i]);
+    return maxDistance;
+#endif
+    return 0;
+}
+
+float ParticlesSimpleInterleave::
 findNPoints(const float center[3],const int nPoints,const float maxRadius,std::vector<ParticleIndex>& points,
     std::vector<float>& pointDistancesSquared) const
 {
@@ -302,7 +319,7 @@ dataInternalMultiple(const ParticleAttribute& attribute,const int indexCount,
     char* base = data + attributeOffsets[attribute.attributeIndex];
     char* dst = values;
     int bytes = TypeSize(attribute.type) * attribute.count;
-    
+
     for (int i=0; i<indexCount; ++i, dst+=bytes)
     {
         memcpy(dst, base + particleIndices[i]*stride, bytes);
@@ -320,10 +337,10 @@ dataAsFloat(const ParticleAttribute& attribute,const int indexCount,
     else if (attribute.type == INT || attribute.type == INDEXEDSTR)
     {
         assert(attribute.attributeIndex>=0 && attribute.attributeIndex<(int)attributes.size());
-        
+
         char* base = data + attributeOffsets[attribute.attributeIndex];
         float *dst = values;
-        
+
         for (int i=0; i<indexCount; ++i)
         {
             int* ipart = (int*) (base + particleIndices[i]*stride);

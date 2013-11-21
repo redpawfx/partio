@@ -141,6 +141,15 @@ public:
     virtual void findPoints(const float bboxMin[3],const float bboxMax[3],
         std::vector<ParticleIndex>& points) const=0;
 
+	//! Find the N nearest neighbors that are within maxRadius distance using STL types
+    //! (measured in standard 2-norm). If less than N are found within the
+    //! radius, the search radius is not increased.
+	//! The output is sorted from lowest to highest distance before returning
+    //! NOTE: output vector<pair> cleared before use.
+    //! Must call sort() before using this function
+	virtual float findNPoints(const float center[3],int nPoints,const float maxRadius,
+        std::vector<std::pair<ParticleIndex,float> >& idDistancePairs) const=0;
+
     //! Find the N nearest neighbors that are within maxRadius distance using STL types
     //! (measured in standard 2-norm). If less than N are found within the
     //! radius, the search radius is not increased.

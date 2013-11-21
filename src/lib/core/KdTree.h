@@ -43,6 +43,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 
 #include <string.h>
 #include <vector>
+#include <map>
 #include <float.h>
 #include <algorithm>
 #include <cassert>
@@ -223,6 +224,7 @@ template <int k> class KdTree
     void setPoints(const float* p, int n);
     void sort();
     void findPoints(std::vector<uint64_t>& points, const BBox<k>& bbox) const;
+	float findNPoints(std::vector<std::pair<uint64_t,float> >& result, const float p[k],int nPoints,float maxRadius) const;
     float findNPoints(std::vector<uint64_t>& result,std::vector<float>& distanceSquared,
         const float p[k],int nPoints,float maxRadius) const;
     int findNPoints(uint64_t *result,float *distanceSquared, float *finalSearchRadius2,
@@ -346,6 +348,34 @@ void KdTree<k>::sortSubtree(int n, int size, int j)
 }
 
 
+
+template <int k>
+float KdTree<k>::findNPoints(std::vector<std::pair<uint64_t,float> >& result, const float p[k],int nPoints,float maxRadius) const
+{
+    std::vector<uint64_t> ids;
+    std::vector<float> distanceSquared;
+	ids.resize(nPoints);
+	distanceSquared.resize(nPoints);
+
+    float finalRadius2 = maxRadius;
+	// we add 1 to the  number of points here because if testing against an existing particle pos it will always return itself as well as others
+    int size = findNPoints (&ids[0], &distanceSquared[0], &finalRadius2, p, nPoints+1, maxRadius);
+
+	result.clear();
+	int outSize = nPoints;
+	if (size < outSize) outSize = size;
+	for (int i = 0; i< size; i++)
+	{
+		// we don't want to return any points that are directly on top of the sample position
+		if (distanceSquared[i] != 0)
+		{
+			result.push_back(std::make_pair(ids[i],distanceSquared[i]));
+		}
+	}
+	std::sort(result.begin(), result.end());
+
+    return maxRadius;
+}
 
 template <int k>
 float KdTree<k>::findNPoints(std::vector<uint64_t>& result,
