@@ -564,9 +564,7 @@ MStatus partioVisualizer::compute( const MPlug& plug, MDataBlock& block )
 			// partitions from file overrides internal expansion
 			if (expNumCopies > 0 && partitionsFromFile == 0)
 			{
-				cout << "about to expand" << endl;
 				pvCache.particles = expandSoft(pvCache.particles, true, expNumCopies, expandVelocity);
-				cout << "done expanding" << endl;
 			}
 			///////////////////////////////////////
 
@@ -583,7 +581,7 @@ MStatus partioVisualizer::compute( const MPlug& plug, MDataBlock& block )
 			attrList.split(',',mAttributeList);
 
 			// DEBUG
-			cout << mAttributeList << endl;
+			//cout << mAttributeList << endl;
 
 			// now lets search thru the attr list and get a separate list of the position and velocity attrs
 			mPosAttrs.clear();
@@ -593,8 +591,8 @@ MStatus partioVisualizer::compute( const MPlug& plug, MDataBlock& block )
 
 			partio4Maya::findPosAndVelAttrs(mAttributeList, mPosAttrs, mVelAttrs);
 			// DEBUG
-			cout << mPosAttrs << endl;
-			cout << mVelAttrs << endl;
+			//cout << mPosAttrs << endl;
+			//cout << mVelAttrs << endl;
 
 			// first we store the values from the AE / attributes into the global variable so we can use it elsewhere and so it sticks
 			MPlug partitionPlug (thisMObject(), aPartioDisplayPartitions);

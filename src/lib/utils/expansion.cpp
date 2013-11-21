@@ -89,11 +89,32 @@ ParticlesDataMutable* expandSoft(ParticlesDataMutable* expandedPData, bool sort,
 
 	for (int partIndex = 0; partIndex< expandedPData->numParticles(); partIndex++)
 	{
+		float pos[3] = {(float)masterPositions[partIndex*3],
+						(float)masterPositions[(partIndex*3)+1],
+						(float)masterPositions[(partIndex*3)+2]};
+		std::vector<ParticleIndex> points;
+		std::vector<float> pointDistancesSquared;
+		int numPoints = expandedPData->findNPoints(pos,2,1000.f,points,  pointDistancesSquared);
+		float neighborPos[3] = {(float)masterPositions[points[0]*3],
+								(float)masterPositions[(points[0]*3)+1],
+								(float)masterPositions[(points[0]*3)+2]};
+		// to make sure that the nearest Neighbor thing is working for now..
+		if (partIndex == 23)
+		{
+			cout <<  "ID: " << partIndex << "->" ;
+			for (int x = 0; x< points.size(); x++)
+			{
+				cout <<  points[x] << "-";
+			}
+			cout << endl;
+			cout << "testing: "<<  pos[0] <<  " "  << pos[1] << " "  << pos[2] << endl;
+			cout << "neighbor: "<<  neighborPos[0] <<  " "  << neighborPos[1] << " "  << neighborPos[2] << endl;
+		}
 		for (int expCount = 1; expCount <= numCopies; expCount++)
 		{
-			expandedPData->dataWrite<float>(posVec[expCount-1], partIndex)[0] = (float)masterPositions[partIndex*3];
-			expandedPData->dataWrite<float>(posVec[expCount-1], partIndex)[1] = (float)masterPositions[(partIndex*3)+1]-expCount;
-			expandedPData->dataWrite<float>(posVec[expCount-1], partIndex)[2] = (float)masterPositions[(partIndex*3)+2];
+			expandedPData->dataWrite<float>(posVec[expCount-1], partIndex)[0] = pos[0] + (((neighborPos[0]-pos[0])/expCount));
+			expandedPData->dataWrite<float>(posVec[expCount-1], partIndex)[1] = pos[1] + (((neighborPos[1]-pos[1])/expCount));
+			expandedPData->dataWrite<float>(posVec[expCount-1], partIndex)[2] = pos[2] + (((neighborPos[2]-pos[2])/expCount));
 
 			if (velVec.size()> 0)
 			{
