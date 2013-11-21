@@ -92,19 +92,19 @@ ParticlesDataMutable* expandSoft(ParticlesDataMutable* expandedPData, bool sort,
 		float pos[3] = {(float)masterPositions[partIndex*3],
 						(float)masterPositions[(partIndex*3)+1],
 						(float)masterPositions[(partIndex*3)+2]};
-		std::vector<ParticleIndex> points;
-		std::vector<float> pointDistancesSquared;
-		int numPoints = expandedPData->findNPoints(pos,2,1000.f,points,  pointDistancesSquared);
-		float neighborPos[3] = {(float)masterPositions[points[0]*3],
-								(float)masterPositions[(points[0]*3)+1],
-								(float)masterPositions[(points[0]*3)+2]};
+
+		std::vector<std::pair<ParticleIndex,float> > idDistancePairs;
+		float numPoints = expandedPData->findNPoints(pos,2,1000.f,idDistancePairs);
+		float neighborPos[3] = {(float)masterPositions[idDistancePairs[0].first*3],
+								(float)masterPositions[(idDistancePairs[0].first*3)+1],
+								(float)masterPositions[(idDistancePairs[0].first*3)+2]};
 		// to make sure that the nearest Neighbor thing is working for now..
 		if (partIndex == 23)
 		{
 			cout <<  "ID: " << partIndex << "->" ;
-			for (int x = 0; x< points.size(); x++)
+			for (int x = 0; x< idDistancePairs.size(); x++)
 			{
-				cout <<  points[x] << "-";
+				cout <<  idDistancePairs[x].first << "-";
 			}
 			cout << endl;
 			cout << "testing: "<<  pos[0] <<  " "  << pos[1] << " "  << pos[2] << endl;
