@@ -65,6 +65,7 @@ global proc AEpartioVisualizerTemplate( string $nodeName )
 
 		editorTemplate -beginLayout "Particle Expansion" -collapse 1;
 		editorTemplate -addControl "expandNumCopies";
+		editorTemplate -addControl "expandVelocity";
 		editorTemplate -beginLayout "Display Partitions" -collapse 0;
 		editorTemplate -callCustom "pioVizPartitionControls" "pioVizPartitionControls" $nodeName;
 		editorTemplate -endLayout;
@@ -191,7 +192,7 @@ global proc pioVizPartitionControls (string $nodeName)
 		string $index = $tok[1];
 		$index = substituteAllString($index, "]", "");
 		string $attr = `getAttr ($nodeName+"."+$multi)`;
-		string $mayaPosAttr = `checkBoxGrp  -v1 0 -l $attr`;
+		string $mayaPosAttr = `checkBoxGrp   -cc ("setAttr "+$nodeName+".forceReload  true") -l $attr`;
 		connectControl -index 2  $mayaPosAttr  ($nodeName+".displayPartitionData["+$index+"]");
 		//setParent ..;
     }

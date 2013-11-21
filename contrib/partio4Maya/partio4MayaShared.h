@@ -65,6 +65,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 #include <maya/MGlobal.h>
 #include <maya/MStringArray.h>
 #include <maya/MTime.h>
+#include <maya/MPlug.h>
 
 #include "iconArrays.h"
 #include "Partio.h"
@@ -91,6 +92,7 @@ public:
     static float  	noiseAtValue( float x);
     static void   	initTable( long seed );
 	static void  	findPosAndVelAttrs(MStringArray inputAttrArray, MStringArray& posArray, MStringArray& velArray);
+	static void 	updateMultiInput(MStringArray inputArray, MPlug& inPlug, MObject& dataAttr, uint numAttr, MDataBlock& block);
 
 private:
 

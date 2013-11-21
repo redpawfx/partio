@@ -40,7 +40,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 namespace Partio{
 using namespace std;
 
-ParticlesDataMutable* expandSoft(ParticlesDataMutable* expandedPData, bool sort, int numCopies)
+ParticlesDataMutable* expandSoft(ParticlesDataMutable* expandedPData, bool sort, int numCopies, bool doVelo)
 {
 
 	if(sort)
@@ -50,6 +50,7 @@ ParticlesDataMutable* expandSoft(ParticlesDataMutable* expandedPData, bool sort,
 	ParticleAttribute posAttr;
 	const float* masterPositions = NULL;
 	const float* masterVelocities = NULL;
+	bool foundVelo = false;
 	if(expandedPData->attributeInfo("position",posAttr))
 	{
 		masterPositions = expandedPData->data<float>(posAttr,0);
@@ -58,6 +59,7 @@ ParticlesDataMutable* expandSoft(ParticlesDataMutable* expandedPData, bool sort,
 	if (expandedPData->attributeInfo("velocity",velAttr))
 	{
 		masterVelocities = expandedPData->data<float>(velAttr,0);
+		foundVelo = true;
 	}
 
 	std::vector<ParticleAttribute> posVec;
@@ -72,13 +74,16 @@ ParticlesDataMutable* expandSoft(ParticlesDataMutable* expandedPData, bool sort,
 			partitionPos = expandedPData->addAttribute(posAttrName,  VECTOR, 3);
 			posVec.push_back(partitionPos);
 		}
-		char velAttrName[75];
-		ParticleAttribute partitionVel;
-		sprintf(velAttrName,"velocity_p%i",expCount+1);
-		if (!expandedPData->attributeInfo(velAttrName,partitionVel))
+		if(doVelo && foundVelo)
 		{
-			partitionVel = expandedPData->addAttribute(velAttrName,  VECTOR, 3);
-			velVec.push_back(partitionVel);
+			char velAttrName[75];
+			ParticleAttribute partitionVel;
+			sprintf(velAttrName,"velocity_p%i",expCount+1);
+			if (!expandedPData->attributeInfo(velAttrName,partitionVel))
+			{
+				partitionVel = expandedPData->addAttribute(velAttrName,  VECTOR, 3);
+				velVec.push_back(partitionVel);
+			}
 		}
 	}
 
@@ -86,15 +91,19 @@ ParticlesDataMutable* expandSoft(ParticlesDataMutable* expandedPData, bool sort,
 	{
 		for (int expCount = 1; expCount <= numCopies; expCount++)
 		{
-			expandedPData->dataWrite<float>(posVec[expCount], partIndex)[0] = (float)masterPositions[partIndex*3];
-			expandedPData->dataWrite<float>(posVec[expCount], partIndex)[1] = (float)masterPositions[(partIndex*3)+1]-expCount;
-			expandedPData->dataWrite<float>(posVec[expCount], partIndex)[2] = (float)masterPositions[(partIndex*3)+2];
+			expandedPData->dataWrite<float>(posVec[expCount-1], partIndex)[0] = (float)masterPositions[partIndex*3];
+			expandedPData->dataWrite<float>(posVec[expCount-1], partIndex)[1] = (float)masterPositions[(partIndex*3)+1]-expCount;
+			expandedPData->dataWrite<float>(posVec[expCount-1], partIndex)[2] = (float)masterPositions[(partIndex*3)+2];
 
-			expandedPData->dataWrite<float>(velVec[expCount], partIndex)[0] = (float)masterVelocities[partIndex*3];
-			expandedPData->dataWrite<float>(velVec[expCount], partIndex)[1] = (float)masterVelocities[(partIndex*3)+1]*-1;
-			expandedPData->dataWrite<float>(velVec[expCount], partIndex)[2] = (float)masterVelocities[(partIndex*3)+2];
+			if (velVec.size()> 0)
+			{
+				expandedPData->dataWrite<float>(velVec[expCount-1], partIndex)[0] = (float)masterVelocities[partIndex*3];
+				expandedPData->dataWrite<float>(velVec[expCount-1], partIndex)[1] = (float)masterVelocities[(partIndex*3)+1]*-1;
+				expandedPData->dataWrite<float>(velVec[expCount-1], partIndex)[2] = (float)masterVelocities[(partIndex*3)+2];
+			}
 		}
 	}
+
 
 	return expandedPData;
 }

@@ -178,11 +178,12 @@ public:
     static MObject  aForceReload;
     static MObject  aRenderCachePath;
 	static MObject  aExpNumCopies;
+	static MObject  aExpandVelo;
 
 
     static	MTypeId			id;
     float 					multiplier;
-    bool 					cacheChanged;
+    bool 					somethingChanged;
     partioVizReaderCache  	pvCache;
 	int drawError;
 

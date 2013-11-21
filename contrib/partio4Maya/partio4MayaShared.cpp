@@ -346,7 +346,7 @@ void  	partio4Maya::findPosAndVelAttrs(MStringArray inputAttrArray, MStringArray
 	{
 		MStringArray foo;
 		inputAttrArray[atr].split('_',foo);
-		if (foo.length() > 0) // we found an extra position attr
+		if (foo.length() > 0) // we found a position attr
 		{
 			if (foo[0] == "position" ||
 				foo[0] == "Position" ||
@@ -368,6 +368,30 @@ void  	partio4Maya::findPosAndVelAttrs(MStringArray inputAttrArray, MStringArray
 			}
 		}
 
+	}
+}
+
+void partio4Maya::updateMultiInput(MStringArray inputArray, MPlug& inPlug, MObject& dataAttr, uint numAttr, MDataBlock& block)
+{
+	for (unsigned int i=0;i<inputArray.length();i++)
+	{
+		inPlug.selectAncestorLogicalIndex(i,dataAttr);
+		inPlug.setValue(inputArray[i]);
+	}
+
+	MArrayDataHandle hPartioAttrs = block.inputArrayValue(dataAttr);
+	MArrayDataBuilder bPartioAttrs = hPartioAttrs.builder();
+	// do we need to clean up some attributes from our array?
+	if (bPartioAttrs.elementCount() > numAttr)
+	{
+		//cout << "counts don't match.. deleting" << endl;
+		unsigned int current = bPartioAttrs.elementCount();
+
+		// remove excess elements from the end of our attribute array
+		for (unsigned int x = numAttr; x < current; x++)
+		{
+			bPartioAttrs.removeElement(x);
+		}
 	}
 }
 
