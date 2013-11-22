@@ -34,8 +34,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 */
 
 #include <vector>
+#include <stdlib.h>
 
 #include "../Partio.h"
+#include "vector3d.h"
+
 
 namespace Partio{
 
@@ -43,5 +46,6 @@ namespace Partio{
 	// it does not increase the particle count
 	ParticlesDataMutable*  expandSoft(ParticlesDataMutable* pData, bool sort, int numCopies, bool doVelo);
 
+	Vector3D jitterPoint(Vector3D pos, float neighborDist, int id, float jitterStren, float maxJitter, int current_pass);
 
 } // end Partio namespace

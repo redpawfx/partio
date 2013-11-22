@@ -32,3 +32,30 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 */
+
+#include <iostream>
+using namespace std;
+namespace Partio{
+
+//! PARTIO:: Generate a random number between 0 and 1
+//! return a uniform number in [0,1].
+double partioRand();
+
+//! PARTIO:: Generate a random number in a real interval.
+//! param a one end point of the interval
+//! param b the other end of the interval
+//! return a inform rand numberin [a,b].
+template <class T>
+double partioRand(T a, T b);
+
+//! PARTIO:: Generate a random integer between 1 and a given value.
+//! param n the largest value
+//! return a uniform random value in [1,...,n]
+template <class T>
+long partioRand(T n);
+
+//! PARTIO::Reset the random number generator with the system clock.
+void seed(uint seedVal);
+
+
+}

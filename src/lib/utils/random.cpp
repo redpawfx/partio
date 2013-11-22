@@ -32,3 +32,38 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 */
+
+#include <iostream>
+#include "random.h"
+
+using namespace std;
+namespace Partio
+{
+
+double partioRand()
+{
+    return rand() / double(RAND_MAX);
+}
+
+template <class T>
+double partioRand(T a, T b)
+{
+    return (b-a)*partioRand() + a;
+}
+
+template <class T>
+long partioRand(T n)
+{
+
+    if (n < 0) n = -n;
+    if (n==0) return 0;
+    long guard = (long) (partioRand() * n) +1;
+    return (guard > n)? n : guard;
+}
+
+void seed(uint seedVal)
+{
+    srand(seedVal);
+}
+
+} // end PARTIO Namespace
