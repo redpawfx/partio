@@ -239,8 +239,6 @@ public:
 
 };
 
-
-
 // --- NON-MEMBER BOOLEAN OPERATORS --------------------------------------------
 
 // return true if v equals w

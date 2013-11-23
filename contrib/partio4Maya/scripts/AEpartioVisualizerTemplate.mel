@@ -64,8 +64,10 @@ global proc AEpartioVisualizerTemplate( string $nodeName )
 		editorTemplate -endLayout;
 
 		editorTemplate -beginLayout "Particle Expansion" -collapse 1;
+		editorTemplate -addControl "expandType";
 		editorTemplate -addControl "expandNumCopies";
 		editorTemplate -addControl "expandVelocity";
+		editorTemplate -addControl -l "Expand Jitter Strength" "jitterStrength";
 		editorTemplate -beginLayout "Display Partitions" -collapse 0;
 		editorTemplate -callCustom "pioVizPartitionControls" "pioVizPartitionControls" $nodeName;
 		editorTemplate -endLayout;

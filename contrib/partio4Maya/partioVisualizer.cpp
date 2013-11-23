@@ -86,6 +86,8 @@ MObject partioVisualizer::aForceReload;
 MObject partioVisualizer::aRenderCachePath;
 MObject partioVisualizer::aExpNumCopies;
 MObject partioVisualizer::aExpandVelo;
+MObject partioVisualizer::aExpandType;
+MObject partioVisualizer::aJitterStrength;
 
 
 partioVizReaderCache::partioVizReaderCache():
@@ -113,6 +115,8 @@ partioVisualizer::partioVisualizer()
         mLastColor(1,0,0),
         mLastRadius(1.0),
         mLastNumCopies(0),
+        mLastExpandType(0),
+        mLastJitterStrength(0),
         somethingChanged(false),
         frameChanged(false),
         multiplier(1.0),
@@ -182,6 +186,8 @@ void partioVisualizer::initCallback()
     MPlug(tmo,aInvertAlpha).getValue(mLastInvertAlpha);
     MPlug(tmo,aCacheStatic).getValue(mLastStatic);
 	MPlug(tmo,aExpNumCopies).getValue(mLastNumCopies);
+	MPlug(tmo,aExpandType).getValue(mLastExpandType);
+	MPlug(tmo,aJitterStrength).getValue(mLastJitterStrength);
     somethingChanged = false;
 
 }
@@ -347,6 +353,21 @@ MStatus partioVisualizer::initialize()
 	aExpandVelo = nAttr.create("expandVelocity", "expV", MFnNumericData::kBoolean, false, &stat);
     nAttr.setKeyable(false);
 
+	aExpandType = eAttr.create( "expandType", "exTyp");
+    eAttr.addField("StaticRand-Fast", EXPAND_RAND_STATIC_OFFSET_FAST);
+	eAttr.addField("StaticRand-Better", EXPAND_RAND_STATIC_OFFSET_BETTER);
+    eAttr.addField("JitterRand-Fast", EXPAND_JITTERPOINT_FAST);
+	eAttr.addField("JitterRand-Better", EXPAND_JITTERPOINT_BETTER);
+    //eAttr.addField("VeloAdvect", EXPAND_VELO_ADVECT);
+	//eAttr.addField("Infilling", EXPAND_INFILLING);
+	eAttr.setDefault(0);
+    eAttr.setChannelBox(true);
+
+    aJitterStrength = nAttr.create("jitterStrength", "jstr", MFnNumericData::kFloat, 0.0, &stat);
+    nAttr.setDefault(0.1);
+    nAttr.setMin(0.0);
+    nAttr.setKeyable(true);
+
 
     addAttribute ( aUpdateCache );
     addAttribute ( aSize );
@@ -375,6 +396,8 @@ MStatus partioVisualizer::initialize()
     addAttribute ( aRenderCachePath );
 	addAttribute ( aExpNumCopies );
 	addAttribute ( aExpandVelo );
+	addAttribute ( aExpandType );
+	addAttribute ( aJitterStrength );
 	addAttribute ( aByFrame );
     addAttribute ( time );
 
@@ -401,6 +424,8 @@ MStatus partioVisualizer::initialize()
 	attributeAffects ( aByFrame, aRenderCachePath );
 	attributeAffects ( aExpNumCopies, aUpdateCache );
 	attributeAffects ( aExpandVelo, aUpdateCache );
+	attributeAffects ( aExpandType, aUpdateCache );
+	attributeAffects ( aJitterStrength, aUpdateCache );
 	attributeAffects (time, aUpdateCache);
     attributeAffects (time,aRenderCachePath);
 
@@ -463,6 +488,8 @@ MStatus partioVisualizer::compute( const MPlug& plug, MDataBlock& block )
         MString renderCachePath 	= block.inputValue( aRenderCachePath ).asString();
 		int expNumCopies			= block.inputValue( aExpNumCopies ).asInt();
 		bool expandVelocity			= block.inputValue( aExpandVelo ).asBool();
+		int  expType				= block.inputValue( aExpandType ).asShort();
+		float jitterStrength		= block.inputValue( aJitterStrength ).asFloat();
 
         MString formatExt = "";
         int cachePadding = 0;
@@ -491,6 +518,8 @@ MStatus partioVisualizer::compute( const MPlug& plug, MDataBlock& block )
             mLastFlipStatus  != flipYZ ||
             mLastStatic !=  cacheStatic ||
             mLastNumCopies != expNumCopies ||
+            mLastExpandType != expType ||
+            mLastJitterStrength != jitterStrength ||
             newCacheFile != mLastFileLoaded ||
             forceReload
 			)
@@ -503,6 +532,8 @@ MStatus partioVisualizer::compute( const MPlug& plug, MDataBlock& block )
             mLastFile = cacheFile;
             mLastStatic = cacheStatic;
 			mLastNumCopies = expNumCopies;
+			mLastExpandType = expType;
+			mLastJitterStrength = jitterStrength;
             block.outputValue(aForceReload).setBool(false);
         }
 
@@ -564,7 +595,7 @@ MStatus partioVisualizer::compute( const MPlug& plug, MDataBlock& block )
 			// partitions from file overrides internal expansion
 			if (expNumCopies > 0 && partitionsFromFile == 0)
 			{
-				pvCache.particles = expandSoft(pvCache.particles, true, expNumCopies, expandVelocity);
+				pvCache.particles = expandSoft(pvCache.particles, true, expNumCopies, expandVelocity, expType, jitterStrength);
 			}
 			///////////////////////////////////////
 

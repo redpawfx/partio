@@ -354,8 +354,8 @@ float KdTree<k>::findNPoints(std::vector<std::pair<uint64_t,float> >& result, co
 {
     std::vector<uint64_t> ids;
     std::vector<float> distanceSquared;
-	ids.resize(nPoints);
-	distanceSquared.resize(nPoints);
+	ids.resize(nPoints+1);
+	distanceSquared.resize(nPoints+1);
 
     float finalRadius2 = maxRadius;
 	// we add 1 to the  number of points here because if testing against an existing particle pos it will always return itself as well as others
@@ -364,17 +364,22 @@ float KdTree<k>::findNPoints(std::vector<std::pair<uint64_t,float> >& result, co
 	result.clear();
 	int outSize = nPoints;
 	if (size < outSize) outSize = size;
+	float avDist = 0;
 	for (int i = 0; i< size; i++)
 	{
 		// we don't want to return any points that are directly on top of the sample position
 		if (distanceSquared[i] != 0)
 		{
 			result.push_back(std::make_pair(ids[i],distanceSquared[i]));
+			avDist +=distanceSquared[i];
 		}
 	}
+	avDist /= result.size();
 	std::sort(result.begin(), result.end());
+	ids.clear();
+	distanceSquared.clear();
 
-    return maxRadius;
+    return avDist;
 }
 
 template <int k>

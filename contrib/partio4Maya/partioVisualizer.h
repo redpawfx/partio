@@ -179,6 +179,8 @@ public:
     static MObject  aRenderCachePath;
 	static MObject  aExpNumCopies;
 	static MObject  aExpandVelo;
+	static MObject  aExpandType;
+	static MObject  aJitterStrength;
 
 
     static	MTypeId			id;
@@ -210,6 +212,8 @@ private:
 	MStringArray mPosAttrs;
 	MStringArray mVelAttrs;
 	MIntArray displayPartition;
+	int mLastExpandType;
+	int mLastJitterStrength;
 
 
 protected:

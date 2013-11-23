@@ -39,85 +39,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 #include <float.h>
 #include "expansion.h"
 #include "random.h"
-#include <io/pdb.h>
-
-template <typename T>
-inline T clamp(const T& val, const T& min, const T& max)
-{
-    T res = val;
-    if (val>max)	return max;
-    if (val<min)	return min;
-    return val;
-}
-
-template <typename T>
-T smoothstep(T edge0, T edge1, T x)
-{
-    // Scale, bias and saturate x to 0..1 range
-    x = clamp<T>( (x - edge0) / (edge1 - edge0), 0, 1);
-    // Evaluate polynomial
-    return x*x*(T(3)-T(2)*x);
-}
-
-template <typename T>
-T smootherstep(T edge0, T edge1, T x)
-{
-    // Scale, and saturate x to 0..1 range
-    x = clamp<T>( (x - edge0) / (edge1 - edge0), 0, 1);
-    // Evaluate polynomial
-    return x*x*x*(x*(x*6 - 15) + 10);
-}
-
-
-// taken from Bo Schwarzstein code:
-static void CubeToSphere(float P[])
-{
-    float Theta = P[0] * M_PI * 2.0;
-    float U = P[1] * 2.0f - 1.0f;
-
-    P[0] = cos(Theta) * sqrt( 1.0f - U*U );
-    P[1] = sin(Theta) * sqrt( 1.0f - U*U );
-    P[2] = U;
-}
-
-static void CartesianCoordToSphericalCoord(float XYZ[], float RTP[])
-{
-    RTP[0] = sqrt( XYZ[0]*XYZ[0] + XYZ[1]*XYZ[1] + XYZ[2]*XYZ[2] );
-    if ( XYZ[0] > 0 )
-    {
-		RTP[1] = atan( XYZ[1]/XYZ[0] ) + M_PI;
-    }
-    else if ( fabs(XYZ[0]) < FLT_EPSILON )
-    {
-        if ( XYZ[1] > 0.0f )
-        {
-            RTP[1] = M_PI_2;
-        }
-        else
-        {
-            RTP[1] = -M_PI_2;
-        }
-    }
-    else
-    {
-        RTP[1] = atan( XYZ[1]/XYZ[0] );
-    }
-    RTP[2] = acos( XYZ[2]/RTP[0] );
-}
-
-static void SphericalCoordToCartesianCoord(float RTP[], float XYZ[])
-{
-    XYZ[0] = RTP[0] * cos(RTP[1]) * sin(RTP[2]);
-    XYZ[1] = RTP[0] * sin(RTP[1]) * sin(RTP[2]);
-    XYZ[2] = RTP[0] * cos(RTP[2]);
-}
+#include "3rdParty/mtrand.h"
+#include "partioMath.h"
 
 namespace Partio {
 using namespace std;
 
-ParticlesDataMutable* expandSoft(ParticlesDataMutable* expandedPData, bool sort, int numCopies, bool doVelo)
+ParticlesDataMutable* expandSoft(ParticlesDataMutable* expandedPData, bool sort, int numCopies, bool doVelo, int expandType, float jitterStren)
 {
-
     if (sort)
     {
         expandedPData->sort();
@@ -125,6 +54,7 @@ ParticlesDataMutable* expandSoft(ParticlesDataMutable* expandedPData, bool sort,
     ParticleAttribute posAttr;
     const float* masterPositions = NULL;
     const float* masterVelocities = NULL;
+	const int*  masterIds = NULL;
     bool foundVelo = false;
     if (expandedPData->attributeInfo("position",posAttr))
     {
@@ -135,6 +65,11 @@ ParticlesDataMutable* expandSoft(ParticlesDataMutable* expandedPData, bool sort,
     {
         masterVelocities = expandedPData->data<float>(velAttr,0);
         foundVelo = true;
+    }
+    ParticleAttribute idAttr;
+    if (expandedPData->attributeInfo("id",idAttr) ||expandedPData->attributeInfo("particleId",idAttr) )
+    {
+        masterIds = expandedPData->data<int>(idAttr,0);
     }
 
     std::vector<ParticleAttribute> posVec;
@@ -164,14 +99,19 @@ ParticlesDataMutable* expandSoft(ParticlesDataMutable* expandedPData, bool sort,
 
     for (int partIndex = 0; partIndex< expandedPData->numParticles(); partIndex++)
     {
+		int id = masterIds[partIndex];
         float pos[3] = {(float)masterPositions[partIndex*3],
                         (float)masterPositions[(partIndex*3)+1],
                         (float)masterPositions[(partIndex*3)+2]
                        };
 
         std::vector<std::pair<ParticleIndex,float> > idDistancePairs;
-        float maxDist = expandedPData->findNPoints(pos,2,1000.f,idDistancePairs);
-        float neighborPos[3] = {(float)masterPositions[idDistancePairs[0].first*3],
+		int numSamples = 10;
+		float maxSearchDist = 1000.f;
+        float avDist = expandedPData->findNPoints(pos,numSamples,maxSearchDist,idDistancePairs);
+
+		//cout << "ID->" <<  partIndex << " - " << id << endl;
+		float neighborPos[3] = {(float)masterPositions[idDistancePairs[0].first*3],
                                 (float)masterPositions[(idDistancePairs[0].first*3)+1],
                                 (float)masterPositions[(idDistancePairs[0].first*3)+2]
                                };
@@ -183,22 +123,42 @@ ParticlesDataMutable* expandSoft(ParticlesDataMutable* expandedPData, bool sort,
             {
                 cout <<  idDistancePairs[x].first << "-";
             }
-            //cout << endl;
+            cout << endl;
             //cout << "testing: "<<  pos[0] <<  " "  << pos[1] << " "  << pos[2] << endl;
            // cout << "neighbor: "<<  neighborPos[0] <<  " "  << neighborPos[1] << " "  << neighborPos[2] << endl;
         }
         for (int expCount = 1; expCount <= numCopies; expCount++)
         {
-            /*
-            int z = expCount*100;
-            seed (partIndex+z);
-            float randomValX = Partio::partioRand(-1.0,1.0) * idDistancePairs[0].second;
-            seed (partIndex+z+12);
-            float randomValY = Partio::partioRand(-1.0,1.0) * idDistancePairs[0].second;
-            seed (partIndex+z+123);
-            float randomValZ = Partio::partioRand(-1.0,1.0) * idDistancePairs[0].second;
-            */
-            Vector3D jit = jitterPoint(pos,idDistancePairs[0].second,idDistancePairs[0].first,1,2,expCount);
+			Vector3D jit;
+			switch (expandType)
+			{
+				case EXPAND_RAND_STATIC_OFFSET_FAST:
+				{
+					jit = randStaticOffset_fast(pos,idDistancePairs[0].second,id,jitterStren,idDistancePairs[0].second,expCount);
+					break;
+				}
+				case EXPAND_RAND_STATIC_OFFSET_BETTER:
+				{
+					jit = randStaticOffset_better(pos,idDistancePairs[0].second,id,jitterStren,idDistancePairs[0].second,expCount);
+					break;
+				}
+				case EXPAND_JITTERPOINT_FAST:
+				{
+					jit = jitterPoint_fast(pos,avDist,id,jitterStren,1,expCount);
+					break;
+				}
+				case EXPAND_JITTERPOINT_BETTER:
+				{
+					jit = jitterPoint_better(pos,avDist,id,jitterStren,1,expCount);
+					break;
+				}
+				default:
+				{
+					jit = randStaticOffset_fast(pos,idDistancePairs[0].second,id,jitterStren,idDistancePairs[0].second,expCount);
+					break;
+				}
+			}
+
             expandedPData->dataWrite<float>(posVec[expCount-1], partIndex)[0] = jit.x;
             expandedPData->dataWrite<float>(posVec[expCount-1], partIndex)[1] = jit.y;
             expandedPData->dataWrite<float>(posVec[expCount-1], partIndex)[2] = jit.z;
@@ -210,23 +170,71 @@ ParticlesDataMutable* expandSoft(ParticlesDataMutable* expandedPData, bool sort,
                 expandedPData->dataWrite<float>(velVec[expCount-1], partIndex)[2] = (float)masterVelocities[(partIndex*3)+2];
             }
         }
+        idDistancePairs.clear();
     }
 
 
     return expandedPData;
 }
 
+// Uses a std random offset for each particle
+Vector3D randStaticOffset_fast (Vector3D pos, float neighborDist, int id, float jitterStren, float maxJitter, int current_pass)
+{
+	if ( !jitterStren )
+    {
+        return pos;
+    }
+
+	int z = current_pass*76.2340;
+	seed(id+z);
+	float randomValX = partioRand() * jitterStren;
+	seed(id+z+12.234);
+	float randomValY = partioRand() * jitterStren;
+	seed(id+z+123.097321);
+	float randomValZ = partioRand() * jitterStren;
+
+	pos.x += randomValX;
+    pos.y += randomValY;
+    pos.z += randomValZ;
+
+	return pos;
+}
+
+// Uses a mersenne twister random offset for each particle
+Vector3D randStaticOffset_better (Vector3D pos, float neighborDist, int id, float jitterStren, float maxJitter, int current_pass)
+{
+	if ( !jitterStren )
+    {
+        return pos;
+    }
+	pioMTRand drand;
+
+	int z = current_pass*76.2340;
+	drand.seed(id+z);
+	float randomValX = drand() * jitterStren;
+	drand.seed(id+z+12.234);
+	float randomValY = drand() * jitterStren;
+	drand.seed(id+z+123.097321);
+	float randomValZ = drand() * jitterStren;
+
+	pos.x += randomValX;
+    pos.y += randomValY;
+    pos.z += randomValZ;
+
+	return pos;
+}
+
 
 // adapted from point jitter code by Michal Fratczak  in his  Partio43delight codebase
-Vector3D jitterPoint(Vector3D pos, float neighborDist, int id, float jitterStren, float maxJitter, int current_pass)
+Vector3D jitterPoint_fast(Vector3D pos, float neighborDist, int id, float jitterStren, float maxJitter, int current_pass)
 {
     if ( !jitterStren )
     {
         return pos;
     }
 
-    float temp_p[3];
-    float temp2_p[3];
+    Vector3D temp_p;
+    Vector3D temp2_p;
     float jitter;
 
     if (maxJitter > 0)
@@ -241,16 +249,55 @@ Vector3D jitterPoint(Vector3D pos, float neighborDist, int id, float jitterStren
     unsigned int random_offset = id * 123 + current_pass;
     seed(random_offset);
 
-    temp_p[0] = (partioRand()); // 0-1
-    temp_p[0] = sqrt(temp_p[0]);
-    temp_p[0] *= jitter;
-    temp_p[1] = 1 * M_PI * ( -.5f + partioRand() );
-    temp_p[2] = 2 * M_PI * ( -.5f + partioRand() );
+    temp_p.x = ((partioRand()*.5)+.5); // 0-1
+    temp_p.x = sqrt(temp_p.x);
+    temp_p.x *= jitter;
+    temp_p.y = 1 * M_PI * ( -.5f + partioRand() );
+    temp_p.z = 2 * M_PI * ( -.5f + partioRand() );
     SphericalCoordToCartesianCoord(temp_p, temp2_p);
 
-    pos.x += temp2_p[0];
-    pos.y += temp2_p[1];
-    pos.z += temp2_p[2];
+    pos.x += temp2_p.x;
+    pos.y += temp2_p.y;
+    pos.z += temp2_p.z;
     return pos;
 }
+
+// adapted from point jitter code by Michal Fratczak  in his  Partio43delight codebase
+Vector3D jitterPoint_better(Vector3D pos, float neighborDist, int id, float jitterStren, float maxJitter, int current_pass)
+{
+    if ( !jitterStren )
+    {
+        return pos;
+    }
+
+    Vector3D temp_p;
+    Vector3D temp2_p;
+    float jitter;
+	pioMTRand drand;
+
+    if (maxJitter > 0)
+    {
+        jitter = jitterStren * maxJitter * smootherstep<float>(0, maxJitter, neighborDist);
+    }
+    else
+    {
+        jitter = jitterStren * neighborDist;
+    }
+
+    unsigned int random_offset = id * 123 + current_pass;
+    drand.seed(random_offset);
+
+    temp_p.x = ((drand()*.5)+.5); // (0,1)
+    temp_p.x = sqrt(temp_p.x);
+    temp_p.x *= jitter;
+    temp_p.y = 1 * M_PI * ( -.5f + partioRand() );
+    temp_p.z = 2 * M_PI * ( -.5f + partioRand() );
+    SphericalCoordToCartesianCoord(temp_p, temp2_p);
+
+    pos.x += temp2_p.x;
+    pos.y += temp2_p.y;
+    pos.z += temp2_p.z;
+    return pos;
+}
+
 } // end Partio namespace

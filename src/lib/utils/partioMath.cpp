@@ -34,36 +34,58 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 */
 
 #include <iostream>
-#include "random.h"
+#include <sstream>
+#include <cmath>
+#include <float.h>
+
+#include "vector3d.h"
+#include "partioMath.h"
 
 using namespace std;
-namespace Partio
-{
 
-double partioRand()
+namespace Partio {
+
+// taken from Bo Schwarzstein code:
+void CubeToSphere(Vector3D& P)
 {
-    return rand() / double(RAND_MAX);
+    float Theta = P.x * M_PI * 2.0;
+    float U = P.y * 2.0f - 1.0f;
+
+    P.x = cos(Theta) * sqrt( 1.0f - U*U );
+    P.y = sin(Theta) * sqrt( 1.0f - U*U );
+    P.z = U;
 }
 
-template <class T>
-double partioRand(T a, T b)
+void CartesianCoordToSphericalCoord(Vector3D XYZ, Vector3D& RTP)
 {
-    return (b-a)*partioRand() + a;
+    RTP.x = sqrt( XYZ.x*XYZ.x + XYZ.y*XYZ.y + XYZ.z*XYZ.z );
+    if ( XYZ.x > 0 )
+    {
+		RTP.y = atan( XYZ.y/XYZ.x ) + M_PI;
+    }
+    else if ( fabs(XYZ.x) < FLT_EPSILON )
+    {
+        if ( XYZ.y > 0.0f )
+        {
+            RTP.y = M_PI_2;
+        }
+        else
+        {
+            RTP.y = -M_PI_2;
+        }
+    }
+    else
+    {
+        RTP.y = atan( XYZ.y/XYZ.x );
+    }
+    RTP.z = acos( XYZ.z/RTP.x );
 }
 
-template <class T>
-long partioRand(T n)
+void SphericalCoordToCartesianCoord(Vector3D RTP, Vector3D& XYZ)
 {
-
-    if (n < 0) n = -n;
-    if (n==0) return 0;
-    long guard = (long) (partioRand() * n) +1;
-    return (guard > n)? n : guard;
+    XYZ.x = RTP.x * cos(RTP.y) * sin(RTP.z);
+    XYZ.y = RTP.x * sin(RTP.y) * sin(RTP.z);
+    XYZ.z = RTP.x * cos(RTP.z);
 }
 
-void seed(uint seedVal)
-{
-    srand(seedVal);
-}
-
-} // end PARTIO Namespace
+} // end namespace Partio
