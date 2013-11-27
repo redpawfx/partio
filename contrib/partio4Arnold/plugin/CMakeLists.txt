@@ -57,7 +57,7 @@ if(MTOA_FOUND)
 else (MTOA_FOUND)
 	SET (MTOA_DEVEL_HOME "/Volumes/sv-dev01/devRepo/johnc/arnold/mtoa")
 	SET (MTOA_DEVEL_INCLUDE ${MTOA_DEVEL_HOME}/plugins/mtoa)
-	SET (MTOA_DEVEL_INCLUDE /Volumes/luma/_globalSoft/rez-release/mtoa/$ENV{MTOA_VERSION}/Linux/maya-$ENV{MAYA_VERSION_NUM}/arnold-4.0.15/include)
+	SET (MTOA_DEVEL_INCLUDE /Volumes/luma/_globalSoft/rez-release/mtoa/$ENV{MTOA_VERSION}/Linux/maya-$ENV{MAYA_VERSION_NUM}/arnold-4.0.16/include)
 	MESSAGE(STATUS "MTOA using DEVEL_INCLUDE: ${MTOA_DEVEL_INCLUDE}")
 	endif(MTOA_FOUND)
 

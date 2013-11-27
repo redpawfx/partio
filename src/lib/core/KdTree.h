@@ -348,6 +348,15 @@ void KdTree<k>::sortSubtree(int n, int size, int j)
 }
 
 
+// pair sort func
+
+struct pairSort
+{
+	bool operator()(const std::pair<uint64_t, float> &i, const std::pair<uint64_t, float> &j)
+	{
+		return i.second < j.second;
+	}
+};
 
 template <int k>
 float KdTree<k>::findNPoints(std::vector<std::pair<uint64_t,float> >& result, const float p[k],int nPoints,float maxRadius) const
@@ -367,15 +376,16 @@ float KdTree<k>::findNPoints(std::vector<std::pair<uint64_t,float> >& result, co
 	float avDist = 0;
 	for (int i = 0; i< size; i++)
 	{
+		uint64_t remappedID = id(int(ids[i]));
 		// we don't want to return any points that are directly on top of the sample position
 		if (distanceSquared[i] != 0)
 		{
-			result.push_back(std::make_pair(ids[i],distanceSquared[i]));
+			result.push_back(std::make_pair(remappedID,distanceSquared[i]));
 			avDist +=distanceSquared[i];
 		}
 	}
 	avDist /= result.size();
-	std::sort(result.begin(), result.end());
+	std::sort(result.begin(), result.end(), pairSort());
 	ids.clear();
 	distanceSquared.clear();
 

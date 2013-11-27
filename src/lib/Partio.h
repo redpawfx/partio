@@ -145,8 +145,9 @@ public:
     //! (measured in standard 2-norm). If less than N are found within the
     //! radius, the search radius is not increased.
 	//! The output is sorted from lowest to highest distance before returning
-    //! NOTE: output vector<pair> cleared before use.
+    //! NOTE: output argument vector<pair> cleared before use.
     //! Must call sort() before using this function
+	//! also returns a float of the average distance of all points found.
 	virtual float findNPoints(const float center[3],int nPoints,const float maxRadius,
         std::vector<std::pair<ParticleIndex,float> >& idDistancePairs) const=0;
 

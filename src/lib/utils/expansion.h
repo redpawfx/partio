@@ -39,6 +39,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 #include "../Partio.h"
 #include "vector3d.h"
 
+#define  VFPS  .041666666667
+
 enum expandType {
 	EXPAND_RAND_STATIC_OFFSET_FAST = 0,
 	EXPAND_RAND_STATIC_OFFSET_BETTER,
@@ -52,11 +54,33 @@ namespace Partio{
 
 	// expandSoft adds n number of extra position and velo channels to existing cache
 	// it does not increase the particle count
-	ParticlesDataMutable*  expandSoft(ParticlesDataMutable* pData, bool sort, int numCopies, bool doVelo, int expandType, float jitterStren);
+	ParticlesDataMutable*  expandSoft(ParticlesDataMutable* pData,
+									  bool sort, int numCopies,
+								   bool doVelo, int expandType,
+								   float jitterStren, float maxJitter, float advectStrength);
 
+	//! uses stdlib::rand
+	//! creates N particles around the master particle with a random static offset
 	Vector3D randStaticOffset_fast(Vector3D pos, float neighborDist, int id, float jitterStren, float maxJitter, int current_pass);
+
+	//! uses stdlib::rand
+	//! creates N particles around the master particle with a dynamic averaged  distance offset based on current neighbor distance
 	Vector3D jitterPoint_fast(Vector3D pos, float neighborDist, int id, float jitterStren, float maxJitter, int current_pass);
+
+	//! uses mersenne twister random (slower but better distrib)
+	//! creates N particles around the master particle with a random static offset
 	Vector3D randStaticOffset_better(Vector3D pos, float neighborDist, int id, float jitterStren, float maxJitter, int current_pass);
+
+	//! uses mersenne twister random (slower but better distrib)
+	//! creates N particles around the master particle with a dynamic averaged  distance offset based on current neighbor distance
 	Vector3D jitterPoint_better(Vector3D pos, float neighborDist, int id, float jitterStren, float maxJitter, int current_pass);
+
+	//! creates particles with a random static (stdlib:rand) offset around the last position of the master particles and then gets the average
+	//! velocity from the surrounding N particles and repositions it by that value
+	Vector3D veloAdvect(ParticlesDataMutable* pData, const float* masterVelocities,
+						std::vector<std::pair<ParticleIndex,float> > idDistancePairs,
+						Vector3D pos, float neighborDist,
+						int id, float jitterStren,
+						float maxJitter, float advectStrength, int current_pass);
 
 } // end Partio namespace

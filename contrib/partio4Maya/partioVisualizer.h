@@ -181,6 +181,8 @@ public:
 	static MObject  aExpandVelo;
 	static MObject  aExpandType;
 	static MObject  aJitterStrength;
+	static MObject  aMaxJitter;
+	static MObject  aAdvectStrength;
 
 
     static	MTypeId			id;
@@ -213,7 +215,10 @@ private:
 	MStringArray mVelAttrs;
 	MIntArray displayPartition;
 	int mLastExpandType;
-	int mLastJitterStrength;
+	float mLastJitterStrength;
+	float mLastMaxJitterStrength;
+	float mLastAdvectStrength;
+
 
 
 protected:

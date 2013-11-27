@@ -42,10 +42,16 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 #include "3rdParty/mtrand.h"
 #include "partioMath.h"
 
+
 namespace Partio {
 using namespace std;
 
-ParticlesDataMutable* expandSoft(ParticlesDataMutable* expandedPData, bool sort, int numCopies, bool doVelo, int expandType, float jitterStren)
+ParticlesDataMutable* expandSoft(ParticlesDataMutable* expandedPData,
+								 bool sort, int numCopies,
+								 bool doVelo, int expandType,
+								 float jitterStren,float maxJitter,
+								 float advectStrength
+								)
 {
     if (sort)
     {
@@ -72,6 +78,11 @@ ParticlesDataMutable* expandSoft(ParticlesDataMutable* expandedPData, bool sort,
         masterIds = expandedPData->data<int>(idAttr,0);
     }
 
+    if (expandType == EXPAND_VELO_ADVECT)
+	{
+		doVelo = true;
+	}
+	
     std::vector<ParticleAttribute> posVec;
     std::vector<ParticleAttribute> velVec;
     for (int expCount = 0; expCount < numCopies; expCount++)
@@ -100,22 +111,21 @@ ParticlesDataMutable* expandSoft(ParticlesDataMutable* expandedPData, bool sort,
     for (int partIndex = 0; partIndex< expandedPData->numParticles(); partIndex++)
     {
 		int id = masterIds[partIndex];
+		//cout << "ID-" << id << "-" <<  partIndex << endl;
         float pos[3] = {(float)masterPositions[partIndex*3],
                         (float)masterPositions[(partIndex*3)+1],
                         (float)masterPositions[(partIndex*3)+2]
                        };
 
+
         std::vector<std::pair<ParticleIndex,float> > idDistancePairs;
 		int numSamples = 10;
 		float maxSearchDist = 1000.f;
         float avDist = expandedPData->findNPoints(pos,numSamples,maxSearchDist,idDistancePairs);
+		avDist = sqrt(avDist);
 
-		//cout << "ID->" <<  partIndex << " - " << id << endl;
-		float neighborPos[3] = {(float)masterPositions[idDistancePairs[0].first*3],
-                                (float)masterPositions[(idDistancePairs[0].first*3)+1],
-                                (float)masterPositions[(idDistancePairs[0].first*3)+2]
-                               };
         // to make sure that the nearest Neighbor thing is working for now..
+		/*
         if (partIndex == 23)
         {
             //cout <<  "ID: " << partIndex << "->" ;
@@ -124,37 +134,54 @@ ParticlesDataMutable* expandSoft(ParticlesDataMutable* expandedPData, bool sort,
                 cout <<  idDistancePairs[x].first << "-";
             }
             cout << endl;
-            //cout << "testing: "<<  pos[0] <<  " "  << pos[1] << " "  << pos[2] << endl;
-           // cout << "neighbor: "<<  neighborPos[0] <<  " "  << neighborPos[1] << " "  << neighborPos[2] << endl;
         }
-        for (int expCount = 1; expCount <= numCopies; expCount++)
+        */
+
+		maxJitter = clamp(maxJitter, 0.f, jitterStren);
+
+		for (int expCount = 1; expCount <= numCopies; expCount++)
         {
 			Vector3D jit;
 			switch (expandType)
 			{
 				case EXPAND_RAND_STATIC_OFFSET_FAST:
 				{
-					jit = randStaticOffset_fast(pos,idDistancePairs[0].second,id,jitterStren,idDistancePairs[0].second,expCount);
+					jit = randStaticOffset_fast(pos,idDistancePairs[0].second,id,jitterStren,maxJitter,expCount);
 					break;
 				}
 				case EXPAND_RAND_STATIC_OFFSET_BETTER:
 				{
-					jit = randStaticOffset_better(pos,idDistancePairs[0].second,id,jitterStren,idDistancePairs[0].second,expCount);
+					jit = randStaticOffset_better(pos,idDistancePairs[0].second,id,jitterStren,maxJitter,expCount);
 					break;
 				}
 				case EXPAND_JITTERPOINT_FAST:
 				{
-					jit = jitterPoint_fast(pos,avDist,id,jitterStren,1,expCount);
+					jit = jitterPoint_fast(pos,avDist,id,jitterStren,maxJitter,expCount);
 					break;
 				}
 				case EXPAND_JITTERPOINT_BETTER:
 				{
-					jit = jitterPoint_better(pos,avDist,id,jitterStren,1,expCount);
+					jit = jitterPoint_better(pos,avDist,id,jitterStren,maxJitter,expCount);
+					break;
+				}
+				case EXPAND_VELO_ADVECT:
+				{
+					jit = veloAdvect(	expandedPData,
+										masterVelocities,
+										idDistancePairs,
+										pos,
+										avDist,
+										id,
+										jitterStren,
+										maxJitter,
+										advectStrength,
+										expCount
+									);
 					break;
 				}
 				default:
 				{
-					jit = randStaticOffset_fast(pos,idDistancePairs[0].second,id,jitterStren,idDistancePairs[0].second,expCount);
+					jit = randStaticOffset_fast(pos,idDistancePairs[0].second,id,jitterStren,maxJitter,expCount);
 					break;
 				}
 			}
@@ -177,7 +204,8 @@ ParticlesDataMutable* expandSoft(ParticlesDataMutable* expandedPData, bool sort,
     return expandedPData;
 }
 
-// Uses a std random offset for each particle
+///////////////////////////////////////////////////////
+/// Uses a std random offset for each particle
 Vector3D randStaticOffset_fast (Vector3D pos, float neighborDist, int id, float jitterStren, float maxJitter, int current_pass)
 {
 	if ( !jitterStren )
@@ -200,7 +228,8 @@ Vector3D randStaticOffset_fast (Vector3D pos, float neighborDist, int id, float 
 	return pos;
 }
 
-// Uses a mersenne twister random offset for each particle
+///////////////////////////////////////////////////////////////
+/// Uses a mersenne twister random offset for each particle
 Vector3D randStaticOffset_better (Vector3D pos, float neighborDist, int id, float jitterStren, float maxJitter, int current_pass)
 {
 	if ( !jitterStren )
@@ -224,8 +253,8 @@ Vector3D randStaticOffset_better (Vector3D pos, float neighborDist, int id, floa
 	return pos;
 }
 
-
-// adapted from point jitter code by Michal Fratczak  in his  Partio43delight codebase
+////////////////////////////////////////////////////////////////////////////////////////
+/// adapted from point jitter code by Michal Fratczak  in his  Partio43delight codebase
 Vector3D jitterPoint_fast(Vector3D pos, float neighborDist, int id, float jitterStren, float maxJitter, int current_pass)
 {
     if ( !jitterStren )
@@ -262,7 +291,8 @@ Vector3D jitterPoint_fast(Vector3D pos, float neighborDist, int id, float jitter
     return pos;
 }
 
-// adapted from point jitter code by Michal Fratczak  in his  Partio43delight codebase
+/////////////////////////////////////////////////////////////////////////////////////////
+/// adapted from point jitter code by Michal Fratczak  in his  Partio43delight codebase
 Vector3D jitterPoint_better(Vector3D pos, float neighborDist, int id, float jitterStren, float maxJitter, int current_pass)
 {
     if ( !jitterStren )
@@ -290,8 +320,8 @@ Vector3D jitterPoint_better(Vector3D pos, float neighborDist, int id, float jitt
     temp_p.x = ((drand()*.5)+.5); // (0,1)
     temp_p.x = sqrt(temp_p.x);
     temp_p.x *= jitter;
-    temp_p.y = 1 * M_PI * ( -.5f + partioRand() );
-    temp_p.z = 2 * M_PI * ( -.5f + partioRand() );
+    temp_p.y = 1 * M_PI * ( -.5f + ((drand()*.5)+.5) );
+    temp_p.z = 2 * M_PI * ( -.5f + ((drand()*.5)+.5) );
     SphericalCoordToCartesianCoord(temp_p, temp2_p);
 
     pos.x += temp2_p.x;
@@ -299,5 +329,68 @@ Vector3D jitterPoint_better(Vector3D pos, float neighborDist, int id, float jitt
     pos.z += temp2_p.z;
     return pos;
 }
+
+
+//////////////////////////////////////////////////////////////////////////////
+///  velocity advection of  expanded particles
+Vector3D  veloAdvect(ParticlesDataMutable* pData, const float* masterVelocities,
+					 std::vector<std::pair<ParticleIndex,float> > idDistancePairs,
+					 Vector3D pos, float neighborDist,
+					 int id, float jitterStren,
+					 float maxJitter,  float advectStrength, int current_pass)
+{
+	Vector3D thisParticleVelo = Vector3D(masterVelocities[id*3],masterVelocities[(id*3)+1], masterVelocities[(id*3)+2]);
+		
+	Vector3D jitterPoint = jitterPoint_fast(pos, neighborDist, id, jitterStren, maxJitter, current_pass);
+
+	float temp[3];
+	temp[0] = jitterPoint.x;
+	temp[1] = jitterPoint.y;
+	temp[2] = jitterPoint.z;
+
+	std::vector<std::pair<ParticleIndex,float> > expIDdistancePair;
+	int numSamples = 10;
+	float maxSearchDist = 1000;
+    float avDist = pData->findNPoints(temp,numSamples,maxSearchDist,expIDdistancePair);
+
+	Vector3D avVeloDir;
+	float avSpeed = 0.f;
+
+	//cout << "particle " << id << "->" ;
+	
+	// TODO  work out some simple weight multing here, closest velo affects more 
+	//float  weightMult = 1/expIDdistancePair.size();
+	for (int x = 0; x< expIDdistancePair.size(); x++)
+	{
+		//cout << idDistancePair[x].first << "-";
+		Vector3D surroundingVelo = Vector3D(masterVelocities[expIDdistancePair[x].first*3],
+											masterVelocities[(expIDdistancePair[x].first*3)+1],
+											masterVelocities[(expIDdistancePair[x].first*3)+2]);
+		avSpeed += surroundingVelo.length();
+		surroundingVelo.normalize();
+		avVeloDir += surroundingVelo;
+	}
+
+	//cout << endl;
+	avVeloDir.normalize();
+	//cout << avVeloDir << endl;
+	avSpeed /= expIDdistancePair.size();
+
+	avVeloDir *= avSpeed * advectStrength ;
+
+	Vector3D newSteeringVelo = avVeloDir - (thisParticleVelo * advectStrength);
+
+	Vector3D newParticleVelo = thisParticleVelo + newSteeringVelo;
+
+	newParticleVelo *= VFPS;
+	//seed(id);
+	//avVeloDir *= thisParticleVelo.length();// * ((partioRand()*.5)+.5);
+
+	jitterPoint +=  newParticleVelo;
+	
+
+	return jitterPoint;
+}
+
 
 } // end Partio namespace
