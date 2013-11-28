@@ -39,7 +39,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 #include "../Partio.h"
 #include "vector3d.h"
 
-#define  VFPS  .041666666667
 
 enum expandType {
 	EXPAND_RAND_STATIC_OFFSET_FAST = 0,
@@ -55,9 +54,11 @@ namespace Partio{
 	// expandSoft adds n number of extra position and velo channels to existing cache
 	// it does not increase the particle count
 	ParticlesDataMutable*  expandSoft(ParticlesDataMutable* pData,
-									  bool sort, int numCopies,
-								   bool doVelo, int expandType,
-								   float jitterStren, float maxJitter, float advectStrength);
+										bool sort, int numCopies,
+										bool doVelo, int expandType,
+										float jitterStren, float maxJitter, float advectStrength, float velocityStretch,
+										int unitFPS, float searchDistance
+									 );
 
 	//! uses stdlib::rand
 	//! creates N particles around the master particle with a random static offset
@@ -81,6 +82,8 @@ namespace Partio{
 						std::vector<std::pair<ParticleIndex,float> > idDistancePairs,
 						Vector3D pos, float neighborDist,
 						int id, float jitterStren,
-						float maxJitter, float advectStrength, int current_pass);
+						float maxJitter, float velocityStretch,
+						float advectStrength, int current_pass, 
+						float FPSMult, float searchDistance);
 
 } // end Partio namespace

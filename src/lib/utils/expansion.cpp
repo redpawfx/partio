@@ -50,7 +50,10 @@ ParticlesDataMutable* expandSoft(ParticlesDataMutable* expandedPData,
 								 bool sort, int numCopies,
 								 bool doVelo, int expandType,
 								 float jitterStren,float maxJitter,
-								 float advectStrength
+								 float advectStrength,
+								 float velocityStretch,
+								 int unitFPS,
+								 float searchDistance
 								)
 {
     if (sort)
@@ -62,6 +65,10 @@ ParticlesDataMutable* expandSoft(ParticlesDataMutable* expandedPData,
     const float* masterVelocities = NULL;
 	const int*  masterIds = NULL;
     bool foundVelo = false;
+	float veloStretch = 0;
+	pioMTRand drand;
+	float FPSmult = 1.0f/float(unitFPS);
+
     if (expandedPData->attributeInfo("position",posAttr))
     {
         masterPositions = expandedPData->data<float>(posAttr,0);
@@ -105,9 +112,13 @@ ParticlesDataMutable* expandSoft(ParticlesDataMutable* expandedPData,
                 partitionVel = expandedPData->addAttribute(velAttrName,  VECTOR, 3);
                 velVec.push_back(partitionVel);
             }
+            veloStretch = velocityStretch;
         }
+        else
+		{
+			doVelo = false;
+		}
     }
-
     for (int partIndex = 0; partIndex< expandedPData->numParticles(); partIndex++)
     {
 		int id = masterIds[partIndex];
@@ -120,10 +131,12 @@ ParticlesDataMutable* expandSoft(ParticlesDataMutable* expandedPData,
 
         std::vector<std::pair<ParticleIndex,float> > idDistancePairs;
 		int numSamples = 10;
-		float maxSearchDist = 1000.f;
-        float avDist = expandedPData->findNPoints(pos,numSamples,maxSearchDist,idDistancePairs);
+
+        float avDist = expandedPData->findNPoints(pos,numSamples,searchDistance,idDistancePairs);
 		avDist = sqrt(avDist);
 
+		cout << avDist << endl;
+		
         // to make sure that the nearest Neighbor thing is working for now..
 		/*
         if (partIndex == 23)
@@ -137,51 +150,77 @@ ParticlesDataMutable* expandSoft(ParticlesDataMutable* expandedPData,
         }
         */
 
-		maxJitter = clamp(maxJitter, 0.f, jitterStren);
-
+		//maxJitter = clamp(maxJitter, 0.f, jitterStren);
+		Vector3D thisParticleVelo;
+		if ( doVelo )
+		{
+			thisParticleVelo= Vector3D(masterVelocities[id*3],masterVelocities[(id*3)+1], masterVelocities[(id*3)+2]);
+		}
+		
 		for (int expCount = 1; expCount <= numCopies; expCount++)
         {
+			seed(id+expCount*123);
+			drand.seed(id+expCount*123);
 			Vector3D jit;
 			switch (expandType)
 			{
 				case EXPAND_RAND_STATIC_OFFSET_FAST:
 				{
 					jit = randStaticOffset_fast(pos,idDistancePairs[0].second,id,jitterStren,maxJitter,expCount);
+					jit += partioRand() * thisParticleVelo * FPSmult * veloStretch;
 					break;
 				}
 				case EXPAND_RAND_STATIC_OFFSET_BETTER:
 				{
 					jit = randStaticOffset_better(pos,idDistancePairs[0].second,id,jitterStren,maxJitter,expCount);
+					jit += drand() * thisParticleVelo * FPSmult * veloStretch;
 					break;
 				}
 				case EXPAND_JITTERPOINT_FAST:
 				{
 					jit = jitterPoint_fast(pos,avDist,id,jitterStren,maxJitter,expCount);
+					float stretch = veloStretch * maxJitter * smootherstep<float>(0, maxJitter, avDist);
+					jit += partioRand() * thisParticleVelo * FPSmult * stretch;
 					break;
 				}
 				case EXPAND_JITTERPOINT_BETTER:
 				{
 					jit = jitterPoint_better(pos,avDist,id,jitterStren,maxJitter,expCount);
+					float stretch = veloStretch * maxJitter * smootherstep<float>(0, maxJitter, avDist);
+					jit += drand() * thisParticleVelo * FPSmult * stretch;
 					break;
 				}
 				case EXPAND_VELO_ADVECT:
 				{
-					jit = veloAdvect(	expandedPData,
-										masterVelocities,
-										idDistancePairs,
-										pos,
-										avDist,
-										id,
-										jitterStren,
-										maxJitter,
-										advectStrength,
-										expCount
-									);
+					if (doVelo)
+					{						
+						jit = veloAdvect(	expandedPData,
+											masterVelocities,
+											idDistancePairs,
+											pos,
+											avDist,
+											id,
+											jitterStren,
+											maxJitter,
+											veloStretch,
+											advectStrength,
+											expCount,
+											FPSmult,
+											searchDistance
+										);
+					}
+					else
+					{
+						jit = jitterPoint_fast(pos,avDist,id,jitterStren,maxJitter,expCount);
+						float stretch = veloStretch * maxJitter * smootherstep<float>(0, maxJitter, avDist);
+						jit += partioRand() * thisParticleVelo * FPSmult * stretch;
+					}
 					break;
 				}
 				default:
 				{
 					jit = randStaticOffset_fast(pos,idDistancePairs[0].second,id,jitterStren,maxJitter,expCount);
+					jit += partioRand() * thisParticleVelo * FPSmult * veloStretch;
 					break;
 				}
 			}
@@ -200,7 +239,6 @@ ParticlesDataMutable* expandSoft(ParticlesDataMutable* expandedPData,
         idDistancePairs.clear();
     }
 
-
     return expandedPData;
 }
 
@@ -213,12 +251,12 @@ Vector3D randStaticOffset_fast (Vector3D pos, float neighborDist, int id, float 
         return pos;
     }
 
-	int z = current_pass*76.2340;
+	int z = (int)current_pass*76.2340;
 	seed(id+z);
 	float randomValX = partioRand() * jitterStren;
-	seed(id+z+12.234);
+	seed(id+z+12);
 	float randomValY = partioRand() * jitterStren;
-	seed(id+z+123.097321);
+	seed(id+z+123);
 	float randomValZ = partioRand() * jitterStren;
 
 	pos.x += randomValX;
@@ -241,9 +279,9 @@ Vector3D randStaticOffset_better (Vector3D pos, float neighborDist, int id, floa
 	int z = current_pass*76.2340;
 	drand.seed(id+z);
 	float randomValX = drand() * jitterStren;
-	drand.seed(id+z+12.234);
+	drand.seed(id+z+12);
 	float randomValY = drand() * jitterStren;
-	drand.seed(id+z+123.097321);
+	drand.seed(id+z+123);
 	float randomValZ = drand() * jitterStren;
 
 	pos.x += randomValX;
@@ -337,12 +375,18 @@ Vector3D  veloAdvect(ParticlesDataMutable* pData, const float* masterVelocities,
 					 std::vector<std::pair<ParticleIndex,float> > idDistancePairs,
 					 Vector3D pos, float neighborDist,
 					 int id, float jitterStren,
-					 float maxJitter,  float advectStrength, int current_pass)
+					 float maxJitter, float veloStretch, 
+					 float advectStrength, int current_pass,
+					 float FPSMult, float searchDistance)
 {
 	Vector3D thisParticleVelo = Vector3D(masterVelocities[id*3],masterVelocities[(id*3)+1], masterVelocities[(id*3)+2]);
-		
+
 	Vector3D jitterPoint = jitterPoint_fast(pos, neighborDist, id, jitterStren, maxJitter, current_pass);
 
+	seed(id+current_pass*123);
+	float stretch = veloStretch * maxJitter * smootherstep<float>(0, maxJitter, neighborDist);
+	jitterPoint += partioRand() * thisParticleVelo * FPSMult * stretch;
+	
 	float temp[3];
 	temp[0] = jitterPoint.x;
 	temp[1] = jitterPoint.y;
@@ -350,16 +394,14 @@ Vector3D  veloAdvect(ParticlesDataMutable* pData, const float* masterVelocities,
 
 	std::vector<std::pair<ParticleIndex,float> > expIDdistancePair;
 	int numSamples = 10;
-	float maxSearchDist = 1000;
-    float avDist = pData->findNPoints(temp,numSamples,maxSearchDist,expIDdistancePair);
+    float avDist = pData->findNPoints(temp,numSamples,searchDistance,expIDdistancePair);
 
 	Vector3D avVeloDir;
 	float avSpeed = 0.f;
 
 	//cout << "particle " << id << "->" ;
 	
-	// TODO  work out some simple weight multing here, closest velo affects more 
-	//float  weightMult = 1/expIDdistancePair.size();
+	// TODO  possibly work out some simple weight multing here, closest velo affects more 
 	for (int x = 0; x< expIDdistancePair.size(); x++)
 	{
 		//cout << idDistancePair[x].first << "-";
@@ -382,12 +424,10 @@ Vector3D  veloAdvect(ParticlesDataMutable* pData, const float* masterVelocities,
 
 	Vector3D newParticleVelo = thisParticleVelo + newSteeringVelo;
 
-	newParticleVelo *= VFPS;
 	//seed(id);
 	//avVeloDir *= thisParticleVelo.length();// * ((partioRand()*.5)+.5);
 
-	jitterPoint +=  newParticleVelo;
-	
+	jitterPoint +=  (newParticleVelo - thisParticleVelo) * FPSMult;
 
 	return jitterPoint;
 }

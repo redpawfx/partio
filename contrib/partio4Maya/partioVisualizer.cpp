@@ -90,6 +90,8 @@ MObject partioVisualizer::aExpandType;
 MObject partioVisualizer::aJitterStrength;
 MObject partioVisualizer::aMaxJitter;
 MObject partioVisualizer::aAdvectStrength;
+MObject partioVisualizer::aVelocityStretch;
+MObject partioVisualizer::aSearchDistance;
 
 
 partioVizReaderCache::partioVizReaderCache():
@@ -120,6 +122,8 @@ partioVisualizer::partioVisualizer()
         mLastExpandType(0),
         mLastJitterStrength(0),
         mLastAdvectStrength(0),
+        mLastVelocityStretch(0),
+        mLastSearchDistance(999999),
         somethingChanged(false),
         frameChanged(false),
         multiplier(1.0),
@@ -192,6 +196,9 @@ void partioVisualizer::initCallback()
 	MPlug(tmo,aExpandType).getValue(mLastExpandType);
 	MPlug(tmo,aJitterStrength).getValue(mLastJitterStrength);
 	MPlug(tmo,aAdvectStrength).getValue(mLastAdvectStrength);
+	MPlug(tmo,aVelocityStretch).getValue(mLastVelocityStretch);
+	MPlug(tmo,aSearchDistance).getValue(mLastSearchDistance);
+	
     somethingChanged = false;
 
 }
@@ -354,6 +361,11 @@ MStatus partioVisualizer::initialize()
 	aExpNumCopies = nAttr.create("expandNumCopies", "exnc", MFnNumericData::kInt,0);
 	nAttr.setKeyable(false);
 
+	aSearchDistance = nAttr.create("searchDistance", "srchd", MFnNumericData::kFloat, 1000.0, &stat);
+    nAttr.setDefault(1000.0);
+    nAttr.setMin(0.0);
+    nAttr.setKeyable(true);
+	
 	aExpandVelo = nAttr.create("expandVelocity", "expV", MFnNumericData::kBoolean, false, &stat);
     nAttr.setKeyable(false);
 
@@ -376,10 +388,14 @@ MStatus partioVisualizer::initialize()
     nAttr.setDefault(1.0);
     nAttr.setMin(0.0);
     nAttr.setKeyable(true);
-	
-	
+
 	aAdvectStrength = nAttr.create("advectStrength", "advs", MFnNumericData::kFloat, 1.0, &stat);
     nAttr.setDefault(1.0);
+    nAttr.setMin(0.0);
+    nAttr.setKeyable(true);
+	
+	aVelocityStretch = nAttr.create("velocityStretch", "vels", MFnNumericData::kFloat, 0.0, &stat);
+    nAttr.setDefault(0.0);
     nAttr.setMin(0.0);
     nAttr.setKeyable(true);
 
@@ -411,9 +427,11 @@ MStatus partioVisualizer::initialize()
 	addAttribute ( aExpNumCopies );
 	addAttribute ( aExpandVelo );
 	addAttribute ( aExpandType );
+	addAttribute ( aSearchDistance );
 	addAttribute ( aJitterStrength );
 	addAttribute ( aMaxJitter );
 	addAttribute ( aAdvectStrength );
+	addAttribute ( aVelocityStretch );
 	addAttribute ( aByFrame );
     addAttribute ( time );
 
@@ -441,9 +459,11 @@ MStatus partioVisualizer::initialize()
 	attributeAffects ( aExpNumCopies, aUpdateCache );
 	attributeAffects ( aExpandVelo, aUpdateCache );
 	attributeAffects ( aExpandType, aUpdateCache );
+	attributeAffects ( aSearchDistance, aUpdateCache );
 	attributeAffects ( aJitterStrength, aUpdateCache );
 	attributeAffects ( aMaxJitter, aUpdateCache );
 	attributeAffects ( aAdvectStrength, aUpdateCache );
+	attributeAffects ( aVelocityStretch, aUpdateCache );
 	attributeAffects (time, aUpdateCache);
     attributeAffects (time,aRenderCachePath);
 
@@ -510,6 +530,8 @@ MStatus partioVisualizer::compute( const MPlug& plug, MDataBlock& block )
 		float jitterStrength		= block.inputValue( aJitterStrength ).asFloat();
 		float maxJitter				= block.inputValue( aMaxJitter ).asFloat();
 		float advectStrength		= block.inputValue( aAdvectStrength ).asFloat();
+		float veloctityStretch		= block.inputValue( aVelocityStretch ).asFloat();
+		float searchDistance		= block.inputValue( aSearchDistance ).asFloat();
 
         MString formatExt = "";
         int cachePadding = 0;
@@ -542,6 +564,8 @@ MStatus partioVisualizer::compute( const MPlug& plug, MDataBlock& block )
             mLastJitterStrength != jitterStrength ||
             mLastMaxJitterStrength != maxJitter ||
             mLastAdvectStrength != advectStrength ||
+            mLastVelocityStretch != veloctityStretch ||
+            mLastSearchDistance != searchDistance ||
             newCacheFile != mLastFileLoaded ||
             forceReload
 			)
@@ -558,6 +582,8 @@ MStatus partioVisualizer::compute( const MPlug& plug, MDataBlock& block )
 			mLastJitterStrength = jitterStrength;
 			mLastMaxJitterStrength = maxJitter;
 			mLastAdvectStrength = advectStrength;
+			mLastVelocityStretch = veloctityStretch;
+			mLastSearchDistance = searchDistance;
             block.outputValue(aForceReload).setBool(false);
         }
 
@@ -619,7 +645,13 @@ MStatus partioVisualizer::compute( const MPlug& plug, MDataBlock& block )
 			// partitions from file overrides internal expansion
 			if (expNumCopies > 0 && partitionsFromFile == 0)
 			{
-				pvCache.particles = expandSoft(pvCache.particles, true, expNumCopies, expandVelocity, expType, jitterStrength, maxJitter, advectStrength);
+				// calc  FPS value for  correct velocity multing
+				MTime oneSec ( 1.0, MTime::kSeconds );
+				int fps = ( int ) oneSec.asUnits ( MTime::uiUnit() );
+	
+				pvCache.particles = expandSoft(pvCache.particles, true, expNumCopies, expandVelocity,
+											   expType, jitterStrength, maxJitter, advectStrength,
+												veloctityStretch,fps, searchDistance);
 			}
 			///////////////////////////////////////
 

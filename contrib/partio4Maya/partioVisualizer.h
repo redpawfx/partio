@@ -183,6 +183,8 @@ public:
 	static MObject  aJitterStrength;
 	static MObject  aMaxJitter;
 	static MObject  aAdvectStrength;
+	static MObject  aVelocityStretch;
+	static MObject  aSearchDistance;
 
 
     static	MTypeId			id;
@@ -218,6 +220,8 @@ private:
 	float mLastJitterStrength;
 	float mLastMaxJitterStrength;
 	float mLastAdvectStrength;
+	float mLastVelocityStretch;
+	float mLastSearchDistance;
 
 
 

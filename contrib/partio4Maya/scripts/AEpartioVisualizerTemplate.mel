@@ -66,7 +66,9 @@ global proc AEpartioVisualizerTemplate( string $nodeName )
 		editorTemplate -beginLayout "Particle Expansion" -collapse 1;
 		editorTemplate -addControl "expandType";
 		editorTemplate -addControl "expandNumCopies";
+		editorTemplate -addControl "searchDistance";
 		editorTemplate -addControl "expandVelocity";
+		editorTemplate -addControl "velocityStretch";
 		editorTemplate -addControl -l "Expand Jitter Strength" "jitterStrength";
 		editorTemplate -addControl "maxJitterStrength";
 		editorTemplate -addControl "advectStrength";
