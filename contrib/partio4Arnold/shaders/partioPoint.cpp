@@ -1,6 +1,5 @@
 #include <ai.h>
 
-#include <lumaNodeId.h>
 
 AI_SHADER_NODE_EXPORT_METHODS(partioPointMtd);
 
@@ -62,7 +61,7 @@ node_parameters
 
     AiMetaDataSetStr(mds, NULL, "maya.classification", "shader/surface");
     AiMetaDataSetStr(mds, NULL, "maya.name", "fxPointParticle");
-    AiMetaDataSetInt(mds, NULL, "maya.id", ID_ARNOLD_POINT_PARTICLE);
+	//AiMetaDataSetInt(mds, NULL, "maya.id", NULL);
 }
 
 enum AutoTransparency

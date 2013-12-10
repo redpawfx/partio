@@ -1,7 +1,7 @@
 #include <ai.h>
 #include <stdio.h>
 
-extern AtNodeMethods* fxPointParticleMtd;
+extern AtNodeMethods* partioPointMtd;
 
 enum SHADERS
 {
