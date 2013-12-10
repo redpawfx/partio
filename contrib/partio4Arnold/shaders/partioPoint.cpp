@@ -60,7 +60,7 @@ node_parameters
 
 
     AiMetaDataSetStr(mds, NULL, "maya.classification", "shader/surface");
-    AiMetaDataSetStr(mds, NULL, "maya.name", "fxPointParticle");
+    AiMetaDataSetStr(mds, NULL, "maya.name", "partioPoint");
 	//AiMetaDataSetInt(mds, NULL, "maya.id", NULL);
 }
 
