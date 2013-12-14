@@ -41,6 +41,7 @@ static MGLFunctionTable *gGLFT = NULL;
 #define DORMANT_COLOR			4	// blue
 #define HILITE_COLOR			17	// pale blue
 
+// define this as an enum?
 #define DRAW_STYLE_POINTS 0
 #define DRAW_STYLE_RADIUS 1
 #define DRAW_STYLE_DISK	 2

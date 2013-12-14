@@ -242,6 +242,71 @@ ParticlesDataMutable* expandSoft(ParticlesDataMutable* expandedPData,
     return expandedPData;
 }
 
+// Fleshing this out slowly..  TODO: eventually we'll want to unify replicated code from hard/soft
+ParticlesDataMutable*  expandHard(ParticlesDataMutable* expandedPData,
+									bool sort, int numCopies,
+									bool doVelo, int expandType,
+									float jitterStren, float maxJitter, 
+									float advectStrength, float velocityStretch,
+									int unitFPS, float searchDistance
+								)
+{
+	if (sort)
+    {
+        expandedPData->sort();
+    }
+    ParticleAttribute posAttr;
+    const float* masterPositions = NULL;
+    const float* masterVelocities = NULL;
+	const int*  masterIds = NULL;
+    bool foundVelo = false;
+	float veloStretch = 0;
+	pioMTRand drand;
+	float FPSmult = 1.0f/float(unitFPS);
+	uint64_t origNumParticles = expandedPData->numParticles();
+	
+	if (expandedPData->attributeInfo("position",posAttr))
+    {
+        masterPositions = expandedPData->data<float>(posAttr,0);
+    }
+    ParticleAttribute velAttr;
+    if (expandedPData->attributeInfo("velocity",velAttr))
+    {
+        masterVelocities = expandedPData->data<float>(velAttr,0);
+        foundVelo = true;
+    }
+    ParticleAttribute idAttr;
+    if (expandedPData->attributeInfo("id",idAttr) ||expandedPData->attributeInfo("particleId",idAttr) )
+    {
+        masterIds = expandedPData->data<int>(idAttr,0);
+    }
+
+    if (expandType == EXPAND_VELO_ADVECT)
+	{
+		doVelo = true;
+	}
+	
+	expandedPData->addParticles(origNumParticles*numCopies);
+	
+
+	// to start with, lets just make x  particles for each input one..
+	for (int i = 0; i< origNumParticles; i++)
+	{
+		for int x = 0; x<= numCopies; x++)
+		{
+			int offset = (i*3);
+			masterPositions[offset*x] = masterPositions[offset];
+			masterPositions[(offset*x)+1] = masterPositions[offset+1];
+			masterPositions[(offset*x)+2]= masterPositions[offset+2];
+		}
+
+	}
+
+
+	return  expandedPData;
+}
+
+
 ///////////////////////////////////////////////////////
 /// Uses a std random offset for each particle
 Vector3D randStaticOffset_fast (Vector3D pos, float neighborDist, int id, float jitterStren, float maxJitter, int current_pass)

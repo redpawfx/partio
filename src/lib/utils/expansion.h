@@ -51,15 +51,24 @@ enum expandType {
 
 namespace Partio{
 
-	// expandSoft adds n number of extra position and velo channels to existing cache
-	// it does not increase the particle count
-	ParticlesDataMutable*  expandSoft(ParticlesDataMutable* pData,
+	//! expandSoft adds n number of extra position and velo channels to existing cache
+	//! it does not increase the particle count
+	ParticlesDataMutable*  expandSoft(ParticlesDataMutable* expandedPdata,
 										bool sort, int numCopies,
 										bool doVelo, int expandType,
 										float jitterStren, float maxJitter, float advectStrength, float velocityStretch,
 										int unitFPS, float searchDistance
 									 );
 
+	//! expandHard adds n number of extra particles to existing cache
+	//! it increases the particle count directly
+	ParticlesDataMutable*  expandHard(ParticlesDataMutable* expandedPData,
+										bool sort, int numCopies,
+										bool doVelo, int expandType,
+										float jitterStren, float maxJitter, float advectStrength, float velocityStretch,
+										int unitFPS, float searchDistance
+									 );
+	
 	//! uses stdlib::rand
 	//! creates N particles around the master particle with a random static offset
 	Vector3D randStaticOffset_fast(Vector3D pos, float neighborDist, int id, float jitterStren, float maxJitter, int current_pass);
