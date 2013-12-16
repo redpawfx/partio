@@ -265,6 +265,9 @@ ParticlesDataMutable*  expandHard(ParticlesDataMutable* expandedPData,
 	float FPSmult = 1.0f/float(unitFPS);
 	uint64_t origNumParticles = expandedPData->numParticles();
 	
+	// lets add some particles
+	expandedPData->addParticles(origNumParticles*numCopies);
+	
 	if (expandedPData->attributeInfo("position",posAttr))
     {
         masterPositions = expandedPData->data<float>(posAttr,0);
@@ -285,19 +288,40 @@ ParticlesDataMutable*  expandHard(ParticlesDataMutable* expandedPData,
 	{
 		doVelo = true;
 	}
-	
-	expandedPData->addParticles(origNumParticles*numCopies);
-	
+
 
 	// to start with, lets just make x  particles for each input one..
-	for (int i = 0; i< origNumParticles; i++)
+	for (int partIndex = 0; partIndex< origNumParticles; partIndex++)
 	{
-		for int x = 0; x<= numCopies; x++)
+		int id = masterIds[partIndex];
+		//cout << "ID-" << id << "-" <<  partIndex << endl;
+
+		float pos[3] = {(float)masterPositions[partIndex*3],
+                        (float)masterPositions[(partIndex*3)+1],
+                        (float)masterPositions[(partIndex*3)+2]
+                       };
+
+
+        std::vector<std::pair<ParticleIndex,float> > idDistancePairs;
+		int numSamples = 10;
+
+        float avDist = expandedPData->findNPoints(pos,numSamples,searchDistance,idDistancePairs);
+		avDist = sqrt(avDist);
+
+		//cout << avDist << endl;
+
+		for int x = 2; x<= numCopies+1; x++)
 		{
-			int offset = (i*3);
-			masterPositions[offset*x] = masterPositions[offset];
-			masterPositions[(offset*x)+1] = masterPositions[offset+1];
-			masterPositions[(offset*x)+2]= masterPositions[offset+2];
+			int offset = (partIndex*3);
+			masterPositions[ offset*x   ] 	= pos[0];
+			masterPositions[(offset*x)+1] 	= pos[1];
+			masterPositions[(offset*x)+2]	= pos[2];
+			masterVelocities[ offset*x   ] 	= masterVelocities[offset];
+			masterVelocities[(offset*x)+1]	= masterVelocities[offset+1];
+			masterVelocities[(offset*x)+2]	= masterVelocities[offset+2];
+
+			// not sure how to handle  id yet...
+			masterIds[partIndex*x]= id;
 		}
 
 	}
