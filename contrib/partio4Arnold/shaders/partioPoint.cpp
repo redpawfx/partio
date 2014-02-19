@@ -15,7 +15,7 @@ enum partioPointParams
 	p_MatteOpacity,
 	p_doShadowOpacity,
 	p_useLighting,
-	p_Ka,
+//	p_Ka,
 	p_Kd,
 	p_Ki,
 	p_Ks,
@@ -34,16 +34,16 @@ enum partioPointParams
 
 node_parameters
 {
-	AiParameterBOOL ( "premult"				, FALSE);
-    AiParameterBOOL ( "overrideRgbPP"		, FALSE);
+	AiParameterBOOL ( "premult"				, false);
+    AiParameterBOOL ( "overrideRgbPP"		, false);
     AiParameterRGB	( "particleColor"		, 1.0f, 1.0f, 1.0f);
-    AiParameterBOOL ( "overrideOpacityPP"	, FALSE);
+    AiParameterBOOL ( "overrideOpacityPP"	, false);
     AiParameterRGB	( "particleOpacity"		, 1.0f, 1.0f, 1.0f);
-	AiParameterBOOL ( "blackHole"			,FALSE);
+	AiParameterBOOL ( "blackHole"			, false);
     AiParameterRGB	( "matteOpacity"		, 1.0f, 1.0f, 1.0f);
-	AiParameterBOOL ( "doShadowOpacity"     ,FALSE);
-    AiParameterBOOL	( "useLighting"			,TRUE);
-    AiParameterFLT	( "Ka"	              	, 0.1f );
+	AiParameterBOOL ( "doShadowOpacity"     , false);
+    AiParameterBOOL	( "useLighting"			, true);
+//    AiParameterFLT	( "Ka"	              	, 0.1f );  // AiAmbient has been removed  from arnold 4.1.+
     AiParameterFLT	( "Kd"                	, 0.8f );
     AiParameterFLT  ( "Ki"					, 1.0f );
     AiParameterFLT	( "Ks"					, 1.0f );
@@ -54,7 +54,7 @@ node_parameters
     AiParameterFLT	( "occFalloff"			, 0 );
     AiParameterFLT	( "occMinDist"			, 0 );
     AiParameterFLT	( "occMaxDist"			, 2 );
-	AiParameterBool ( "invertOcc"			,FALSE);
+	AiParameterBool ( "invertOcc"			, false);
     AiParameterRGB  ( "emission"      		, 0.0f,0.0f,0.0f);
     AiParameterSTR  ( "aov_emission"        ,"emission");
 
@@ -110,14 +110,14 @@ shader_evaluate
 	AtRGB 		Oi = AI_RGB_BLACK;
 	AtRGB  		Ci = AI_RGB_BLACK;
 	AtRGB		MatOpac = AI_RGB_BLACK;
-	AtBoolean   blackHole = FALSE;
+	bool   blackHole = false;
 
 	AtRGB 		diffuse, indirDiff, ambient, occ, spec;
 	AtRGB		rgbPP;
-	AtFloat 	opacityPP;
-	AtFloat		minDist, maxDist, spread, falloff;
+	float 		opacityPP;
+	float		minDist, maxDist, spread, falloff;
 	AtRGB 		weighted_sample;
-	AtFloat		brdf;
+	float		brdf;
 	AtVector 	V;
 
 	minDist		=AiShaderEvalParamFlt(p_occMinDist);
@@ -164,7 +164,7 @@ shader_evaluate
 	if (AiShaderEvalParamBool(p_useLighting))
 	{
 		AiColorReset(spec);
-		ambient = AiAmbient( sg );
+		//ambient = AiAmbient; // AiAmbient removed from arnold  4.1+
 
 		diffuse = AiDirectDiffuse (&sg->Nf, sg);
 		indirDiff = AiIndirectDiffuse(&sg->Nf, sg);
@@ -182,12 +182,14 @@ shader_evaluate
 
 		AtRGB lighting;
 
-		AiColorScale(ambient, ambient,AiShaderEvalParamFlt(p_Ka));
+		//AiColorScale(ambient, ambient,AiShaderEvalParamFlt(p_Ka));
 		AiColorScale(diffuse, diffuse,AiShaderEvalParamFlt(p_Kd));
 		AiColorScale(indirDiff, indirDiff, AiShaderEvalParamFlt(p_Ki));
 
-		AiColorAdd(diffuse, diffuse, indirDiff);
-		AiColorAdd(lighting, diffuse,ambient);
+		//AiColorAdd(diffuse, diffuse, indirDiff);
+		//AiColorAdd(lighting, diffuse,ambient);
+		AiColorAdd(lighting, diffuse, indirDiff);
+
 
 		AiColorMult(Ci,Ci,lighting);
 		if (AiShaderEvalParamFlt(p_Ks))
@@ -198,7 +200,7 @@ shader_evaluate
 
 	if(AiShaderEvalParamFlt(p_KOcc) > 0)
 	{
-		AtFloat  radians = CLAMP(spread, 0.0f,90.0f) *  (float)AI_DTOR;
+		float  radians = CLAMP(spread, 0.0f,90.0f) *  (float)AI_DTOR;
 		AtVector NBent;
 		occ = AiOcclusion (&sg->Nf,&sg->Ngf, sg, minDist,maxDist,radians,falloff,data->sampler,&NBent);
  		occ *= AiShaderEvalParamFlt(p_KOcc);

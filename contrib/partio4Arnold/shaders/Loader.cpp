@@ -19,10 +19,10 @@ node_loader
 		node->node_type   = AI_NODE_SHADER;
 		break;
 	default:
-		return FALSE;
+		return false;
    }
 
    sprintf(node->version, AI_VERSION);
 
-   return TRUE;
+   return true;
 }
