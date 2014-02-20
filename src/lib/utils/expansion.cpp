@@ -309,8 +309,9 @@ ParticlesDataMutable*  expandHard(ParticlesDataMutable* expandedPData,
 		avDist = sqrt(avDist);
 
 		//cout << avDist << endl;
-
-		for int x = 2; x<= numCopies+1; x++)
+		
+		/*
+		for (int x = 2; x<= numCopies+1; x++)
 		{
 			int offset = (partIndex*3);
 			masterPositions[ offset*x   ] 	= pos[0];
@@ -323,6 +324,7 @@ ParticlesDataMutable*  expandHard(ParticlesDataMutable* expandedPData,
 			// not sure how to handle  id yet...
 			masterIds[partIndex*x]= id;
 		}
+		*/
 
 	}
 
