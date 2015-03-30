@@ -1,4 +1,7 @@
-// partioPoint shader, simple low level control over shading of particles with built in support for particle rgbPP and opacityPP sampling 
+//////////////////////////////////////////////////////////////////////////////
+// partioPoint shader:
+// simple low level control over shading of particles
+// with built in support for particle rgbPP, incandescencePP and opacityPP sampling
 // author johnc (redpawfx)  
 
 global proc AEpartioPointTemplate( string $nodeName )
@@ -23,7 +26,7 @@ global proc AEpartioPointTemplate( string $nodeName )
 			editorTemplate -endLayout;
 			editorTemplate -beginLayout "Lighting" -collapse false;
 				editorTemplate -addControl "useLighting";
-				editorTemplate -l "KAmbient  (Ka)" -addControl "Ka";
+				//editorTemplate -l "KAmbient  (Ka)" -addControl "Ka"; // ambient removed in arnold 4.1+
 				editorTemplate -l "KDiffuse  (Kd)" -addControl "Kd";
 				editorTemplate -l "KIndirect (Ki)" -addControl "Ki";
 				editorTemplate -l "KSpecular (Ks)" -addControl "Ks";
@@ -39,10 +42,14 @@ global proc AEpartioPointTemplate( string $nodeName )
 				editorTemplate -addControl "invertOcc";
 			editorTemplate -endLayout;
 			editorTemplate -beginLayout "Emission" -collapse false;
-				editorTemplate -addControl "useRgbPP";
+				editorTemplate -l "Emission From incandescence" -addControl "emColorFromIncan";
 				editorTemplate -addControl "emission";
 				editorTemplate -addControl "emission_weight";
-				editorTemplate -addControl "aovEmission";
+			editorTemplate -endLayout;
+			editorTemplate -beginLayout "AOVs" -collapse false;
+				editorTemplate -addControl "aov_direct_diffuse";
+				editorTemplate -addControl "aov_indirect_diffuse";
+				editorTemplate -addControl "aov_emission";
 			editorTemplate -endLayout;
 				
 	editorTemplate -addExtraControls;
