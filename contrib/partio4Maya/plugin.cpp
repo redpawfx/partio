@@ -45,7 +45,8 @@ MStatus initializePlugin ( MObject obj )
     MGlobal::executeCommand("source AEpartioVisualizerTemplate.mel");
     MGlobal::executeCommand("source AEpartioInstancerTemplate.mel");
     MGlobal::executeCommand("source partioExportGui.mel");
-    MGlobal::executeCommand("source partioUtils.mel");    
+    MGlobal::executeCommand("source partioUtils.mel");
+    MGlobal::executeCommand("source shelf_Partio4Maya.mel");    
 
     MStatus status;
     MFnPlugin plugin ( obj, "RedpawFX,Luma Pictures,WDAS", "0.9.8", "Any" );
