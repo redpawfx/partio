@@ -124,10 +124,6 @@ ENDIF()
 
 SET(ZLIB "z")
 
-MESSAGE("CMakeLists.txt : partio4Arnold procedurals ZLIB = ${ZLIB}")
-MESSAGE("CMakeLists.txt : partio4Arnold procedurals PARTIO_LIB = ${ZLIB}")
-
-
 ADD_LIBRARY(${PLUGIN_NAME} SHARED ${TARGET_H} ${TARGET_SRC})
 set_target_properties(${PLUGIN_NAME} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ./ )
 set_target_properties(${PLUGIN_NAME} PROPERTIES PREFIX "")
