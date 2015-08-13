@@ -1,5 +1,5 @@
 add_subdirectory(partio4Maya)
 if(NOT WIN32 AND NOT APPLE)
 	add_subdirectory(partio4Arnold)
-	add_subdirectory(partio4Houdini)
+	#add_subdirectory(partio4Houdini)
 endif(NOT WIN32 AND NOT APPLE)
