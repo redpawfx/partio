@@ -34,86 +34,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 */
 
 
-#include <iostream>
-#include <cmath>
-#include <string>
-#include <sstream>
-#include <vector>
-#include <stdlib.h>
-#include <sys/stat.h>
-#if defined(__DARWIN__) || defined(__APPLE__)
-#include <GLUT/glut.h>
-#else
-#include <GL/glut.h>
-#endif
-#include <float.h>
-
 #include <Partio.h>
-#include "Camera.h"
+#include <iostream>
 
-using namespace Partio;
-using namespace std;
-
-
-// global vars
-ParticlesData* particles;
-ParticlesData* connectivity;
-
-
-Camera camera;
-ParticleAttribute positionAttr;
-ParticleAttribute colorAttr;
-ParticleAttribute alphaAttr;
-
-ParticleAttribute attr1;
-ParticleAttribute attr2;
-
-int numPoints;
-int frameNumberOGL;
-GLuint PreviousClock;
-double fov;
-double pointSize;
-double brightness;
-
-bool useColor;
-bool useAlpha;
-bool sourceChanged;
-bool frameForwardPressed;
-bool frameBackwardPressed;
-bool brightnessUpPressed;
-bool brightnessDownPressed;
-bool* keyStates;
-bool frameMissing;
-bool anyKeyPressed;
-bool colorMissing;
-bool alphaMissing;
-
-string loadError;
-string particleFile;
-string lastParticleFile;
-string connectivityFile;
-string lastConnectivityFile;
-
-void restorePerspectiveProjection();
-void setOrthographicProjection();
-void renderBitmapString( float x,float y,float z,void *font,char *string);
-static void render();
-void  reloadParticleFile(int direction);
-static void mouseFunc(int button,int state,int x,int y);
-static void motionFunc(int x,int y);
-static void processNormalKeys(unsigned char key, int x, int y);
-static void processNormalUpKeys(unsigned char key, int x, int y);
-static void processSpecialKeys(int key, int x, int y);
-static void processSpecialUpKeys(int key, int x, int y);
-void timer();
-
-int main(int argc,char *argv[]);
-
-
-
-
-
-
-
-
-
+int main(int argc,char *argv[])
+{
+    Partio::ParticlesDataMutable* p=Partio::read("/tmp/scatter.bgeo");
+    Partio::ParticlesDataMutable* c=Partio::computeClustering(p,5,1.5,100,2,5);
+    Partio::write("/tmp/cluster.bgeo",*c);
+    return 0;
+}

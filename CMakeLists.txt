@@ -48,12 +48,17 @@ SET( ${PROJECT_NAME}_MINOR_VERSION 1 )
 SET( ${PROJECT_NAME}_PATCH_LEVEL 0 )
 
 # output executable and library path
-SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
-SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
+# The library directory is configured by setting CMAKE_INSTALL_LIBDIR.
+# Otherwise, the defaults set here are used.
+IF(EXISTS "/usr/lib64" AND NOT IS_SYMLINK "/usr/lib64")
+    SET(CMAKE_INSTALL_LIBDIR "lib64" CACHE STRING "Library Directory Basename")
+ELSE()
+    SET(CMAKE_INSTALL_LIBDIR "lib" CACHE STRING "Library Directory Basename")
+ENDIF()
 
 ## Setup platform specific helper defines build variants
 IF(WIN32)
-  ADD_DEFINITIONS (-DPARTIO_WIN32)
+  ADD_DEFINITIONS (-DPARTIO_WIN32 -D_USE_MATH_DEFINES)
 ELSE(WIN32)
   ADD_DEFINITIONS (-Wextra -Wno-unused-parameter)
   SET( CMAKE_CXX_FLAGS "-fPIC")
@@ -93,9 +98,17 @@ ENDIF(ZLIB_FOUND)
 
 ## Make modules able to see partio library
 # Setup environment variable to link partio
-SET( PARTIO_LIBRARIES ${ZLIB_LIBRARY} partio )
+SET( PARTIO_LIBRARIES partio ${ZLIB_LIBRARY} )
+
 # make it so partio can be found
 INCLUDE_DIRECTORIES( ${CMAKE_SOURCE_DIR}/src/lib )
+
+SET(SEEXPR_BASE "c:/aselle/seexpr-inst" CACHE STRING "path to SeExpr")
+SET(SEEXPR_INCLUDE_PATH ${SEEXPR_BASE}/include)
+SET(SEEXPR_LIBDIR ${CMAKE_INSTALL_LIBDIR})
+SET(SEEXPR_LINK_PATH ${SEEXPR_BASE}/${SEEXPR_LIBDIR})
+SET(SEEXPR_LIBS "SeExpr")
+
 
 ## Traverse subdirectories
 ADD_SUBDIRECTORY (src/lib)

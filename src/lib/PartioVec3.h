@@ -33,87 +33,73 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 */
 
+#pragma once
 
+#include <algorithm>
 #include <iostream>
 #include <cmath>
-#include <string>
-#include <sstream>
-#include <vector>
-#include <stdlib.h>
-#include <sys/stat.h>
-#if defined(__DARWIN__) || defined(__APPLE__)
-#include <GLUT/glut.h>
-#else
-#include <GL/glut.h>
-#endif
-#include <float.h>
 
-#include <Partio.h>
-#include "Camera.h"
+namespace Partio{
 
-using namespace Partio;
-using namespace std;
+class Vec3
+{
+public:
+    float x,y,z;
 
+    inline Vec3()
+        :x(0),y(0),z(0)
+    {}
 
-// global vars
-ParticlesData* particles;
-ParticlesData* connectivity;
+    inline Vec3(const float x,const float y,const float z)
+        :x(x),y(y),z(z)
+    {}
 
+    inline Vec3(const float v[3])
+        :x(v[0]),y(v[1]),z(v[2])
+    {}
 
-Camera camera;
-ParticleAttribute positionAttr;
-ParticleAttribute colorAttr;
-ParticleAttribute alphaAttr;
+    inline float length()
+    {return std::sqrt(x*x+y*y+z*z);}
 
-ParticleAttribute attr1;
-ParticleAttribute attr2;
+    inline float normalize()
+    {float l=length();x/=l;y/=l;z/=l;return l;}
 
-int numPoints;
-int frameNumberOGL;
-GLuint PreviousClock;
-double fov;
-double pointSize;
-double brightness;
+    inline Vec3 normalized() const
+    {Vec3 foo(x,y,z);foo.normalize();return foo;}
 
-bool useColor;
-bool useAlpha;
-bool sourceChanged;
-bool frameForwardPressed;
-bool frameBackwardPressed;
-bool brightnessUpPressed;
-bool brightnessDownPressed;
-bool* keyStates;
-bool frameMissing;
-bool anyKeyPressed;
-bool colorMissing;
-bool alphaMissing;
+    inline Vec3 operator*(const float a) const
+    {return Vec3(a*x,a*y,a*z);}
 
-string loadError;
-string particleFile;
-string lastParticleFile;
-string connectivityFile;
-string lastConnectivityFile;
+    inline Vec3 operator-(const Vec3& v) const
+    {return Vec3(x-v.x,y-v.y,z-v.z);}
 
-void restorePerspectiveProjection();
-void setOrthographicProjection();
-void renderBitmapString( float x,float y,float z,void *font,char *string);
-static void render();
-void  reloadParticleFile(int direction);
-static void mouseFunc(int button,int state,int x,int y);
-static void motionFunc(int x,int y);
-static void processNormalKeys(unsigned char key, int x, int y);
-static void processNormalUpKeys(unsigned char key, int x, int y);
-static void processSpecialKeys(int key, int x, int y);
-static void processSpecialUpKeys(int key, int x, int y);
-void timer();
+    inline Vec3 operator+(const Vec3& v) const
+    {return Vec3(x+v.x,y+v.y,z+v.z);}
 
-int main(int argc,char *argv[]);
+    inline Vec3 operator+=(const Vec3& v)
+    {x+=v.x;y+=v.y;z+=v.z;return *this;}
+
+    inline Vec3 cross(const Vec3& v) const
+    {Vec3 ret(y*v.z-z*v.y,z*v.x-x*v.z,x*v.y-y*v.x);return ret;}
+
+    inline Vec3 min(const Vec3& v) const
+    {
+        return Vec3(std::min(x,v.x),std::min(y,v.y),std::min(z,v.z));
+    }
+
+    inline Vec3 max(const Vec3& v) const
+    {
+        return Vec3(std::max(x,v.x),std::max(y,v.y),std::max(z,v.z));
+    }
+};
 
 
+std::ostream& operator<<(std::ostream& stream,const Vec3& v)
+{return stream<<v.x<<" "<<v.y<<" "<<v.z;}
 
+Vec3 operator*(const float a,const Vec3& v)
+{
+    return Vec3(a*v.x,a*v.y,a*v.z);
+}
 
-
-
-
-
-
+}

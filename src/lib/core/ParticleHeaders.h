@@ -47,13 +47,21 @@ protected:
     virtual ~ParticleHeaders();
 
     int numAttributes() const;
+    int numFixedAttributes() const;
     int numParticles() const;
     bool attributeInfo(const char* attributeName,ParticleAttribute& attribute) const;
+    bool fixedAttributeInfo(const char* attributeName,FixedAttribute& attribute) const;
     bool attributeInfo(const int attributeInfo,ParticleAttribute& attribute) const;
+    bool fixedAttributeInfo(const int attributeInfo,FixedAttribute& attribute) const;
 
     int registerIndexedStr(const ParticleAttribute& attribute,const char* str);
+    int registerFixedIndexedStr(const FixedAttribute& attribute,const char* str);
     int lookupIndexedStr(const ParticleAttribute& attribute,const char* str) const;
+    int lookupFixedIndexedStr(const FixedAttribute& attribute,const char* str) const;
+    void setIndexedStr(const ParticleAttribute& attribute,int indexedStrHandle,const char* str);
+    void setFixedIndexedStr(const FixedAttribute& attribute,int indexedStrHandle,const char* str);
     const std::vector<std::string>& indexedStrs(const ParticleAttribute& attr) const;
+    const std::vector<std::string>& fixedIndexedStrs(const FixedAttribute& attr) const;
 
     virtual void dataAsFloat(const ParticleAttribute& attribute,const int indexCount,
         const ParticleIndex* particleIndices,const bool sorted,float* values) const;
@@ -65,19 +73,23 @@ protected:
         std::vector<ParticleIndex>& points,std::vector<float>& pointDistancesSquared) const;
     int findNPoints(const float center[3],int nPoints,const float maxRadius,
         ParticleIndex *points, float *pointDistancesSquared, float *finalRadius2) const;
+    ParticlesDataMutable* computeClustering(const int numNeighbors,const double radiusSearch,const double radiusInside,const int connections,const double density)
+    {assert(false);}
 
     ParticleAttribute addAttribute(const char* attribute,ParticleAttributeType type,const int count);
+    FixedAttribute addFixedAttribute(const char* attribute,ParticleAttributeType type,const int count);
     ParticleIndex addParticle();
     iterator addParticles(const int count);
 
-    const_iterator setupConstIterator() const
+    const_iterator setupConstIterator(const int index=0) const
     {return const_iterator();}
 
-    iterator setupIterator()
+    iterator setupIterator(const int index=0)
     {return iterator();}
 
 private:
     void* dataInternal(const ParticleAttribute& attribute,const ParticleIndex particleIndex) const;
+    void* fixedDataInternal(const FixedAttribute& attribute) const;
     void dataInternalMultiple(const ParticleAttribute& attribute,const int indexCount,
         const ParticleIndex* particleIndices,const bool sorted,char* values) const;
 
@@ -85,7 +97,8 @@ private:
     int particleCount;
     std::vector<ParticleAttribute> attributes;
     std::map<std::string,int> nameToAttribute;
-
+    std::vector<FixedAttribute> fixedAttributes;
+    std::map<std::string,int> nameToFixedAttribute;
 };
 }
 #endif
