@@ -34,6 +34,10 @@
 #  Output variables of the form MAYA_FOO
 #
 
+########################################################################## HDA
+message(STATUS "################## FindMaya.cmake ##################")
+########################################################################## HDA
+
 #=============================================================================
 # Macros
 #=============================================================================
@@ -88,10 +92,9 @@ macro(MAYA_SET_PLUGIN_PROPERTIES target)
     endif()
 endmacro(MAYA_SET_PLUGIN_PROPERTIES)
 
-
 #SET(MAYA_FOUND FALSE)
 set(_maya_TEST_VERSIONS)
-set(_maya_KNOWN_VERSIONS "2008" "2009" "2010" "2011" "2012" "2013" "2014" "2015")
+set(_maya_KNOWN_VERSIONS "2008" "2009" "2010" "2011" "2012" "2013" "2014" "2015" "2016")
 
 if(APPLE)
     set(MAYA_PLUGIN_SUFFIX ".bundle")
@@ -176,21 +179,24 @@ endif()
 
 
 # Qt Versions
-if(${MAYA_VERSION} STREQUAL "2011")
+if("${MAYA_VERSION}" STREQUAL "2011")
     set(MAYA_QT_VERSION_SHORT CACHE STRING "4.5")
     set(MAYA_QT_VERSION_LONG  CACHE STRING "4.5.3")
-elseif(${MAYA_VERSION} STREQUAL "2012")
+elseif("${MAYA_VERSION}" STREQUAL "2012")
     set(MAYA_QT_VERSION_SHORT CACHE STRING "4.7")
     set(MAYA_QT_VERSION_LONG  CACHE STRING "4.7.1")
-elseif(${MAYA_VERSION} STREQUAL "2013")
+elseif("${MAYA_VERSION}" STREQUAL "2013")
     set(MAYA_QT_VERSION_SHORT CACHE STRING "4.7")
     set(MAYA_QT_VERSION_LONG  CACHE STRING "4.7.1")
-elseif(${MAYA_VERSION} STREQUAL "2014")
+elseif("${MAYA_VERSION}" STREQUAL "2014")
     set(MAYA_QT_VERSION_SHORT CACHE STRING "4.8")
     set(MAYA_QT_VERSION_LONG  CACHE STRING "4.8.2")
 elseif("${MAYA_VERSION}" STREQUAL "2015")
     set(MAYA_QT_VERSION_SHORT  CACHE STRING "4.8")
     set(MAYA_QT_VERSION_LONG  CACHE STRING "4.8.2")
+elseif("${MAYA_VERSION}" STREQUAL "2016")
+    set(MAYA_QT_VERSION_SHORT  CACHE STRING "4.8")
+    set(MAYA_QT_VERSION_LONG  CACHE STRING "4.8.6")
 endif()
 
 # NOTE: the MAYA_LOCATION environment variable is often misunderstood.  On every OS it is expected to point
@@ -206,32 +212,78 @@ message(STATUS "Maya Location: ${MAYA_LOCATION}")
 message(STATUS "Maya VERSION: ${MAYA_VERSION}")
 SET(MAYA_FOUND TRUE)
 
-find_path(MAYA_INCLUDE_DIR maya/MFn.h
-    HINTS ${MAYA_LOCATION}
-    PATH_SUFFIXES
-        include               # linux and windows
-        ../../devkit/include  # osx
-    DOC "Maya's include path")
+#find_path(MAYA_INCLUDE_DIR maya/MFn.h
+#    HINTS ${MAYA_LOCATION}
+#    PATH_SUFFIXES
+#        include               # linux and windows
+#        ../../devkit/include  # osx
+#    DOC "Maya's include path")
+#
+#LIST(APPEND MAYA_INCLUDE_DIRS ${MAYA_INCLUDE_DIR})
 
-LIST(APPEND MAYA_INCLUDE_DIRS ${MAYA_INCLUDE_DIR})
+
+##################### HDA MODIF #####################
+#FIND_PATH(MAYA_DEVKIT_INC_DIR GL/glext.h
+#  HINTS
+#    ${MAYA_LOCATION}
+#  PATH_SUFFIXES
+#	devkit/plug-ins/   # linux
+#	../../devkit/plug-ins   # osx
+#  DOC "Maya's devkit headers path"
+#)
+#LIST(APPEND MAYA_INCLUDE_DIRS ${MAYA_DEVKIT_INC_DIR})
+#
+#
+#find_path(MAYA_LIBRARY_DIRS libOpenMaya.dylib libOpenMaya.so OpenMaya.lib
+#    HINTS ${MAYA_LOCATION}
+#    PATH_SUFFIXES
+#        lib    # linux and windows
+#        MacOS  # osx
+#    DOC "Maya's library path")
+
+
+MESSAGE( STATUS " FindMaya HDA ####  MAYA_API_LOCATION :              " $ENV{MAYA_API_LOCATION} )
+
 
 FIND_PATH(MAYA_DEVKIT_INC_DIR GL/glext.h
   HINTS
-    ${MAYA_LOCATION}
+    $ENV{MAYA_API_LOCATION}
   PATH_SUFFIXES
-	devkit/plug-ins/   # linux
-	../../devkit/plug-ins   # osx
+    devkit/plug-ins/   # linux
+    ../../devkit/plug-ins   # osx
   DOC "Maya's devkit headers path"
 )
-LIST(APPEND MAYA_INCLUDE_DIRS ${MAYA_DEVKIT_INC_DIR})
+
+FIND_PATH(MAYA_INC_DIR devkit
+  HINTS
+    $ENV{MAYA_API_LOCATION}
+  DOC "Maya's devkit headers path"
+)
+
+MESSAGE( STATUS "FindMaya HDA ####  MAYA_INC_DIR :          " ${MAYA_INC_DIR} )
+
+
+LIST(APPEND MAYA_INCLUDE_DIRS  ${MAYA_DEVKIT_INC_DIR})
+LIST(APPEND MAYA_INCLUDE_DIRS  ${MAYA_INC_DIR}/include)
+
+
+MESSAGE( STATUS "FindMaya HDA ####  MAYA_DEVKIT_INC_DIR :          " ${MAYA_DEVKIT_INC_DIR} )
+MESSAGE( STATUS "FindMaya HDA ####  MAYA_INCLUDE_DIRS :            " ${MAYA_INCLUDE_DIRS} )
+MESSAGE( STATUS "FindMaya HDA ####  MAYA_INCLUDE_DIRS :            " ${MAYA_INCLUDE_DIRS} )
+
+
+#message( FATAL_ERROR " HDA DEBUG ..." )
 
 
 find_path(MAYA_LIBRARY_DIRS libOpenMaya.dylib libOpenMaya.so OpenMaya.lib
-    HINTS ${MAYA_LOCATION}
+    HINTS $ENV{MAYA_API_LOCATION}
     PATH_SUFFIXES
         lib    # linux and windows
         MacOS  # osx
     DOC "Maya's library path")
+
+
+
 
 # Set deprecated variables to avoid compatibility breaks
 set(MAYA_INCLUDE_DIR ${MAYA_INCLUDE_DIRS})
@@ -266,6 +318,11 @@ foreach(_maya_lib
             PATHS ${_maya_TEST_PATHS}
             PATH_SUFFIXES lib # linux and windows
             DOC "Maya's ${MAYA_LIB} library path")
+
+
+        MESSAGE( STATUS "!!! : MAYA_${_maya_lib}_LIBRARY " ${MAYA_${_maya_lib}_LIBRARY} )
+
+
     endif()
     list(APPEND MAYA_LIBRARIES ${MAYA_${_maya_lib}_LIBRARY})
 endforeach()

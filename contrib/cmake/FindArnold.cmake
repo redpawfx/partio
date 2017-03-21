@@ -11,6 +11,9 @@
 #  Input variables from CMake of the form Arnold_FOO
 #  Output variables of the form ARNOLD_FOO
 #
+########################################################################## HDA
+message(STATUS "################## FindArnold.cmake ##################")
+########################################################################## HDA
 
 find_library(ARNOLD_LIBRARY
     NAMES ai

@@ -34,14 +34,32 @@
 include_directories(
    ${CMAKE_SOURCE_DIR}/src/lib
    ${GLUT_INCLUDE_PATH}
+   ${GLEW_INCLUDE_PATH}
 )
 
-IF(GLUT_FOUND AND OPENGL_FOUND)
-    INCLUDE_DIRECTORIES(${GLUT_INCLUDE_DIR} ${OPENGL_INCLUDE_DIR})
-    ADD_EXECUTABLE(partview partview.cpp)
-    target_link_libraries(partview ${PARTIO_LIBRARIES} ${OPENGL_LIBRARY})
-    install(TARGETS  partview DESTINATION ${EXECUTABLE_INSTALL_PATH})
-ENDIF(GLUT_FOUND AND OPENGL_FOUND)
+########################################################################## HDA
+INCLUDE_DIRECTORIES(${GLEW_INCLUDE_DIR})
+########################################################################## HDA
+
+MESSAGE( STATUS "HDA #### GLUT_INCLUDE_PATH:         " ${GLUT_INCLUDE_PATH} )
+MESSAGE( STATUS "HDA #### GLEW_INCLUDE_PATH:         " ${GLEW_INCLUDE_PATH} )
+MESSAGE( STATUS "HDA #### GLUT_FOUND:                " ${GLUT_FOUND} )
+MESSAGE( STATUS "HDA #### GLUT_INCLUDE_DIR:          " ${GLUT_INCLUDE_DIR} )
+MESSAGE( STATUS "HDA #### GLUT_LIBRARY:              " ${GLUT_LIBRARY} )
+
+MESSAGE( STATUS "HDA BLA BLA BLA ....")
+
+
+#IF(GLUT_FOUND AND OPENGL_FOUND)
+#    INCLUDE_DIRECTORIES(${GLUT_INCLUDE_DIR} ${OPENGL_INCLUDE_DIR})
+#    ADD_EXECUTABLE(partview partview.cpp)
+#    target_link_libraries(partview ${PARTIO_LIBRARIES} ${GLUT_LIBRARY} ${OPENGL_LIBRARY})
+#	IF (${LOCAL_INSTALL})
+#		INSTALL(TARGETS partview RUNTIME DESTINATION bin/${PARTIO_BUILD_PLATFORM})
+#	ELSE(${LOCAL_INSTALL})
+#		INSTALL(TARGETS partview RUNTIME DESTINATION bin)
+#	ENDIF(${LOCAL_INSTALL})
+#ENDIF(GLUT_FOUND AND OPENGL_FOUND)
 
 ADD_EXECUTABLE(partinfo partinfo.cpp)
 target_link_libraries(partinfo ${PARTIO_LIBRARIES})
@@ -52,5 +70,10 @@ target_link_libraries(partconv ${PARTIO_LIBRARIES})
 ADD_EXECUTABLE(partattr partattr.cpp)
 target_link_libraries(partattr ${PARTIO_LIBRARIES})
 
-INSTALL(TARGETS partattr partconv partinfo DESTINATION ${EXECUTABLE_INSTALL_PATH})
+IF (${LOCAL_INSTALL})
+	INSTALL(TARGETS partattr partconv partinfo RUNTIME DESTINATION bin/${PARTIO_BUILD_PLATFORM})
+ELSE(${LOCAL_INSTALL})
+    INSTALL(TARGETS partattr partconv partinfo RUNTIME DESTINATION bin)
+ENDIF(${LOCAL_INSTALL})
+
 

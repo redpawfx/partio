@@ -87,35 +87,35 @@ IF(WIN32)
 	SET( SWIG_EXECUTABLE "${PARTIO_HOME}/winReqLibs/swigwin-2.0.4/swig.exe")
 	SET( PARTIO_BUILD_PLATFORM "windows_x86_64")
 	set(CMAKE_MODULE_PATH ${PARTIO_HOME}/cmake)
-
 ELSE(WIN32)
 	ADD_DEFINITIONS (-Wextra -Wno-unused-parameter)
 	SET( CMAKE_CXX_FLAGS "-fPIC")
 ENDIF(WIN32)
 
-## Set install location
-IF (UNIX)
-	#EXECUTE_PROCESS(COMMAND sh -c "echo `uname`-`uname -r | cut -d'-' -f1`-`uname -m`" OUTPUT_VARIABLE VARIANT_DIRECTORY OUTPUT_STRIP_TRAILING_WHITESPACE)
-    EXECUTE_PROCESS(COMMAND sh -c "echo `uname`-`uname -m`" OUTPUT_VARIABLE VARIANT_DIRECTORY OUTPUT_STRIP_TRAILING_WHITESPACE)
-	SET(PARTIO_BUILD_PLATFORM "${VARIANT_DIRECTORY}")
-	MESSAGE(STATUS "Build Platform: ${PARTIO_BUILD_PLATFORM}")
+# to switch between rez and local install paths 
+SET (LOCAL_INSTALL 0)
 
+## Set install location
+IF ( ${CMAKE_INSTALL_PREFIX}  STREQUAL  "/usr/local")
+	message(STATUS  "CMAKE INSTALL PREFIX  being changed to local build")
+	SET (LOCAL_INSTALL 1)
+	IF (UNIX)
+		EXECUTE_PROCESS(COMMAND sh -c "echo `uname`-`uname -m`" OUTPUT_VARIABLE VARIANT_DIRECTORY OUTPUT_STRIP_TRAILING_WHITESPACE)
+		SET(PARTIO_BUILD_PLATFORM "${VARIANT_DIRECTORY}")
+		MESSAGE(STATUS "Build Platform: ${PARTIO_BUILD_PLATFORM}")
+	ENDIF(UNIX)
+
+SET(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR}/build-${PARTIO_BUILD_PLATFORM}/)
 ENDIF()
 
-# output executable and library path
-SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/outputs/lib/${PARTIO_BUILD_PLATFORM})
-SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/outputs/bin/${PARTIO_BUILD_PLATFORM})
-
-# output executable and library path
-SET(EXECUTABLE_INSTALL_PATH ${CMAKE_SOURCE_DIR}/build-${PARTIO_BUILD_PLATFORM}/bin/${PARTIO_BUILD_PLATFORM})
-SET(LIBRARY_INSTALL_PATH ${CMAKE_SOURCE_DIR}/build-${PARTIO_BUILD_PLATFORM}/lib/${PARTIO_BUILD_PLATFORM})
-SET(INCLUDE_INSTALL_PATH ${CMAKE_SOURCE_DIR}/build-${PARTIO_BUILD_PLATFORM}/include)
+message(STATUS  "CMAKE INSTALL PREFIX  = ${CMAKE_INSTALL_PREFIX}")
 
 ## Search for needed  libraries
 find_package(SWIG REQUIRED)
 
 ## Search for useful libraries
 find_package(GLUT REQUIRED)
+
 IF(GLUT_FOUND)
 	INCLUDE_DIRECTORIES( ${GLUT_INCLUDE_PATH} )
 	LINK_DIRECTORIES (${GLUT_ROOT_PATH}/lib/x64)
@@ -123,6 +123,12 @@ ELSE(GLUT_FOUND)
 	INCLUDE_DIRECTORIES( ${GLUT_INCLUDE_PATH} )
 	LINK_DIRECTORIES ( ${GLUT_LIBRARY_PATH} )
 ENDIF(GLUT_FOUND)
+
+################################################################################ HDA TMP
+message(STATUS  " partio/CMakeLists.txt : GLEW_INCLUDE_DIR  = ${GLEW_INCLUDE_DIR}")
+
+INCLUDE_DIRECTORIES( ${GLEW_INCLUDE_DIR} )
+################################################################################ HDA TMP
 
 find_package(OpenGL REQUIRED)
 
@@ -150,13 +156,42 @@ ENDIF()
 # make it so partio can be found
 INCLUDE_DIRECTORIES( ${CMAKE_SOURCE_DIR}/src/lib )
 
-## Traverse subdirectories
-ADD_SUBDIRECTORY (src/lib)
-ADD_SUBDIRECTORY (src/tools)
-ADD_SUBDIRECTORY (src/py)
-ADD_SUBDIRECTORY (src/tests)
-#ADD_SUBDIRECTORY (src/houdini)
-#ADD_SUBDIRECTORY (src/doc)
-ADD_SUBDIRECTORY (contrib)
+########################################################################## HDA
+#SET (BUILD_PARTIO_LIBRARY 1)
+#SET (BUILD_PARTIO_MAYA 1)
+#SET (BUILD_PARTIO_MTOA 1)
+########################################################################## HDA
+SET (LEGACY_BUILD_MODE 1)
 
+IF (BUILD_PARTIO_LIBRARY OR BUILD_PARTIO_MAYA OR BUILD_PARTIO_MTOA OR BUILD_PARTIO_ARNOLD OR BUILD_PARTIO_HOUDINI)
+	SET (LEGACY_BUILD_MODE 0)
+ENDIF()
 
+########################################################################## HDA
+message(STATUS  "partio/CMakeLists.txt : LEGACY_BUILD_MODE  = ${LEGACY_BUILD_MODE}")
+########################################################################## HDA
+IF (LEGACY_BUILD_MODE)
+	ADD_SUBDIRECTORY (src/lib)
+	ADD_SUBDIRECTORY (src/tools)
+	ADD_SUBDIRECTORY (src/py)
+	ADD_SUBDIRECTORY (src/tests)
+	#ADD_SUBDIRECTORY (src/houdini)
+	#ADD_SUBDIRECTORY (src/doc)
+	ADD_SUBDIRECTORY (contrib)
+ELSE (LEGACY_BUILD_MODE)
+	########################################################################## HDA
+	message(STATUS  "partio/CMakeLists.txt : BUILD_PARTIO_LIBRARY  = ${BUILD_PARTIO_LIBRARY}")
+	########################################################################## HDA
+
+	IF (BUILD_PARTIO_LIBRARY)
+		ADD_SUBDIRECTORY (src/lib)
+		ADD_SUBDIRECTORY (src/tools)
+		ADD_SUBDIRECTORY (src/py)
+		ADD_SUBDIRECTORY (src/tests)
+	ENDIF (BUILD_PARTIO_LIBRARY)
+	#ADD_SUBDIRECTORY (src/houdini)
+	#ADD_DEFINITIONS_SUBDIRECTORY (src/doc)
+	IF (BUILD_PARTIO_MAYA OR BUILD_PARTIO_MTOA OR BUILD_PARTIO_ARNOLD OR BUILD_PARTIO_HOUDINI)
+		ADD_SUBDIRECTORY (contrib)
+	ENDIF()
+ENDIF ()

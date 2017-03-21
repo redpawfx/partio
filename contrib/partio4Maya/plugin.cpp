@@ -27,18 +27,29 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 */
 
+#include <GL/glew.h>
+
 #include "partioVisualizer.h"
 #include "partioInstancer.h"
 #include "partioEmitter.h"
 #include "partioExport.h"
 #include "partioImport.h"
-#include "partio4MayaShared.h"
+#include "partioVisualizerDrawOverride.h"
 #include <maya/MFnPlugin.h>
-
-
+#include <maya/MDrawRegistry.h>
+#include <maya/MGlobal.h>
 
 MStatus initializePlugin ( MObject obj )
 {
+    if (MGlobal::mayaState() == MGlobal::kInteractive)
+    {
+        MHWRender::MRenderer* renderer = MHWRender::MRenderer::theRenderer();
+        if (renderer != 0 && renderer->drawAPIIsOpenGL())
+        {
+            glewInit();
+            MHWRender::partioVisualizerDrawOverride::init_shaders();
+        }
+    }
 
     // source  mel scripts this way if they're missing from the script path it will alert the user...
     MGlobal::executeCommand("source AEpartioEmitterTemplate.mel");
@@ -46,7 +57,6 @@ MStatus initializePlugin ( MObject obj )
     MGlobal::executeCommand("source AEpartioInstancerTemplate.mel");
     MGlobal::executeCommand("source partioExportGui.mel");
     MGlobal::executeCommand("source partioUtils.mel");
-    MGlobal::executeCommand("source shelf_Partio4Maya.mel");    
 
     MStatus status;
     MFnPlugin plugin ( obj, "RedpawFX,Luma Pictures,WDAS", "0.9.8", "Any" );
@@ -54,33 +64,43 @@ MStatus initializePlugin ( MObject obj )
     status = plugin.registerShape( "partioVisualizer", partioVisualizer::id,
                                    &partioVisualizer::creator,
                                    &partioVisualizer::initialize,
-                                   &partioVisualizerUI::creator);
+                                   &partioVisualizerUI::creator,
+                                   &partioVisualizer::drawDbClassification);
 
-
-    if ( !status )
+    if (!status)
     {
-        status.perror ( "registerNode partioVisualizer failed" );
+        status.perror("registerNode partioVisualizer failed");
         return status;
     }
+
+    status = MHWRender::MDrawRegistry::registerDrawOverrideCreator(
+            partioVisualizer::drawDbClassification,
+            MHWRender::partioVisualizerDrawOverride::registrantId,
+            MHWRender::partioVisualizerDrawOverride::creator);
+
+    if (!status)
+    {
+        status.perror("registerGeometryOverride partioVisualizerOverride failed");
+        return status;
+    }
+
     status = plugin.registerShape( "partioInstancer", partioInstancer::id,
                                    &partioInstancer::creator,
                                    &partioInstancer::initialize,
                                    &partioInstancerUI::creator);
 
-
-    if ( !status )
+    if (!status)
     {
-        status.perror ( "registerNode partioInstancer failed" );
+        status.perror("registerNode partioInstancer failed");
         return status;
     }
 
-
-    status = plugin.registerNode ( "partioEmitter", partioEmitter::id,
-                                   &partioEmitter::creator, &partioEmitter::initialize,
-                                   MPxNode::kEmitterNode );
-    if ( !status )
+    status = plugin.registerNode("partioEmitter", partioEmitter::id,
+                                 &partioEmitter::creator, &partioEmitter::initialize,
+                                 MPxNode::kEmitterNode);
+    if (!status)
     {
-        status.perror ( "registerNode partioEmitter failed" );
+        status.perror("registerNode partioEmitter failed");
         return status;
     }
 
@@ -102,19 +122,22 @@ MStatus initializePlugin ( MObject obj )
 
 MStatus uninitializePlugin ( MObject obj )
 {
+    if (MGlobal::mayaState() == MGlobal::kInteractive)
+        MHWRender::partioVisualizerDrawOverride::free_shaders();
+
     MStatus status;
     MFnPlugin plugin ( obj );
 
-    status = plugin.deregisterNode ( partioVisualizer::id );
-    if ( !status )
+    status = plugin.deregisterCommand("partioImport");
+    if (!status)
     {
-        status.perror ( "deregisterNode partioVisualizer failed" );
-        return status;
+        status.perror("deregisterCommand partioImport failed");
     }
-    status = plugin.deregisterNode ( partioInstancer::id );
-    if ( !status )
+
+    status = plugin.deregisterCommand("partioExport");
+    if (!status)
     {
-        status.perror ( "deregisterNode partioInstancer failed" );
+        status.perror("deregisterCommand partioExport failed");
         return status;
     }
 
@@ -125,17 +148,30 @@ MStatus uninitializePlugin ( MObject obj )
         return status;
     }
 
-    status = plugin.deregisterCommand("partioExport");
+    status = plugin.deregisterNode(partioInstancer::id);
     if (!status)
     {
-        status.perror("deregisterCommand partioExport failed");
+        status.perror("deregisterNode partioInstancer failed");
         return status;
     }
-    status = plugin.deregisterCommand("partioImport");
+
+    status = MHWRender::MDrawRegistry::deregisterDrawOverrideCreator(
+            partioVisualizer::drawDbClassification,
+            MHWRender::partioVisualizerDrawOverride::registrantId);
+
     if (!status)
     {
-        status.perror("deregisterCommand partioImport failed");
+        status.perror("deregisterDrawOverride partioVisualizerDrawOverride failed");
+        return status;
     }
+
+    status = plugin.deregisterNode(partioVisualizer::id);
+    if (!status)
+    {
+        status.perror("deregisterNode partioVisualizer failed");
+        return status;
+    }
+
     return status;
 
 }
