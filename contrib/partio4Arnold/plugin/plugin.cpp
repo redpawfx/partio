@@ -25,9 +25,12 @@
 extern "C"
 {
 
-DLLEXPORT void initializeExtension(CExtension &plugin)
+DLLEXPORT void initializeExtension(CExtension& extension)
 {
-   plugin.RegisterTranslator("partioVisualizer",
+   MStatus status;
+   extension.Requires("partio4Maya");
+
+   status = extension.RegisterTranslator("partioVisualizer",
                              "",
                              CPartioVizTranslator::creator,
                              CPartioVizTranslator::NodeInitializer);

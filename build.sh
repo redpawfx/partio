@@ -8,8 +8,8 @@ build_type=Release
 
 #mayaVersions=(2015.sp6) #2014.sp4 do not build
 #mayaVersions=(2016.sp6) #2014.sp4 do not build
-mayaVersions=(ext2.2016.sp1)
-#mayaVersions=(2017.0.0)
+#mayaVersions=(ext2.2016.sp1)
+mayaVersions=(2017.0.0)
 
 
 #####################################################################

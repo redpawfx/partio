@@ -22,9 +22,7 @@ void* CPartioVizTranslator::creator()
 
 void CPartioVizTranslator::NodeInitializer(CAbTranslator context)
 {
-    MGlobal::displayInfo("@@@@@@@@@@  CPartioVizTranslator::NodeInitializer");
-
-
+    MGlobal::displayInfo("CPartioVizTranslator::NodeInitializer");
 
     CExtensionAttrHelper helper(context.maya, "procedural");
     CShapeTranslator::MakeCommonAttributes(helper);
@@ -113,13 +111,13 @@ void CPartioVizTranslator::NodeInitializer(CAbTranslator context)
 
 AtNode* CPartioVizTranslator::CreateArnoldNodes()
 {
-    cout << "CreateArnoldNodes" << endl;
+    cout << "CPartioVizTranslator::CreateArnoldNodes" << endl;
     return IsMasterInstance() ? AddArnoldNode("procedural") : AddArnoldNode("ginstance");
 }
 
 void CPartioVizTranslator::Export(AtNode* anode)
 {
-    cout << "Export" << endl;
+    cout << "CPartioVizTranslator::Export" << endl;
     if (AiNodeIs(anode, "ginstance"))
         ExportInstance(anode, GetMasterInstance());
     else
@@ -128,7 +126,7 @@ void CPartioVizTranslator::Export(AtNode* anode)
 
 void CPartioVizTranslator::ExportMotion(AtNode* anode)
 {
-    cout << "ExportMotion" << endl;
+    cout << "CPartioVizTranslator::ExportMotion" << endl;
     ExportMatrix(anode);
 }
 
@@ -141,7 +139,7 @@ void CPartioVizTranslator::Update(AtNode* anode)
 //
 AtNode* CPartioVizTranslator::ExportInstance(AtNode* instance, const MDagPath& masterInstance)
 {
-    cout << "ExportInstance" << endl;
+    cout << "CPartioVizTranslator::ExportInstance" << endl;
     AtNode* masterNode = AiNodeLookUpByName(masterInstance.partialPathName().asChar());
 
     AiNodeSetStr(instance, "name", m_dagPath.partialPathName().asChar());
@@ -164,7 +162,7 @@ AtNode* CPartioVizTranslator::ExportInstance(AtNode* instance, const MDagPath& m
 
 void CPartioVizTranslator::ExportShaders()
 {
-    cout << "ExportShaders" << endl;
+    cout << "CPartioVizTranslator::ExportShaders" << endl;
     AiMsgWarning("[mtoa] Shaders untested with new multitranslator and standin code.");
     /// TODO: Test shaders with standins.
     //ExportPartioVizShaders(GetArnoldRootNode());
@@ -173,7 +171,7 @@ void CPartioVizTranslator::ExportShaders()
 
 void CPartioVizTranslator::ExportPartioVizShaders(AtNode* procedural)
 {
-    cout << "ExportPartioVizShaders" << endl;
+    cout << "CPartioVizTranslator::ExportPartioVizShaders" << endl;
     int instanceNum = m_dagPath.isInstanced() ? m_dagPath.instanceNumber() : 0;
 
     std::vector<AtNode*> meshShaders;
@@ -202,7 +200,7 @@ void CPartioVizTranslator::ExportPartioVizShaders(AtNode* procedural)
 // THIS MAY NOT REALLY BE NEEDED ANYMORE BUT LEAVING IT FOR NOW
 void CPartioVizTranslator::ExportBoundingBox(AtNode* procedural)
 {
-    cout << "ExportBoundingBox" << endl;
+    cout << "CPartioVizTranslator::ExportBoundingBox" << endl;
     MBoundingBox boundingBox = m_DagNode.boundingBox();
     MPoint bbMin = boundingBox.min();
     MPoint bbMax = boundingBox.max();
@@ -221,7 +219,7 @@ void CPartioVizTranslator::ExportBoundingBox(AtNode* procedural)
 
 AtNode* CPartioVizTranslator::ExportProcedural(AtNode* procedural, bool update)
 {
-    cout << "ExportProcedural" << endl;
+    cout << "CPartioVizTranslator::ExportProcedural" << endl;
     m_DagNode.setObject(m_dagPath.node());
 
     AiNodeSetStr(procedural, "name", m_dagPath.partialPathName().asChar());
@@ -418,4 +416,3 @@ bool CPartioVizTranslator::fileCacheExists(const char* fileName)
 
     return (statReturn);
 }
-
