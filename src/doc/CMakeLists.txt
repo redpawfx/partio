@@ -1,5 +1,5 @@
 # PARTIO SOFTWARE
-# Copyright 2013 Disney Enterprises, Inc. All rights reserved
+# Copyright 2010 Disney Enterprises, Inc. All rights reserved
 # 
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are
@@ -32,14 +32,19 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 
 find_package(Doxygen)
+
 IF(DOXYGEN_FOUND)
   configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
   FILE(GLOB (DOCUMENTED_FILES ../lib/*.h))
-  add_custom_target(doc ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
-    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile #  ${DOCUMENTED_FILES}
-    COMMENT "Generating API documentation with Doxygen" VERBATIM)
+
+  add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/doxygen.txt
+    COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile >doxygen.txt
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in)
+
+  add_custom_target(doc ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/doxygen.txt)
   add_dependencies(doc DOCUMENTED_FILES)
-  
-  ADD_CUSTOM_TARGET(${HTML_TARGET} ALL ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile)
+
   INSTALL( DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/html/ DESTINATION ${CMAKE_SOURCE_DIR}/build-${PARTIO_BUILD_PLATFORM}/doc )
 ENDIF(DOXYGEN_FOUND)
