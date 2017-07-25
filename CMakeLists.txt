@@ -1,5 +1,5 @@
 # PARTIO SOFTWARE
-# Copyright 2013 Disney Enterprises, Inc. All rights reserved
+# Copyright 2010 Disney Enterprises, Inc. All rights reserved
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are
@@ -34,16 +34,12 @@
 ## CMake compatibility issues: don't modify this, please!
 CMAKE_MINIMUM_REQUIRED( VERSION 2.4.6 )
 MARK_AS_ADVANCED(CMAKE_BACKWARDS_COMPATIBILITY)
-
-if(COMMAND cmake_policy)
-     cmake_policy(SET CMP0003 NEW)
-     cmake_policy(SET CMP0015 NEW)  # to supress relative library directory warnings
-endif(COMMAND cmake_policy)
-
 ## allow more human readable "if then else" constructs
 SET( CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS TRUE )
 ## Use verbose make file
 SET ( CMAKE_VERBOSE_MAKEFILE TRUE )
+
+
 
 ## project name & version
 PROJECT( partio )
@@ -56,7 +52,7 @@ SET( PARTIO_HOME ${CMAKE_SOURCE_DIR} )
 
 ## Setup platform specific helper defines build variants
 IF(WIN32)
-    ADD_DEFINITIONS (-DPARTIO_WIN32)
+  ADD_DEFINITIONS (-DPARTIO_WIN32 -D_USE_MATH_DEFINES)
 
     # these are the defaults included with partio
     SET( ZLIB_INCLUDE_DIR "${PARTIO_HOME}/winReqLibs/zlib-win_x64/include")
@@ -69,11 +65,11 @@ IF(WIN32)
     SET( PARTIO_BUILD_PLATFORM "windows_x86_64")
     set(CMAKE_MODULE_PATH ${PARTIO_HOME}/cmake)
 ELSE(WIN32)
-    ADD_DEFINITIONS (-Wextra -Wno-unused-parameter)
-    SET( CMAKE_CXX_FLAGS "-fPIC")
+  ADD_DEFINITIONS (-Wextra -Wno-unused-parameter)
+  SET( CMAKE_CXX_FLAGS "-fPIC")
 ENDIF(WIN32)
 
-# to switch between rez and local install paths 
+# to switch between rez and local install paths
 SET (LOCAL_INSTALL 0)
 
 ## Set install location
@@ -81,7 +77,7 @@ IF ( ${CMAKE_INSTALL_PREFIX}  STREQUAL  "/usr/local")
     message(STATUS  "CMAKE INSTALL PREFIX  being changed to local build")
     SET (LOCAL_INSTALL 1)
     IF (UNIX)
-        EXECUTE_PROCESS(COMMAND sh -c "echo `uname`-`uname -m`" OUTPUT_VARIABLE VARIANT_DIRECTORY OUTPUT_STRIP_TRAILING_WHITESPACE)
+    EXECUTE_PROCESS(COMMAND sh -c "echo `uname`-`uname -r | cut -d'-' -f1`-`uname -m`" OUTPUT_VARIABLE VARIANT_DIRECTORY OUTPUT_STRIP_TRAILING_WHITESPACE)
         SET(PARTIO_BUILD_PLATFORM "${VARIANT_DIRECTORY}")
         MESSAGE(STATUS "Build Platform: ${PARTIO_BUILD_PLATFORM}")
     ENDIF(UNIX)
@@ -90,10 +86,10 @@ SET(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR}/build-${PARTIO_BUILD_PLATFORM}/)
 ENDIF()
 
 message(STATUS  "CMAKE INSTALL PREFIX  = ${CMAKE_INSTALL_PREFIX}")
-
+## Search for useful libraries
+#find_package(GLUT REQUIRED)
 find_package(OpenGL REQUIRED)
-
-find_package(ZLIB REQUIRED)
+find_package(ZLIB REQUIRED)  # TODO  FIX THIS,  if required it should throw an error message that makes sense
 IF(ZLIB_FOUND)
     ADD_DEFINITIONS (-DPARTIO_USE_ZLIB)
     INCLUDE_DIRECTORIES ( ${ZLIB_INCLUDE_DIR} )
@@ -121,6 +117,17 @@ IF (PARTIO_NAMESPACE)
     ADD_DEFINITIONS(-DPARTIO_NAMESPACE=${PARTIO_NAMESPACE})
 ENDIF ()
 
+## SE EXPR   support  add  cmake switch support to this..
+SET (SEEXPR_SUPPORT 0)
+
+IF (SEEXPR_SUPPORT)
+SET(SEEXPR_BASE "c:/aselle/seexpr-inst" CACHE STRING "path to SeExpr")
+SET(SEEXPR_INCLUDE_PATH ${SEEXPR_BASE}/include)
+SET(SEEXPR_LIBDIR ${CMAKE_INSTALL_LIBDIR})
+SET(SEEXPR_LINK_PATH ${SEEXPR_BASE}/${SEEXPR_LIBDIR})
+SET(SEEXPR_LIBS "SeExpr")
+ENDIF ()
+
 option(BUILD_PARTIO_LIBRARY "Build the partio library" OFF)
 option(BUILD_PARTIO_MAYA "Build the maya plugin" OFF)
 option(BUILD_PARTIO_ARNOLD "Build the arnold plugin" OFF)
@@ -136,20 +143,20 @@ IF (BUILD_PARTIO_LIBRARY OR BUILD_PARTIO_MAYA OR BUILD_PARTIO_MTOA OR BUILD_PART
 ENDIF()
 
 IF (LEGACY_BUILD_MODE)
-    ADD_SUBDIRECTORY (src/lib)
-    ADD_SUBDIRECTORY (src/tools)
-    ADD_SUBDIRECTORY (src/py)
-    ADD_SUBDIRECTORY (src/tests)
+    #ADD_SUBDIRECTORY (src/lib)
+    #ADD_SUBDIRECTORY (src/tools)
+    #ADD_SUBDIRECTORY (src/py)
+    #ADD_SUBDIRECTORY (src/tests)
     #ADD_SUBDIRECTORY (src/houdini)
-    #ADD_SUBDIRECTORY (src/doc)
-    ADD_SUBDIRECTORY (contrib)
+    ADD_SUBDIRECTORY (src/doc)
+    #ADD_SUBDIRECTORY (contrib)
 ELSE (LEGACY_BUILD_MODE)
     IF (BUILD_PARTIO_LIBRARY)
-        ADD_SUBDIRECTORY (src/lib)
-        ADD_SUBDIRECTORY (src/tools)
+        #ADD_SUBDIRECTORY (src/lib)
+        #ADD_SUBDIRECTORY (src/tools)
         # Temp removal of the python bindings, have to figure out how to change the swig files
         #ADD_SUBDIRECTORY (src/py)
-        ADD_SUBDIRECTORY (src/tests)
+        #ADD_SUBDIRECTORY (src/tests)
 
         ## Search for useful libraries
         find_package(GLUT REQUIRED)
@@ -161,8 +168,8 @@ ELSE (LEGACY_BUILD_MODE)
             LINK_DIRECTORIES ( ${GLUT_LIBRARY_PATH} )
         ENDIF(GLUT_FOUND)
     ENDIF (BUILD_PARTIO_LIBRARY)
-    #ADD_SUBDIRECTORY (src/houdini)
-    #ADD_DEFINITIONS_SUBDIRECTORY (src/doc)
+    #ADD_SUBDIRECTORY (src/houdini) #  WE NEVER BUILD THIS VERSION.. its unfinished 
+    ADD_SUBDIRECTORY (src/doc)
     IF (BUILD_PARTIO_MAYA OR BUILD_PARTIO_MTOA OR BUILD_PARTIO_ARNOLD OR BUILD_PARTIO_HOUDINI OR BUILD_PARTIO_USD OR BUILD_PARTIO_USD_MAYA)
         ADD_SUBDIRECTORY (contrib)
     ENDIF()
