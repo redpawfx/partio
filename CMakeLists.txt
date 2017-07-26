@@ -40,12 +40,16 @@ SET( CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS TRUE )
 SET ( CMAKE_VERBOSE_MAKEFILE TRUE )
 
 
-
 ## project name & version
 PROJECT( partio )
 SET( ${PROJECT_NAME}_MAJOR_VERSION 0 )
 SET( ${PROJECT_NAME}_MINOR_VERSION 1 )
 SET( ${PROJECT_NAME}_PATCH_LEVEL 0 )
+
+# Luma Pictures uses the REZ build tool wrapper to build its software
+# https://github.com/LumaPictures/rez
+# This defauts the build to standard  CMake build style
+option(USE_REZ_BUILD "Use REZ to build Parti" OFF)
 
 ## CHANGE THIS TO WHERE YOU PUT THE PARTIO MAIN DIRECTORY
 SET( PARTIO_HOME ${CMAKE_SOURCE_DIR} )
@@ -70,10 +74,10 @@ ELSE(WIN32)
 ENDIF(WIN32)
 
 # to switch between rez and local install paths
+# We don't want to install in /usr/local, we prefer to package up things into a subdir right in our source dir 
 SET (LOCAL_INSTALL 0)
 
 ## Set install location
-IF ( ${CMAKE_INSTALL_PREFIX}  STREQUAL  "/usr/local")
     message(STATUS  "CMAKE INSTALL PREFIX  being changed to local build")
     SET (LOCAL_INSTALL 1)
     IF (UNIX)
@@ -81,14 +85,34 @@ IF ( ${CMAKE_INSTALL_PREFIX}  STREQUAL  "/usr/local")
         SET(PARTIO_BUILD_PLATFORM "${VARIANT_DIRECTORY}")
         MESSAGE(STATUS "Build Platform: ${PARTIO_BUILD_PLATFORM}")
     ENDIF(UNIX)
+    IF (WIN32)
+        SET(PARTIO_BUILD_PLATFORM "Win64")
+        MESSAGE(STATUS "Build Platform: ${PARTIO_BUILD_PLATFORM}")
+    ENDIF(WIN32) 
+    IF (APPLE)
+        SET(PARTIO_BUILD_PLATFORM "OSX")
+        MESSAGE(STATUS "Build Platform: ${PARTIO_BUILD_PLATFORM}")
+    ENDIF(APPLE)
 
-SET(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR}/build-${PARTIO_BUILD_PLATFORM}/)
-ENDIF()
+    SET(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR}/build-${PARTIO_BUILD_PLATFORM}/)
+
 
 message(STATUS  "CMAKE INSTALL PREFIX  = ${CMAKE_INSTALL_PREFIX}")
+
+
 ## Search for useful libraries
-#find_package(GLUT REQUIRED)
+
+find_package(GLUT REQUIRED) 
+IF(GLUT_FOUND)
+    INCLUDE_DIRECTORIES( ${GLUT_INCLUDE_PATH} )
+    LINK_DIRECTORIES (${GLUT_ROOT_PATH}/lib/x64)
+ELSE(GLUT_FOUND)
+    INCLUDE_DIRECTORIES( ${GLUT_INCLUDE_PATH} )
+    LINK_DIRECTORIES ( ${GLUT_LIBRARY_PATH} )
+ENDIF(GLUT_FOUND)
+
 find_package(OpenGL REQUIRED)
+
 find_package(ZLIB REQUIRED)  # TODO  FIX THIS,  if required it should throw an error message that makes sense
 IF(ZLIB_FOUND)
     ADD_DEFINITIONS (-DPARTIO_USE_ZLIB)
@@ -129,6 +153,7 @@ SET(SEEXPR_LIBS "SeExpr")
 ENDIF ()
 
 option(BUILD_PARTIO_LIBRARY "Build the partio library" OFF)
+option(BUILD_PARTIO_DOCS "Build the partio Doxygen Docs" OFF)
 option(BUILD_PARTIO_MAYA "Build the maya plugin" OFF)
 option(BUILD_PARTIO_ARNOLD "Build the arnold plugin" OFF)
 option(BUILD_PARTIO_MTOA "Build the mtoa plugin" OFF)
@@ -136,41 +161,25 @@ option(BUILD_PARTIO_HOUDINI "Build the houdini plugin" OFF)
 option(BUILD_PARTIO_USD "Build the usd plugin" OFF)
 option(BUILD_PARTIO_USD_MAYA "Build the usdMaya plugin" OFF)
 
-SET (LEGACY_BUILD_MODE 1)
+IF (BUILD_PARTIO_DOCS)
+    ADD_SUBDIRECTORY (src/doc)
+ENDIF(BUILD_PARTIO_DOCS)
 
-IF (BUILD_PARTIO_LIBRARY OR BUILD_PARTIO_MAYA OR BUILD_PARTIO_MTOA OR BUILD_PARTIO_ARNOLD OR BUILD_PARTIO_HOUDINI OR BUILD_PARTIO_USD OR BUILD_PARTIO_USD_MAYA)
-    SET (LEGACY_BUILD_MODE 0)
-ENDIF()
-
-IF (LEGACY_BUILD_MODE)
-    #ADD_SUBDIRECTORY (src/lib)
-    #ADD_SUBDIRECTORY (src/tools)
+# We Currently Don't build the WDAS Houdini directory
+IF(BUILD_PARTIO_LIBRARY)
+    ADD_SUBDIRECTORY (src/lib)
     #ADD_SUBDIRECTORY (src/py)
     #ADD_SUBDIRECTORY (src/tests)
-    #ADD_SUBDIRECTORY (src/houdini)
-    ADD_SUBDIRECTORY (src/doc)
-    #ADD_SUBDIRECTORY (contrib)
-ELSE (LEGACY_BUILD_MODE)
-    IF (BUILD_PARTIO_LIBRARY)
-        #ADD_SUBDIRECTORY (src/lib)
-        #ADD_SUBDIRECTORY (src/tools)
-        # Temp removal of the python bindings, have to figure out how to change the swig files
-        #ADD_SUBDIRECTORY (src/py)
-        #ADD_SUBDIRECTORY (src/tests)
+    #IF (GLUT_FOUND)
+    #    ADD_SUBDIRECTORY (src/tools)
+    #ENDIF(GLUT_FOUND)
+ENDIF(BUILD_PARTIO_LIBRARY)
 
-        ## Search for useful libraries
-        find_package(GLUT REQUIRED)
-        IF(GLUT_FOUND)
-            INCLUDE_DIRECTORIES( ${GLUT_INCLUDE_PATH} )
-            LINK_DIRECTORIES (${GLUT_ROOT_PATH}/lib/x64)
-        ELSE(GLUT_FOUND)
-            INCLUDE_DIRECTORIES( ${GLUT_INCLUDE_PATH} )
-            LINK_DIRECTORIES ( ${GLUT_LIBRARY_PATH} )
-        ENDIF(GLUT_FOUND)
-    ENDIF (BUILD_PARTIO_LIBRARY)
-    #ADD_SUBDIRECTORY (src/houdini) #  WE NEVER BUILD THIS VERSION.. its unfinished 
-    ADD_SUBDIRECTORY (src/doc)
-    IF (BUILD_PARTIO_MAYA OR BUILD_PARTIO_MTOA OR BUILD_PARTIO_ARNOLD OR BUILD_PARTIO_HOUDINI OR BUILD_PARTIO_USD OR BUILD_PARTIO_USD_MAYA)
-        ADD_SUBDIRECTORY (contrib)
-    ENDIF()
-ENDIF ()
+IF (BUILD_PARTIO_MAYA OR BUILD_PARTIO_MTOA OR BUILD_PARTIO_ARNOLD OR BUILD_PARTIO_HOUDINI OR BUILD_PARTIO_USD OR BUILD_PARTIO_USD_MAYA)
+    ADD_SUBDIRECTORY (contrib)
+ENDIF()
+
+
+
+
+
