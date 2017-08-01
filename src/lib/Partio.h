@@ -322,5 +322,12 @@ void endCachedAccess(ParticlesData* particles);
 void print(const ParticlesData* particles);
 
 ParticlesDataMutable* computeClustering(ParticlesDataMutable* particles, const int numNeighbors,const double radiusSearch,const double radiusInside,const int connections,const double density);
+
+//! Returns the list of supported read formats.
+std::vector<std::string> supportedReadFormats();
+
+//! Returns the list of supported write formats.
+std::vector<std::string> supportedWriteFormats();
+
 EXIT_PARTIO_NAMESPACE
 #endif

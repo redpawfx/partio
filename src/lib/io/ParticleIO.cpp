@@ -178,5 +178,29 @@ write(const char* c_filename,const ParticlesData& particles,const bool forceComp
     (*i->second)(c_filename,particles,forceCompressed || endsWithGz,verbose ? &errorStream : 0);
 }
 
+std::vector<std::string>
+supportedReadFormats() {
+    std::map<std::string, READER_FUNCTION>& _readers = readers();
+    std::vector<std::string> ret;
+    ret.reserve(_readers.size());
+    for (std::map<std::string, READER_FUNCTION>::iterator it = _readers.begin(); it != _readers.end(); ++it) {
+        ret.push_back(it->first);
+    }
+
+    return ret;
+}
+
+std::vector<std::string>
+supportedWriteFormats() {
+    std::map<std::string, WRITER_FUNCTION>& _writers = writers();
+    std::vector<std::string> ret;
+    ret.reserve(_writers.size());
+    for (std::map<std::string, WRITER_FUNCTION>::iterator it = _writers.begin(); it != _writers.end(); ++it) {
+        ret.push_back(it->first);
+    }
+
+    return ret;
+}
+
 EXIT_PARTIO_NAMESPACE
 
