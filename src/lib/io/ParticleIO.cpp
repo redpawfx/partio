@@ -69,9 +69,12 @@ readers()
         data["prt"]=readPRT;
         data["bin"]=readBIN;
         data["pts"]=readPTS;
+        data["xyz"]=readXYZ;
+        data["pcd"]=readPCD;
         data["ptf"]=readPTC;
         data["itbl"]=readBGEO;
         data["atbl"]=readBGEO;
+        data["rpc"]=readRPC;
 	initialized=true;
 	initializationMutex.unlock();
     }
@@ -98,6 +101,7 @@ writers()
         data["pdc"]=writePDC;
         data["prt"]=writePRT;
         data["bin"]=writeBIN;
+        data["pcd"]=writePCD;
         data["ptf"]=writePTC;
         data["itbl"]=writeBGEO;
         data["atbl"]=writeBGEO;

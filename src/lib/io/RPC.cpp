@@ -64,7 +64,7 @@ typedef struct{
 
 } RPC_HEADER;
 
-ParticlesDataMutable* readRPC(const char* filename, const bool headersOnly)
+ParticlesDataMutable* readRPC(const char* filename, const bool headersOnly,std::ostream* errorStream )
 {
 	RPCFile reader;
 	if(!reader.Open(filename))

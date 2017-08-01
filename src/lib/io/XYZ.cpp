@@ -53,7 +53,7 @@ using namespace std;
 
 // TODO: convert this to use iterators like the rest of the readers/writers
 
-ParticlesDataMutable* readXYZ(const char* filename,const bool headersOnly)
+ParticlesDataMutable* readXYZ(const char* filename,const bool headersOnly, std::ostream* errorStream )
 {
     auto_ptr<istream> input(Gzip_In(filename,ios::in|ios::binary));
     if (!*input)

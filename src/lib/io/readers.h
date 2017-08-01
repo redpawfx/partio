@@ -49,6 +49,9 @@ ParticlesDataMutable* readPDC(	const char* filename,const bool headersOnly,std::
 ParticlesDataMutable* readPRT(	const char* filename,const bool headersOnly,std::ostream* errorStream);
 ParticlesDataMutable* readBIN(	const char* filename,const bool headersOnly,std::ostream* errorStream);
 ParticlesDataMutable* readPTS(  const char* filename,const bool headersOnly,std::ostream* errorStream);
+ParticlesDataMutable* readXYZ(  const char* filename,const bool headersOnly,std::ostream* errorStream);
+ParticlesDataMutable* readPCD(  const char* filename,const bool headersOnly,std::ostream* errorStream);
+ParticlesDataMutable* readRPC(  const char* filename,const bool headersOnly,std::ostream* errorStream);
 
 bool writeBGEO(const char* filename,const ParticlesData& p,const bool compressed,std::ostream* errorStream);
 bool writeGEO(const char* filename,const ParticlesData& p,const bool compressed,std::ostream* errorStream);
@@ -61,6 +64,9 @@ bool writeRIB(const char* filename,const ParticlesData& p,const bool compressed,
 bool writePDC(const char* filename,const ParticlesData& p,const bool compressed,std::ostream* errorStream);
 bool writePRT(const char* filename,const ParticlesData& p,const bool compressed,std::ostream* errorStream);
 bool writeBIN(const char* filename,const ParticlesData& p,const bool compressed,std::ostream* errorStream);
+bool writePCD(const char* filename,const ParticlesData& p,const bool compressed,std::ostream* errorStream);
+
+//bool writeRPC(const char* filename,const ParticlesData& p,const bool compressed);
 
 EXIT_PARTIO_NAMESPACE
 

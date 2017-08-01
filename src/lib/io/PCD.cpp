@@ -69,7 +69,7 @@ using namespace std;
 
 // TODO: convert this to use iterators like the rest of the readers/writers
 
-ParticlesDataMutable* readPCD(const char* filename,const bool headersOnly)
+ParticlesDataMutable* readPCD(const char* filename,const bool headersOnly,std::ostream* errorStream)
 {
 	//cout <<  "readPCD" << endl;
     auto_ptr<istream> input(Gzip_In(filename,ios::in|ios::binary));
@@ -296,7 +296,7 @@ ParticlesDataMutable* readPCD(const char* filename,const bool headersOnly)
     return simple;
 }
 
-bool writePCD(const char* filename,const ParticlesData& p,const bool compressed)
+bool writePCD(const char* filename,const ParticlesData& p,const bool compressed,std::ostream* errorStream )
 {
 	//cout << "write PCD" << endl;
 	bool comp = false ;
