@@ -1,6 +1,6 @@
 /*
 PARTIO SOFTWARE
-Copyright (c) 2013  Disney Enterprises, Inc. and Contributors,  All rights reserved
+Copyright (c) 2011 Disney Enterprises, Inc. and Contributors,  All rights reserved
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
@@ -38,6 +38,8 @@ Modifications from: github user: redpawfx (redpawFX@gmail.com)  and Luma Picture
 
 
 */
+#ifndef PARTIO_WIN32
+#ifdef PARTIO_USE_ZLIB
 #include "../Partio.h"
 #include "PartioEndian.h"
 #include "../core/ParticleHeaders.h"
@@ -45,7 +47,7 @@ Modifications from: github user: redpawfx (redpawFX@gmail.com)  and Luma Picture
 
 
 //#define USE_ILMHALF    // use Ilm's Half library
-//#define AUTO_CASES    // auto upcase ie:position => Position
+#define AUTO_CASES    // auto upcase ie:position => Position
 
 #ifdef USE_ILMHALF
 #include <half.h>
@@ -56,12 +58,13 @@ Modifications from: github user: redpawfx (redpawFX@gmail.com)  and Luma Picture
 #include <string>
 #include <memory>
 #include <zlib.h>
+#endif
 
 ENTER_PARTIO_NAMESPACE
 
 #define OUT_BUFSIZE		(4096)
 
-typedef struct FileHeader {
+typedef struct FileHeadder {
     unsigned char	magic[8];
     unsigned int	headersize;
     unsigned char	signature[32];
@@ -95,7 +98,7 @@ static f_ui half2float[65536] = {
 };
 #endif
 
-static bool read_buffer(std::istream& is, z_stream& z, char* in_buf, void* p, size_t size) {
+static bool read_buffer(std::istream& is, z_stream& z, char* in_buf, void* p, size_t size, std::ostream* errorStream) {
     z.next_out=(Bytef*)p;
     z.avail_out=(uInt)size;
 
@@ -105,7 +108,7 @@ static bool read_buffer(std::istream& is, z_stream& z, char* in_buf, void* p, si
                 z.next_in = (Bytef*)in_buf;
                 is.read((char*)z.next_in, OUT_BUFSIZE);
                 if (is.bad()) {
-                    std::cerr<<"read error "<<std::endl;;
+                    if(errorStream) *errorStream<<"read error "<<std::endl;;
                     return false;
                 }
                 z.avail_in = (uInt)is.gcount();
@@ -113,7 +116,7 @@ static bool read_buffer(std::istream& is, z_stream& z, char* in_buf, void* p, si
         }
         int ret = inflate( &z, Z_BLOCK  );
         if ( ret != Z_OK && ret != Z_STREAM_END ) {
-            std::cerr<<"Zlib error "<<z.msg<<std::endl;;
+            if(errorStream) *errorStream<<"Zlib error "<<z.msg<<std::endl;;
             return false;
         }
         if (ret == Z_STREAM_END && z.avail_out > 0) {
@@ -124,7 +127,7 @@ static bool read_buffer(std::istream& is, z_stream& z, char* in_buf, void* p, si
     return true;
 }
 
-static bool write_buffer(std::ostream& os, z_stream& z, char* out_buf, void* p, size_t size, bool flush) {
+static bool write_buffer(std::ostream& os, z_stream& z, char* out_buf, void* p, size_t size, bool flush,std::ostream* errorStream) {
     z.next_in=(Bytef*)p;
     z.avail_in=(uInt)size;
     while (z.avail_in!=0 || flush) {
@@ -132,7 +135,7 @@ static bool write_buffer(std::ostream& os, z_stream& z, char* out_buf, void* p, 
 	z.avail_out = OUT_BUFSIZE;
 	int ret=deflate(&z,flush?Z_FINISH:Z_NO_FLUSH);
 	if (!(ret!=Z_BUF_ERROR && ret!=Z_STREAM_ERROR)) {
-            std::cerr<<"Zlib error "<<z.msg<<std::endl;;
+            if(errorStream) *errorStream<<"Zlib error "<<z.msg<<std::endl;;
             return false;
         }
         int	generated_output=(int)(z.next_out-(Bytef*)out_buf);
@@ -144,11 +147,11 @@ static bool write_buffer(std::ostream& os, z_stream& z, char* out_buf, void* p, 
 
 
 
-ParticlesDataMutable* readPRT(const char* filename,const bool headersOnly)
+ParticlesDataMutable* readPRT(const char* filename,const bool headersOnly,std::ostream* errorStream)
 {
     std::auto_ptr<std::istream> input(new std::ifstream(filename,std::ios::in|std::ios::binary));
     if (!*input) {
-        std::cerr<<"Partio: Unable to open file "<<filename<<std::endl;
+        if(errorStream) *errorStream<<"Partio: Unable to open file "<<filename<<std::endl;
         return 0;
     }
 
@@ -157,16 +160,16 @@ ParticlesDataMutable* readPRT(const char* filename,const bool headersOnly)
     if (headersOnly) simple=new ParticleHeaders;
     else simple=create();
 
-    FileHeader header;
-    input->read((char*)&header,sizeof(FileHeader));
+    FileHeadder header;
+    input->read((char*)&header,sizeof(FileHeadder));
 
     if (memcmp(header.magic, magic, sizeof(magic))) {
-        std::cerr<<"Partio: failed to get PRT magic"<<std::endl;
+        if(errorStream) *errorStream<<"Partio: failed to get PRT magic"<<std::endl;
         return 0;
     }
     
     // The header may be a different size in other PRT versions
-    if (header.headersize > sizeof(FileHeader))
+    if (header.headersize > sizeof(FileHeadder))
         input->seekg(header.headersize);
     
     int reserve=0;
@@ -214,7 +217,7 @@ ParticlesDataMutable* readPRT(const char* filename,const bool headersOnly)
         if (type != NONE) {
 #ifdef AUTO_CASES
             if (ch.name[0] >= 'A' && ch.name[0] <= 'Z') {
-               ch.name[0] += 0x20;
+                ch.name[0] += 0x20;
             }
 #endif
             std::string name((char*)ch.name);
@@ -236,7 +239,7 @@ ParticlesDataMutable* readPRT(const char* filename,const bool headersOnly)
     z_stream z;
     z.zalloc = Z_NULL;z.zfree = Z_NULL;z.opaque = Z_NULL;
     if (inflateInit( &z ) != Z_OK) {
-        std::cerr<<"Zlib inflateInit error"<<std::endl;
+        if(errorStream) *errorStream<<"Zlib inflateInit error"<<std::endl;
         return 0;
     }
 
@@ -248,7 +251,7 @@ ParticlesDataMutable* readPRT(const char* filename,const bool headersOnly)
 
     for (unsigned int particleIndex=0;particleIndex<(unsigned int )simple->numParticles();particleIndex++) {
         // Read the particle from the file, and decompress it into a single particle-sized buffer.
-        read_buffer(*input, z, (char*)in_buf, prt_buf, particleSize);
+        read_buffer(*input, z, (char*)in_buf, prt_buf, particleSize, errorStream);
         
         for (unsigned int attrIndex=0;attrIndex<attrs.size();attrIndex++) {
             if (attrs[attrIndex].type==Partio::INT) {
@@ -334,7 +337,7 @@ ParticlesDataMutable* readPRT(const char* filename,const bool headersOnly)
     delete prt_buf;
     
     if (inflateEnd( &z ) != Z_OK) {
-        std::cerr<<"Zlib inflateEnd error"<<std::endl;
+        if(errorStream) *errorStream<<"Zlib inflateEnd error"<<std::endl;
         return 0;
     }
 
@@ -342,7 +345,7 @@ ParticlesDataMutable* readPRT(const char* filename,const bool headersOnly)
     return simple;
 }
 
-bool writePRT(const char* filename,const ParticlesData& p,const bool /*compressed*/)
+bool writePRT(const char* filename,const ParticlesData& p,const bool /*compressed*/,std::ostream* errorStream)
 {
 	/// Krakatoa pukes on 0 particle files for some reason so don't export at all....
     int numParts = p.numParticles();
@@ -352,18 +355,18 @@ bool writePRT(const char* filename,const ParticlesData& p,const bool /*compresse
         new std::ofstream(filename,std::ios::out|std::ios::binary));
 
         if (!*output) {
-            std::cerr<<"Partio Unable to open file "<<filename<<std::endl;
+            if(errorStream) *errorStream <<"Partio Unable to open file "<<filename<<std::endl;
             return false;
         }
 
-        FileHeader header;
+        FileHeadder header;
         memcpy(header.magic, magic, sizeof(magic));
         memcpy(header.signature, signature, sizeof(signature));
         header.headersize = 0x38;
         header.version = 1;
         header.numParticles = p.numParticles();
         int reserve = 4;
-        output->write((char*)&header,sizeof(FileHeader));
+        output->write((char*)&header,sizeof(FileHeadder));
         write<LITEND>(*output, reserve);
         write<LITEND>(*output, (int)p.numAttributes());
             reserve = 0x2c;
@@ -399,7 +402,7 @@ bool writePRT(const char* filename,const ParticlesData& p,const bool /*compresse
         z_stream z;
         z.zalloc = Z_NULL;z.zfree = Z_NULL;z.opaque = Z_NULL;
         if (deflateInit( &z, Z_DEFAULT_COMPRESSION ) != Z_OK) {
-            std::cerr<<"Zlib deflateInit error"<<std::endl;
+            if(errorStream) *errorStream<<"Zlib deflateInit error"<<std::endl;
             return false;
         }
 
@@ -408,18 +411,18 @@ bool writePRT(const char* filename,const ParticlesData& p,const bool /*compresse
             for (unsigned int attrIndex=0;attrIndex<attrs.size();attrIndex++) {
                 if (attrs[attrIndex].type==Partio::INT) {
                     const int* data=p.data<int>(attrs[attrIndex],particleIndex);
-                    if (!write_buffer(*output, z, (char*)out_buf, (void*)data, sizeof(int)*attrs[attrIndex].count, false))
+                    if (!write_buffer(*output, z, (char*)out_buf, (void*)data, sizeof(int)*attrs[attrIndex].count, false, errorStream))
                         return false;
                 } else if (attrs[attrIndex].type==Partio::FLOAT || attrs[attrIndex].type==Partio::VECTOR) {
                     const float* data=p.data<float>(attrs[attrIndex],particleIndex);
-                    if (!write_buffer(*output, z, (char*)out_buf, (void*)data, sizeof(int)*attrs[attrIndex].count, false))
+                    if (!write_buffer(*output, z, (char*)out_buf, (void*)data, sizeof(int)*attrs[attrIndex].count, false, errorStream))
                         return false;
                 }
             }
         }
-        write_buffer(*output, z, (char*)out_buf, 0, 0, true);
+        write_buffer(*output, z, (char*)out_buf, 0, 0, true, errorStream);
         if (deflateEnd( &z ) != Z_OK) {
-            std::cerr<<"Zlib deflateEnd error"<<std::endl;
+            if(errorStream) *errorStream<<"Zlib deflateEnd error"<<std::endl;
             return false;
         }
         // success
@@ -428,4 +431,26 @@ bool writePRT(const char* filename,const ParticlesData& p,const bool /*compresse
 }
 
 EXIT_PARTIO_NAMESPACE
+#else
+#include "../Partio.h"
+#include <iostream>
+#include <fstream>
+
+ENTER_PARTIO_NAMESPACE
+
+ParticlesDataMutable* readPRT(const char* filename,const bool headersOnly)
+{
+    std::cerr<<"PRT not supported on windows"<<std::endl;
+    return 0;
+}
+
+
+bool writePRT(const char* filename,const ParticlesData& p,const bool /*compressed*/)
+{
+    std::cerr<<"PRT not supported on windows"<<std::endl;
+    return false;
+}
+EXIT_PARTIO_NAMESPACE
+
+#endif
 

@@ -1,6 +1,6 @@
 /*
 PARTIO SOFTWARE
-Copyright 2013 Disney Enterprises, Inc. All rights reserved
+Copyright 2010 Disney Enterprises, Inc. All rights reserved
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
@@ -51,8 +51,6 @@ ENTER_PARTIO_NAMESPACE
 
 using namespace std;
 
-// TODO:  we need to support  particle ID in here, if we can't use ints then lets just store ID into a float and extract it back out into an int
-
 static const int ptc_magic=((((('c'<<8)|'t')<<8)|'p')<<8)|'p';
 
 
@@ -80,25 +78,25 @@ bool ParseSpec(const string& spec,string& typeName,string& name)
     return true;
 }
 
-ParticlesDataMutable* readPTC(const char* filename,const bool headersOnly)
+ParticlesDataMutable* readPTC(const char* filename,const bool headersOnly,std::ostream* errorStream)
 {
     auto_ptr<istream> input(Gzip_In(filename,ios::in|ios::binary));
     if(!*input){
-        cerr<<"Partio: Unable to open file "<<filename<<endl;
+        if(errorStream) *errorStream <<"Partio: Unable to open file "<<filename<<endl;
         return 0;
     }
 
     int magic;
     read<LITEND>(*input,magic);
     if(ptc_magic!=magic){
-        cerr<<"Partio: Magic number '"<<magic<<"' of '"<<filename<<"' doesn't match pptc magic '"<<ptc_magic<<"'"<<endl;
+        if(errorStream) *errorStream <<"Partio: Magic number '"<<magic<<"' of '"<<filename<<"' doesn't match pptc magic '"<<ptc_magic<<"'"<<endl;
         return 0;
     }
 
     int version;
     read<LITEND>(*input,version);
     if(version>2){
-        cerr<<"Partio: ptc reader only supports version 2 or less"<<endl;
+        if(errorStream) *errorStream <<"Partio: ptc reader only supports version 2 or less"<<endl;
         return 0;
     }
 
@@ -163,7 +161,7 @@ ParticlesDataMutable* readPTC(const char* filename,const bool headersOnly)
             dataType=FLOAT;
             dataSize=1;
         }else{
-            cerr<<"Partio: "<<filename<<" had unknown attribute spec "<<typeName<<" "<<name<<endl;
+            if(errorStream) *errorStream <<"Partio: "<<filename<<" had unknown attribute spec "<<typeName<<" "<<name<<endl;
             simple->release();
             return 0;
         }
@@ -182,7 +180,7 @@ ParticlesDataMutable* readPTC(const char* filename,const bool headersOnly)
         parsedSize+=dataSize;
     }
     if(dataSize!=parsedSize){
-        cerr<<"Partio: error with PTC, computed dataSize ("<<dataSize
+        if(errorStream) *errorStream <<"Partio: error with PTC, computed dataSize ("<<dataSize
                  <<") different from read one ("<<parsedSize<<")"<<endl;
         simple->release();
         return 0;
@@ -234,7 +232,7 @@ ParticlesDataMutable* readPTC(const char* filename,const bool headersOnly)
     return simple;
 }
 
-bool writePTC(const char* filename,const ParticlesData& p,const bool compressed)
+bool writePTC(const char* filename,const ParticlesData& p,const bool compressed,std::ostream* errorStream)
 {
     //ofstream output(filename,ios::out|ios::binary);
 
@@ -244,7 +242,7 @@ bool writePTC(const char* filename,const ParticlesData& p,const bool compressed)
         :new ofstream(filename,ios::out|ios::binary));
 
     if(!*output){
-        cerr<<"Partio Unable to open file "<<filename<<endl;
+        if(errorStream) *errorStream <<"Partio Unable to open file "<<filename<<endl;
         return false;
     }
 
@@ -262,11 +260,11 @@ bool writePTC(const char* filename,const ParticlesData& p,const bool compressed)
     bool foundRadius=p.attributeInfo("radius",radiusHandle);
 
     if(!foundPosition){
-        cerr<<"Partio: failed to find attr 'position' for PTC output"<<endl;
+        if(errorStream) *errorStream <<"Partio: failed to find attr 'position' for PTC output"<<endl;
         return false;
     }
-    if(!foundNormal) cerr<<"Partio: failed to find attr 'normal' for PTC output, using 0,0,0"<<endl;
-    if(!foundRadius) cerr<<"Partio: failed to find attr 'radius' for PTC output, using 1"<<endl;
+    if(!foundNormal) if(errorStream) *errorStream <<"Partio: failed to find attr 'normal' for PTC output, using 0,0,0"<<endl;
+    if(!foundRadius) if(errorStream) *errorStream <<"Partio: failed to find attr 'radius' for PTC output, using 1"<<endl;
 
     // compute bounding box
     float boxmin[3]={FLT_MAX,FLT_MAX,FLT_MAX},boxmax[3]={-FLT_MAX,-FLT_MAX,-FLT_MAX};
@@ -318,11 +316,10 @@ bool writePTC(const char* filename,const ParticlesData& p,const bool compressed)
                 dataSize+=attr.count;
                 specs.push_back("matrix "+attr.name+"\n");
             }else{
-                cerr<<"Partio: Unable to write data type "<<TypeName(attr.type)<<"["<<attr.count<<"] to a ptc file"<<endl;
+                if(errorStream) *errorStream <<"Partio: Unable to write data type "<<TypeName(attr.type)<<"["<<attr.count<<"] to a ptc file"<<endl;
             }
         }
     }
-    //cerr<<"writing dataSize"<<dataSize<<endl;
     write<LITEND>(*output,nVars,dataSize);
 
     for(unsigned int i=0;i<specs.size();i++){
