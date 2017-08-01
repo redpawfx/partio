@@ -49,7 +49,7 @@ SET( ${PROJECT_NAME}_PATCH_LEVEL 0 )
 # Luma Pictures uses the REZ build tool wrapper to build its software
 # https://github.com/LumaPictures/rez
 # This defauts the build to standard  CMake build style
-option(USE_REZ_BUILD "Use REZ to build Parti" OFF)
+option(USE_REZ_BUILD "Use REZ to build Partio" OFF)
 
 ## CHANGE THIS TO WHERE YOU PUT THE PARTIO MAIN DIRECTORY
 SET( PARTIO_HOME ${CMAKE_SOURCE_DIR} )
@@ -75,8 +75,7 @@ ENDIF(WIN32)
 
 # to switch between rez and local install paths
 # We don't want to install in /usr/local, we prefer to package up things into a subdir right in our source dir 
-SET (LOCAL_INSTALL 0)
-
+if (!USE_REZ_BUILD) 
 ## Set install location
     message(STATUS  "CMAKE INSTALL PREFIX  being changed to local build")
     SET (LOCAL_INSTALL 1)
@@ -95,7 +94,7 @@ SET (LOCAL_INSTALL 0)
     ENDIF(APPLE)
 
     SET(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR}/build-${PARTIO_BUILD_PLATFORM}/)
-
+endif()
 
 message(STATUS  "CMAKE INSTALL PREFIX  = ${CMAKE_INSTALL_PREFIX}")
 
@@ -145,6 +144,7 @@ ENDIF ()
 SET (SEEXPR_SUPPORT 0)
 
 IF (SEEXPR_SUPPORT)
+ADD_DEFINITIONS (-DPARTIO_USE_SEEXPR)
 SET(SEEXPR_BASE "c:/aselle/seexpr-inst" CACHE STRING "path to SeExpr")
 SET(SEEXPR_INCLUDE_PATH ${SEEXPR_BASE}/include)
 SET(SEEXPR_LIBDIR ${CMAKE_INSTALL_LIBDIR})
@@ -168,8 +168,8 @@ ENDIF(BUILD_PARTIO_DOCS)
 # We Currently Don't build the WDAS Houdini directory
 IF(BUILD_PARTIO_LIBRARY)
     ADD_SUBDIRECTORY (src/lib)
-    #ADD_SUBDIRECTORY (src/py)
-    #ADD_SUBDIRECTORY (src/tests)
+    ADD_SUBDIRECTORY (src/py)
+    ADD_SUBDIRECTORY (src/tests)
     #IF (GLUT_FOUND)
     #    ADD_SUBDIRECTORY (src/tools)
     #ENDIF(GLUT_FOUND)
