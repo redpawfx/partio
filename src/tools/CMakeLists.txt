@@ -1,23 +1,23 @@
 # PARTIO SOFTWARE
-# Copyright 2013 Disney Enterprises, Inc. All rights reserved
-#
+# Copyright 2010 Disney Enterprises, Inc. All rights reserved
+# 
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are
 # met:
-#
+# 
 # * Redistributions of source code must retain the above copyright
 # notice, this list of conditions and the following disclaimer.
-#
+# 
 # * Redistributions in binary form must reproduce the above copyright
 # notice, this list of conditions and the following disclaimer in
 # the documentation and/or other materials provided with the
 # distribution.
-#
+# 
 # * The names "Disney", "Walt Disney Pictures", "Walt Disney Animation
 # Studios" or the names of its contributors may NOT be used to
 # endorse or promote products derived from this software without
 # specific prior written permission from Walt Disney Pictures.
-#
+# 
 # Disclaimer: THIS SOFTWARE IS PROVIDED BY WALT DISNEY PICTURES AND
 # CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,
 # BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS
@@ -36,6 +36,7 @@ include_directories(
    ${GLUT_INCLUDE_PATH}
 )
 
+if(0)
 IF(GLUT_FOUND AND OPENGL_FOUND)
     INCLUDE_DIRECTORIES(${GLUT_INCLUDE_DIR} ${OPENGL_INCLUDE_DIR})
     ADD_EXECUTABLE(partview partview.cpp)
@@ -46,6 +47,7 @@ IF(GLUT_FOUND AND OPENGL_FOUND)
 		INSTALL(TARGETS partview RUNTIME DESTINATION bin)
 	ENDIF(${LOCAL_INSTALL})
 ENDIF(GLUT_FOUND AND OPENGL_FOUND)
+endif(0)
 
 ADD_EXECUTABLE(partinfo partinfo.cpp)
 target_link_libraries(partinfo ${PARTIO_LIBRARIES})
