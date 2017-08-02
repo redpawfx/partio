@@ -37,9 +37,7 @@ This code is partially based on the Gifts/readpdb directory of Autodesk Maya
 
 #include "../Partio.h"
 #include "../core/ParticleHeaders.h"
-namespace PDB{
-#include "pdb.h"
-}
+
 #include "PartioEndian.h"
 #include "ZIP.h"
 #include <iostream>
@@ -50,6 +48,10 @@ namespace PDB{
 #include <string.h>
 
 ENTER_PARTIO_NAMESPACE
+
+namespace PDB{
+#include "pdb.h"
+}
 
 using namespace std;
 

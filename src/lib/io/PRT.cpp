@@ -38,7 +38,7 @@ Modifications from: github user: redpawfx (redpawFX@gmail.com)  and Luma Picture
 
 
 */
-#ifndef PARTIO_WIN32
+
 #ifdef PARTIO_USE_ZLIB
 #include "../Partio.h"
 #include "PartioEndian.h"
@@ -47,7 +47,7 @@ Modifications from: github user: redpawfx (redpawFX@gmail.com)  and Luma Picture
 
 
 //#define USE_ILMHALF    // use Ilm's Half library
-#define AUTO_CASES    // auto upcase ie:position => Position
+//#define AUTO_CASES    // auto upcase ie:position => Position
 
 #ifdef USE_ILMHALF
 #include <half.h>
@@ -64,7 +64,7 @@ ENTER_PARTIO_NAMESPACE
 
 #define OUT_BUFSIZE		(4096)
 
-typedef struct FileHeadder {
+typedef struct FileHeader {
     unsigned char	magic[8];
     unsigned int	headersize;
     unsigned char	signature[32];
@@ -160,8 +160,8 @@ ParticlesDataMutable* readPRT(const char* filename,const bool headersOnly,std::o
     if (headersOnly) simple=new ParticleHeaders;
     else simple=create();
 
-    FileHeadder header;
-    input->read((char*)&header,sizeof(FileHeadder));
+    FileHeader header;
+    input->read((char*)&header,sizeof(FileHeader));
 
     if (memcmp(header.magic, magic, sizeof(magic))) {
         if(errorStream) *errorStream<<"Partio: failed to get PRT magic"<<std::endl;
@@ -169,7 +169,7 @@ ParticlesDataMutable* readPRT(const char* filename,const bool headersOnly,std::o
     }
     
     // The header may be a different size in other PRT versions
-    if (header.headersize > sizeof(FileHeadder))
+    if (header.headersize > sizeof(FileHeader))
         input->seekg(header.headersize);
     
     int reserve=0;
@@ -359,14 +359,14 @@ bool writePRT(const char* filename,const ParticlesData& p,const bool /*compresse
             return false;
         }
 
-        FileHeadder header;
+        FileHeader header;
         memcpy(header.magic, magic, sizeof(magic));
         memcpy(header.signature, signature, sizeof(signature));
         header.headersize = 0x38;
         header.version = 1;
         header.numParticles = p.numParticles();
         int reserve = 4;
-        output->write((char*)&header,sizeof(FileHeadder));
+        output->write((char*)&header,sizeof(FileHeader));
         write<LITEND>(*output, reserve);
         write<LITEND>(*output, (int)p.numAttributes());
             reserve = 0x2c;
@@ -431,26 +431,4 @@ bool writePRT(const char* filename,const ParticlesData& p,const bool /*compresse
 }
 
 EXIT_PARTIO_NAMESPACE
-#else
-#include "../Partio.h"
-#include <iostream>
-#include <fstream>
-
-ENTER_PARTIO_NAMESPACE
-
-ParticlesDataMutable* readPRT(const char* filename,const bool headersOnly)
-{
-    std::cerr<<"PRT not supported on windows"<<std::endl;
-    return 0;
-}
-
-
-bool writePRT(const char* filename,const ParticlesData& p,const bool /*compressed*/)
-{
-    std::cerr<<"PRT not supported on windows"<<std::endl;
-    return false;
-}
-EXIT_PARTIO_NAMESPACE
-
-#endif
 
