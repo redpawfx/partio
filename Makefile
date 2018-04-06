@@ -10,14 +10,27 @@ builddir ?= $(CURDIR)/build/$(platformdir)
 prefix ?= $(CURDIR)/$(platformdir)
 #DESTDIR =
 
+CMAKE_FLAGS =
+# Allow out-of-band customization
+-include Makefile.config
+
 ifdef V
     VERBOSE=1
     export VERBOSE
 endif
 
-CMAKE_FLAGS ?= -DCMAKE_INSTALL_PREFIX=$(prefix)
+# Installation location: prefix=<path>
+CMAKE_FLAGS += -DCMAKE_INSTALL_PREFIX=$(prefix)
+
+# SeExpr v2 location: RP_SeExpr=<path>
 ifdef RP_SeExpr
     CMAKE_FLAGS += -DSEEXPR_BASE=$(RP_SeExpr)
+    CMAKE_FLAGS += -DPARTIO_SE_ENABLED=1
+endif
+
+# Extra cmake flags: CMAKE_EXTRA_FLAGS=<flags>
+ifdef CMAKE_EXTRA_FLAGS
+    CMAKE_FLAGS += $(CMAKE_EXTRA_FLAGS)
 endif
 
 # The default target in this Makefile is...

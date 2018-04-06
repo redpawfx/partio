@@ -36,9 +36,8 @@ CMAKE_MINIMUM_REQUIRED( VERSION 2.4.6 )
 MARK_AS_ADVANCED(CMAKE_BACKWARDS_COMPATIBILITY)
 ## allow more human readable "if then else" constructs
 SET( CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS TRUE )
-## Use verbose make file
-SET ( CMAKE_VERBOSE_MAKEFILE TRUE )
-
+## disable rpath when linking
+SET( CMAKE_SKIP_RPATH TRUE )
 
 
 ## project name & version
@@ -47,14 +46,10 @@ SET( ${PROJECT_NAME}_MAJOR_VERSION 0 )
 SET( ${PROJECT_NAME}_MINOR_VERSION 1 )
 SET( ${PROJECT_NAME}_PATCH_LEVEL 0 )
 
-# output executable and library path
-# The library directory is configured by setting CMAKE_INSTALL_LIBDIR.
-# Otherwise, the defaults set here are used.
-IF(EXISTS "/usr/lib64" AND NOT IS_SYMLINK "/usr/lib64")
-    SET(CMAKE_INSTALL_LIBDIR "lib64" CACHE STRING "Library Directory Basename")
-ELSE()
-    SET(CMAKE_INSTALL_LIBDIR "lib" CACHE STRING "Library Directory Basename")
-ENDIF()
+include(GNUInstallDirs)
+
+# PARTIO_SE_ENABLED enables SeExpr support
+option(PARTIO_SE_ENABLED "PARTIO_SE_ENABLED" false)
 
 ## Setup platform specific helper defines build variants
 IF(WIN32)
@@ -103,11 +98,14 @@ SET( PARTIO_LIBRARIES partio ${ZLIB_LIBRARY} )
 # make it so partio can be found
 INCLUDE_DIRECTORIES( ${CMAKE_SOURCE_DIR}/src/lib )
 
-SET(SEEXPR_BASE "c:/aselle/seexpr-inst" CACHE STRING "path to SeExpr")
-SET(SEEXPR_INCLUDE_PATH ${SEEXPR_BASE}/include)
-SET(SEEXPR_LIBDIR ${CMAKE_INSTALL_LIBDIR})
-SET(SEEXPR_LINK_PATH ${SEEXPR_BASE}/${SEEXPR_LIBDIR})
-SET(SEEXPR_LIBS "SeExpr")
+if (${PARTIO_SE_ENABLED})
+    add_definitions(-DPARTIO_SE_ENABLED=1)
+    SET(SEEXPR_BASE "c:/aselle/seexpr-inst" CACHE STRING "path to SeExpr")
+    SET(SEEXPR_INCLUDE_PATH ${SEEXPR_BASE}/include)
+    SET(SEEXPR_LIBDIR ${CMAKE_INSTALL_LIBDIR})
+    SET(SEEXPR_LINK_PATH ${SEEXPR_BASE}/${SEEXPR_LIBDIR})
+    SET(SEEXPR_LIBS "SeExpr")
+endif ()
 
 
 ## Traverse subdirectories
@@ -116,5 +114,3 @@ ADD_SUBDIRECTORY (src/tools)
 ADD_SUBDIRECTORY (src/py)
 ADD_SUBDIRECTORY (src/tests)
 ADD_SUBDIRECTORY (src/doc)
-
-
